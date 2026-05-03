@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BUGOUT by MindForgers - Post your problem. World solves it.</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #0a0a0a; --bg2: #111111; --card: #1a1a1a;
+            --accent: #00ff88; --accent2: #00cc6a;
+            --text: #ffffff; --text2: #888888;
+            --border: #222222; --error: #ff4444; --success: #00ff88;
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+
+        /* NAV */
+        header { background: var(--bg2); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; }
+        .logo { font-size: 1.5rem; font-weight: 900; color: var(--accent); cursor: pointer; letter-spacing: -1px; }
+        .logo span { color: var(--text2); font-weight: 400; font-size: 0.9rem; margin-left: 6px; }
+        .nav-right { display: flex; align-items: center; gap: 12px; }
+        .user-pill { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 6px 14px; font-size: 0.85rem; color: var(--text2); display: flex; align-items: center; gap: 8px; }
+        .xp { background: var(--accent); color: var(--bg); border-radius: 10px; padding: 2px 8px; font-size: 0.75rem; font-weight: 700; }
+
+        /* BUTTONS */
+        .btn { background: var(--accent); color: var(--bg); border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.95rem; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+        .btn:hover { background: var(--accent2); transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
+        .btn-ghost { background: transparent; color: var(--accent); border: 1.5px solid var(--accent); }
+        .btn-ghost:hover { background: var(--accent); color: var(--bg); }
+        .btn-sm { padding: 6px 14px; font-size: 0.85rem; }
+        .btn-disabled { opacity: 0.5; pointer-events: none; }
+
+        /* PAGES */
+        .page { display: none; }
+        .page.active { display: block; }
+
+        /* HOME */
+        .hero { text-align: center; padding: 4rem 0 2rem; }
+        .hero h1 { font-size: 2.8rem; font-weight: 900; line-height: 1.1; margin-bottom: 1rem; }
+        .hero h1 span { color: var(--accent); }
+        .hero p { color: var(--text2); font-size: 1.1rem; margin-bottom: 2rem; }
+        .filters { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 2.5rem; }
+        .filter-btn { background: var(--card); color: var(--text2); border: 1px solid var(--border); padding: 6px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; }
+        .filter-btn:hover, .filter-btn.active { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
+        .bugs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.5rem; padding-bottom: 3rem; }
+        .bug-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; cursor: pointer; transition: all 0.2s; }
+        .bug-card:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 8px 30px rgba(0,255,136,0.08); }
+        .bug-tag { display: inline-block; background: rgba(0,255,136,0.15); color: var(--accent); border-radius: 6px; padding: 3px 10px; font-size: 0.78rem; font-weight: 600; margin-bottom: 10px; }
+        .bug-card h3 { font-size: 1.1rem; margin-bottom: 8px; line-height: 1.3; }
+        .bug-card p { color: var(--text2); font-size: 0.9rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 1rem; }
+        .bug-footer { display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--text2); }
+
+        /* POST PAGE */
+        .form-wrap { max-width: 600px; margin: 3rem auto; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; }
+        .form-wrap h2 { margin-bottom: 1.5rem; font-size: 1.4rem; }
+        .field { margin-bottom: 1.2rem; }
+        .field label { display: block; font-size: 0.85rem; color: var(--text2); margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .field input, .field textarea, .field select { width: 100%; background: var(--bg2); border: 1.5px solid var(--border); border-radius: 8px; padding: 12px; color: var(--text); font-size: 0.95rem; transition: border 0.2s; outline: none; }
+        .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--accent); }
+        .field textarea { min-height: 130px; resize: vertical; }
+        .field select option { background: var(--bg2); }
+        .form-actions { display: flex; gap: 10px; margin-top: 1.5rem; }
+
+        /* DETAIL PAGE */
+        .detail-wrap { max-width: 750px; margin: 2rem auto; padding-bottom: 3rem; }
+        .back-btn { display: inline-flex; align-items: center; gap: 6px; color: var(--text2); cursor: pointer; font-size: 0.9rem; margin-bottom: 1.5rem; transition: color 0.2s; background: none; border: none; }
+        .back-btn:hover { color: var(--accent); }
+        .detail-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; }
+        .detail-card h2 { font-size: 1.6rem; margin: 10px 0; }
+        .detail-card .desc { color: var(--text2); line-height: 1.7; white-space: pre-wrap; }
+        .detail-meta { display: flex; gap: 1rem; margin-top: 1rem; font-size: 0.85rem; color: var(--text2); flex-wrap: wrap; }
+        .solutions-header { font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; }
+        .solution-input-box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .solution-input-box h4 { margin-bottom: 1rem; font-size: 1rem; }
+        .solutions-list { display: flex; flex-direction: column; gap: 1rem; }
+        .sol-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; position: relative; transition: border 0.2s; }
+        .sol-card.best { border-color: var(--accent); background: linear-gradient(135deg, rgba(0,255,136,0.05), var(--card)); }
+        .sol-card p { color: var(--text2); line-height: 1.7; white-space: pre-wrap; margin-bottom: 1rem; }
+        .sol-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .upvote { background: transparent; border: 1px solid var(--border); color: var(--text2); border-radius: 6px; padding: 5px 12px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; display: flex; align-items: center; gap: 5px; }
+        .upvote:hover { border-color: var(--accent); color: var(--accent); }
+        .best-badge { position: absolute; top: 1rem; right: 1rem; background: var(--accent); color: var(--bg); border-radius: 6px; padding: 3px 10px; font-size: 0.78rem; font-weight: 700; }
+        .sol-author { font-size: 0.82rem; color: var(--text2); }
+
+        /* MODAL */
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 999; padding: 1rem; }
+        .overlay.show { display: flex; }
+        .modal { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; width: 100%; max-width: 420px; }
+        .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .modal-head h2 { font-size: 1.3rem; }
+        .close-x { background: none; border: none; color: var(--text2); font-size: 1.4rem; cursor: pointer; line-height: 1; }
+        .close-x:hover { color: var(--text); }
+        .tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; }
+        .tab { flex: 1; background: none; border: none; color: var(--text2); padding: 10px; cursor: pointer; font-size: 0.95rem; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.2s; }
+        .tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; }
+
+        /* STATES */
+        .loading { text-align: center; padding: 4rem; color: var(--text2); grid-column: 1/-1; }
+        .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .empty { text-align: center; padding: 4rem; color: var(--text2); grid-column: 1/-1; }
+        .empty h3 { color: var(--text); margin-bottom: 0.5rem; font-size: 1.2rem; }
+
+        /* TOAST */
+        .toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 20px; font-size: 0.9rem; z-index: 9999; animation: slideUp 0.3s ease; max-width: 280px; }
+        .toast.ok { border-color: var(--accent); }
+        .toast.err { border-color: var(--error); color: var(--error); }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 600px) {
+            .hero h1 { font-size: 1.8rem; }
+            .bugs-grid { grid-template-columns: 1fr; }
+            .filters { justify-content: flex-start; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <nav class="container">
+        <div class="logo" onclick="goHome()">BUGOUT <span>by MindForgers</span></div>
+        <div class="nav-right">
+            <div class="user-pill" id="userPill" style="display:none;">
+                <span id="userName"></span>
+                <span class="xp" id="userXP">0 XP</span>
+            </div>
+            <button class="btn btn-sm" id="authBtn" onclick="handleAuth()">Sign In</button>
+            <button class="btn btn-sm btn-ghost" id="postBtn" onclick="goPost()" style="display:none;">+ Post Bug</button>
+        </div>
+    </nav>
+</header>
+
+<main class="container">
+
+    <!-- HOME -->
+    <div class="page active" id="homePage">
+        <div class="hero">
+            <h1>Post your problem.<br><span>World solves it.</span></h1>
+            <p>A community where every problem finds its solution.</p>
+        </div>
+        <div class="filters">
+            <button class="filter-btn active" onclick="filter('all',this)">All</button>
+            <button class="filter-btn" onclick="filter('Coding',this)">💻 Coding</button>
+            <button class="filter-btn" onclick="filter('Life',this)">🌱 Life</button>
+            <button class="filter-btn" onclick="filter('Studies',this)">📚 Studies</button>
+            <button class="filter-btn" onclick="filter('Career',this)">💼 Career</button>
+            <button class="filter-btn" onclick="filter('Relationships',this)">❤️ Relationships</button>
+            <button class="filter-btn" onclick="filter('Random',this)">🎲 Random</button>
+        </div>
+        <div class="bugs-grid" id="bugsGrid">
+            <div class="loading"><div class="spinner"></div><p>Loading...</p></div>
+        </div>
+    </div>
+
+    <!-- POST -->
+    <div class="page" id="postPage">
+        <div class="form-wrap">
+            <h2>Post a Bug 🐛</h2>
+            <div class="field"><label>Title</label><input type="text" id="bugTitle" placeholder="What's your problem?"></div>
+            <div class="field">
+                <label>Category</label>
+                <select id="bugCat">
+                    <option value="">Select category</option>
+                    <option value="Coding">💻 Coding</option>
+                    <option value="Life">🌱 Life</option>
+                    <option value="Studies">📚 Studies</option>
+                    <option value="Career">💼 Career</option>
+                    <option value="Relationships">❤️ Relationships</option>
+                    <option value="Random">🎲 Random</option>
+                </select>
+            </div>
+            <div class="field"><label>Description</label><textarea id="bugDesc" placeholder="Describe your problem in detail..."></textarea></div>
+            <div class="form-actions">
+                <button class="btn" id="submitBugBtn" onclick="submitBug()">Post Bug 🚀</button>
+                <button class="btn btn-ghost" onclick="goHome()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DETAIL -->
+    <div class="page" id="detailPage">
+        <div class="detail-wrap" id="detailWrap"></div>
+    </div>
+
+</main>
+
+<!-- AUTH MODAL -->
+<div class="overlay" id="authModal">
+    <div class="modal">
+        <div class="modal-head">
+            <h2>Welcome to BUGOUT 🐛</h2>
+            <button class="close-x" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="tabs">
+            <button class="tab active" id="loginTab" onclick="switchTab('login')">Login</button>
+            <button class="tab" id="signupTab" onclick="switchTab('signup')">Sign Up</button>
+        </div>
+        <div class="tab-pane active" id="loginPane">
+            <div class="field"><label>Email</label><input type="email" id="loginEmail" placeholder="you@email.com" autocomplete="email"></div>
+            <div class="field"><label>Password</label><input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password"></div>
+            <button class="btn" style="width:100%;" id="loginBtn" onclick="doLogin()">Login</button>
+        </div>
+        <div class="tab-pane" id="signupPane">
+            <div class="field"><label>Username</label><input type="text" id="signupUser" placeholder="your_username"></div>
+            <div class="field"><label>Email</label><input type="email" id="signupEmail" placeholder="you@email.com" autocomplete="email"></div>
+            <div class="field"><label>Password</label><input type="password" id="signupPass" placeholder="Min 6 characters" autocomplete="new-password"></div>
+            <button class="btn" style="width:100%;" id="signupBtn" onclick="doSignup()">Create Account</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ─── SUPABASE ───────────────────────────────────────────────
+const SB_URL  = 'https://ufybyvufusswyswoxjra.supabase.co';
+const SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmeWJ5dnVmdXNzd3lzd294anJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MDUyOTMsImV4cCI6MjA5MzM4MTI5M30.A-3RT1B5MjSLaX7SpHpyh1IVuYmHzW8Puy8lI3paVA0';
+const db = window.supabase.createClient(SB_URL, SB_KEY);
+
+// ─── STATE ──────────────────────────────────────────────────
+let me = null, myName = null, myXP = 0, activeBug = null, activeCategory = 'all';
+
+// ─── INIT ───────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+    // close modal on overlay click
+    document.getElementById('authModal').addEventListener('click', e => { if (e.target.id === 'authModal') closeModal(); });
+
+    try {
+        const { data: { session } } = await db.auth.getSession();
+        if (session) await setUser(session.user);
+    } catch(e) {}
+
+    db.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'SIGNED_IN' && session) await setUser(session.user);
+        if (event === 'SIGNED_OUT') clearUser();
+    });
+
+    loadBugs();
+});
+
+// ─── USER ───────────────────────────────────────────────────
+async function setUser(user) {
+    me = user;
+    try {
+        const { data } = await db.from('profiles').select('username, xp').eq('user_id', user.id).maybeSingle();
+        if (data) { myName = data.username; myXP = data.xp || 0; }
+        else { myName = user.email.split('@')[0]; myXP = 0; }
+    } catch(e) { myName = user.email.split('@')[0]; myXP = 0; }
+    renderUserUI();
+}
+
+function clearUser() {
+    me = null; myName = null; myXP = 0;
+    renderUserUI();
+}
+
+function renderUserUI() {
+    const loggedIn = !!me;
+    document.getElementById('authBtn').textContent = loggedIn ? 'Sign Out' : 'Sign In';
+    document.getElementById('userPill').style.display = loggedIn ? 'flex' : 'none';
+    document.getElementById('postBtn').style.display = loggedIn ? 'inline-flex' : 'none';
+    if (loggedIn) {
+        document.getElementById('userName').textContent = myName;
+        document.getElementById('userXP').textContent = myXP + ' XP';
+    }
+}
+
+async function addXP(amount) {
+    if (!me) return;
+    try {
+        myXP += amount;
+        await db.from('profiles').update({ xp: myXP }).eq('user_id', me.id);
+        document.getElementById('userXP').textContent = myXP + ' XP';
+    } catch(e) {}
+}
+
+// ─── AUTH ACTIONS ────────────────────────────────────────────
+function handleAuth() {
+    if (me) doSignOut(); else openModal();
+}
+
+function openModal() {
+    document.getElementById('authModal').classList.add('show');
+}
+
+function closeModal() {
+    document.getElementById('authModal').classList.remove('show');
+    ['loginEmail','loginPass','signupUser','signupEmail','signupPass'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.value = '';
+    });
+}
+
+function switchTab(t) {
+    document.getElementById('loginTab').classList.toggle('active', t === 'login');
+    document.getElementById('signupTab').classList.toggle('active', t === 'signup');
+    document.getElementById('loginPane').classList.toggle('active', t === 'login');
+    document.getElementById('signupPane').classList.toggle('active', t === 'signup');
+}
+
+async function doLogin() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const pass  = document.getElementById('loginPass').value;
+    if (!email || !pass) { toast('Email aur password bharo!', 'err'); return; }
+
+    const btn = document.getElementById('loginBtn');
+    btn.textContent = 'Logging in...'; btn.classList.add('btn-disabled');
+
+    try {
+        const { data, error } = await db.auth.signInWithPassword({ email, password: pass });
+        if (error) throw error;
+        await setUser(data.user);
+        closeModal();
+        toast('Login ho gaya! 🎉', 'ok');
+        loadBugs();
+    } catch(err) {
+        toast(err.message, 'err');
+    }
+
+    btn.textContent = 'Login'; btn.classList.remove('btn-disabled');
+}
+
+async function doSignup() {
+    const username = document.getElementById('signupUser').value.trim();
+    const email    = document.getElementById('signupEmail').value.trim();
+    const pass     = document.getElementById('signupPass').value;
+
+    if (!username || !email || !pass) { toast('Sab fields bharo!', 'err'); return; }
+    if (pass.length < 6) { toast('Password 6+ characters!', 'err'); return; }
+
+    const btn = document.getElementById('signupBtn');
+    btn.textContent = 'Creating...'; btn.classList.add('btn-disabled');
+
+    try {
+        const { data, error } = await db.auth.signUp({ email, password: pass });
+        if (error) throw error;
+
+        if (data.user) {
+            await db.from('profiles').insert({ user_id: data.user.id, username, xp: 0, streak: 0 });
+            await setUser(data.user);
+        }
+
+        closeModal();
+        toast('Account ban gaya! 🎉', 'ok');
+        loadBugs();
+    } catch(err) {
+        toast(err.message, 'err');
+    }
+
+    btn.textContent = 'Create Account'; btn.classList.remove('btn-disabled');
+}
+
+async function doSignOut() {
+    await db.auth.signOut();
+    clearUser();
+    toast('Sign out ho gaya 👋', 'ok');
+    goHome();
+}
+
+// ─── NAVIGATION ──────────────────────────────────────────────
+function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+}
+
+function goHome() { showPage('homePage'); loadBugs(); }
+function goPost() { if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; } showPage('postPage'); }
+
+// ─── FILTER ──────────────────────────────────────────────────
+function filter(cat, btn) {
+    activeCategory = cat;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    loadBugs();
+}
+
+// ─── LOAD BUGS ───────────────────────────────────────────────
+async function loadBugs() {
+    const grid = document.getElementById('bugsGrid');
+    grid.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';
+
+    try {
+        let q = db.from('bugs').select('*').order('created_at', { ascending: false });
+        if (activeCategory !== 'all') q = q.eq('category', activeCategory);
+        const { data, error } = await q;
+        if (error) throw error;
+
+        if (!data || !data.length) {
+            grid.innerHTML = `<div class="empty">
+                <h3>Koi bug nahi abhi! 🐛</h3>
+                <p style="margin-bottom:1rem;">${activeCategory === 'all' ? 'Pehla bug post karo!' : activeCategory + ' mein koi bug nahi.'}</p>
+                <button class="btn btn-sm" onclick="${me ? "goPost()" : "openModal()"}">
+                    ${me ? '+ Post a Bug' : 'Sign In to Post'}
+                </button>
+            </div>`;
+            return;
+        }
+
+        grid.innerHTML = data.map(b => `
+            <div class="bug-card" onclick="openBug('${b.id}')">
+                <div class="bug-tag">${esc(b.category)}</div>
+                <h3>${esc(b.title)}</h3>
+                <p>${esc(b.description)}</p>
+                <div class="bug-footer">
+                    <span>by ${esc(b.username || 'Anonymous')}</span>
+                    <span>💡 ${b.solutions_count || 0} solutions · ${timeAgo(b.created_at)}</span>
+                </div>
+            </div>`).join('');
+
+    } catch(err) {
+        grid.innerHTML = `<div class="empty"><h3>Error 😔</h3><p>${esc(err.message)}</p><button class="btn btn-sm" onclick="loadBugs()">Retry</button></div>`;
+    }
+}
+
+// ─── SUBMIT BUG ──────────────────────────────────────────────
+async function submitBug() {
+    if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
+    const title = document.getElementById('bugTitle').value.trim();
+    const cat   = document.getElementById('bugCat').value;
+    const desc  = document.getElementById('bugDesc').value.trim();
+    if (!title) { toast('Title bharo!', 'err'); return; }
+    if (!cat)   { toast('Category choose karo!', 'err'); return; }
+    if (!desc)  { toast('Description bharo!', 'err'); return; }
+
+    const btn = document.getElementById('submitBugBtn');
+    btn.textContent = 'Posting...'; btn.classList.add('btn-disabled');
+
+    try {
+        const { error } = await db.from('bugs').insert({
+            title, category: cat, description: desc,
+            user_id: me.id, username: myName || me.email.split('@')[0], solutions_count: 0
+        });
+        if (error) throw error;
+        await addXP(10);
+        toast('Bug post ho gaya! +10 XP 🎉', 'ok');
+        document.getElementById('bugTitle').value = '';
+        document.getElementById('bugCat').value = '';
+        document.getElementById('bugDesc').value = '';
+        goHome();
+    } catch(err) {
+        toast(err.message, 'err');
+    }
+
+    btn.textContent = 'Post Bug 🚀'; btn.classList.remove('btn-disabled');
+}
+
+// ─── OPEN BUG ────────────────────────────────────────────────
+async function openBug(id) {
+    showPage('detailPage');
+    const wrap = document.getElementById('detailWrap');
+    wrap.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';
+
+    try {
+        const [{ data: bug, error: e1 }, { data: sols, error: e2 }] = await Promise.all([
+            db.from('bugs').select('*').eq('id', id).single(),
+            db.from('solutions').select('*').eq('bug_id', id).order('upvotes', { ascending: false })
+        ]);
+        if (e1) throw e1;
+        activeBug = bug;
+        const solutions = sols || [];
+
+        wrap.innerHTML = `
+            <button class="back-btn" onclick="goHome()">← Back to bugs</button>
+            <div class="detail-card">
+                <div class="bug-tag">${esc(bug.category)}</div>
+                <h2>${esc(bug.title)}</h2>
+                <p class="desc">${esc(bug.description)}</p>
+                <div class="detail-meta">
+                    <span>by <strong>${esc(bug.username || 'Anonymous')}</strong></span>
+                    <span>${timeAgo(bug.created_at)}</span>
+                    <span>💡 ${solutions.length} solutions</span>
+                </div>
+            </div>
+
+            <div class="solutions-header">Solutions (${solutions.length})</div>
+
+            ${me ? `
+                <div class="solution-input-box">
+                    <h4>Post your solution 💡</h4>
+                    <div class="field"><textarea id="solText" placeholder="Share your solution..." rows="4"></textarea></div>
+                    <button class="btn btn-sm" id="solBtn" onclick="submitSolution()">Post Solution</button>
+                </div>` : `
+                <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;text-align:center;">
+                    <p style="color:var(--text2);margin-bottom:1rem;">Solution post karne ke liye Sign In karo</p>
+                    <button class="btn btn-sm" onclick="openModal()">Sign In</button>
+                </div>`}
+
+            <div class="solutions-list">
+                ${solutions.length === 0
+                    ? '<div class="empty" style="grid-column:unset;"><p>Koi solution nahi abhi 💪<br>Pehle warrior bano!</p></div>'
+                    : solutions.map(s => `
+                        <div class="sol-card ${s.is_best_solution ? 'best' : ''}">
+                            ${s.is_best_solution ? '<div class="best-badge">✅ Best</div>' : ''}
+                            <p>${esc(s.content)}</p>
+                            <div class="sol-actions">
+                                <button class="upvote" onclick="upvote('${s.id}')">👍 ${s.upvotes || 0}</button>
+                                <span class="sol-author">by ${esc(s.username || 'Anonymous')}</span>
+                                ${me && bug.user_id === me.id && !s.is_best_solution
+                                    ? `<button class="btn btn-sm btn-ghost" onclick="markBest('${s.id}')">Mark Best ✅</button>` : ''}
+                            </div>
+                        </div>`).join('')}
+            </div>`;
+
+    } catch(err) {
+        wrap.innerHTML = `<button class="back-btn" onclick="goHome()">← Back</button><div class="empty"><h3>Error 😔</h3><p>${esc(err.message)}</p></div>`;
+    }
+}
+
+// ─── SOLUTION ────────────────────────────────────────────────
+async function submitSolution() {
+    if (!me || !activeBug) return;
+    const content = document.getElementById('solText').value.trim();
+    if (!content) { toast('Solution likho pehle!', 'err'); return; }
+
+    const btn = document.getElementById('solBtn');
+    btn.textContent = 'Posting...'; btn.classList.add('btn-disabled');
+
+    try {
+        const { error } = await db.from('solutions').insert({
+            bug_id: activeBug.id, content,
+            user_id: me.id, username: myName || me.email.split('@')[0],
+            upvotes: 0, is_best_solution: false
+        });
+        if (error) throw error;
+        await db.from('bugs').update({ solutions_count: (activeBug.solutions_count || 0) + 1 }).eq('id', activeBug.id);
+        await addXP(5);
+        toast('Solution post ho gaya! +5 XP 🎉', 'ok');
+        openBug(activeBug.id);
+    } catch(err) {
+        toast(err.message, 'err');
+        btn.textContent = 'Post Solution'; btn.classList.remove('btn-disabled');
+    }
+}
+
+async function upvote(solId) {
+    if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
+    try {
+        const { data } = await db.from('solutions').select('upvotes').eq('id', solId).single();
+        await db.from('solutions').update({ upvotes: (data.upvotes || 0) + 1 }).eq('id', solId);
+        openBug(activeBug.id);
+    } catch(e) { toast('Error!', 'err'); }
+}
+
+async function markBest(solId) {
+    if (!me || !activeBug) return;
+    try {
+        await db.from('solutions').update({ is_best_solution: false }).eq('bug_id', activeBug.id);
+        await db.from('solutions').update({ is_best_solution: true }).eq('id', solId);
+        toast('Best solution marked! ✅', 'ok');
+        openBug(activeBug.id);
+    } catch(e) { toast('Error!', 'err'); }
+}
+
+// ─── UTILS ───────────────────────────────────────────────────
+function esc(s) {
+    if (s == null) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function timeAgo(d) {
+    if (!d) return '';
+    const diff = Date.now() - new Date(d).getTime();
+    const m = Math.floor(diff/60000), h = Math.floor(diff/3600000), day = Math.floor(diff/86400000);
+    if (m < 1) return 'just now';
+    if (m < 60) return m + 'm ago';
+    if (h < 24) return h + 'h ago';
+    if (day === 1) return 'yesterday';
+    if (day < 7) return day + 'd ago';
+    return new Date(d).toLocaleDateString('en-IN');
+}
+
+function toast(msg, type = 'ok') {
+    document.querySelectorAll('.toast').forEach(t => t.remove());
+    const t = document.createElement('div');
+    t.className = 'toast ' + type;
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(() => t.remove(), 300); }, 3000);
+}
+</script>
+</body>
+</html>
