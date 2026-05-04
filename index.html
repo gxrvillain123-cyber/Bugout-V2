@@ -42,6 +42,25 @@
         .hero h1 { font-size: 2.8rem; font-weight: 900; line-height: 1.1; margin-bottom: 1rem; }
         .hero h1 span { color: var(--accent); }
         .hero p { color: var(--text2); font-size: 1.1rem; margin-bottom: 2rem; }
+
+        /* STATS BAR */
+        .stats-bar {
+            display: flex; justify-content: center; gap: 2rem;
+            margin-bottom: 2.5rem; flex-wrap: wrap;
+        }
+        .stat-item {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 12px; padding: 1rem 2rem;
+            text-align: center; min-width: 120px;
+            transition: border 0.2s;
+        }
+        .stat-item:hover { border-color: var(--accent); }
+        .stat-number {
+            font-size: 1.8rem; font-weight: 900; color: var(--accent);
+            line-height: 1; margin-bottom: 4px;
+        }
+        .stat-label { font-size: 0.78rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
+
         .filters { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 2.5rem; }
         .filter-btn { background: var(--card); color: var(--text2); border: 1px solid var(--border); padding: 6px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; }
         .filter-btn:hover, .filter-btn.active { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
@@ -116,6 +135,9 @@
             .hero h1 { font-size: 1.8rem; }
             .bugs-grid { grid-template-columns: 1fr; }
             .filters { justify-content: flex-start; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; }
+            .stats-bar { gap: 1rem; }
+            .stat-item { padding: 0.75rem 1.25rem; min-width: 90px; }
+            .stat-number { font-size: 1.4rem; }
         }
     </style>
 </head>
@@ -143,6 +165,23 @@
             <h1>Post your problem.<br><span>World solves it.</span></h1>
             <p>A community where every problem finds its solution.</p>
         </div>
+
+        <!-- STATS BAR -->
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-number" id="statBugs">—</div>
+                <div class="stat-label">🐛 Bugs Posted</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="statSolutions">—</div>
+                <div class="stat-label">💡 Solutions</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="statWarriors">—</div>
+                <div class="stat-label">⚔️ Warriors</div>
+            </div>
+        </div>
+
         <div class="filters">
             <button class="filter-btn active" onclick="filter('all',this)">All</button>
             <button class="filter-btn" onclick="filter('Coding',this)">💻 Coding</button>
@@ -216,33 +255,47 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// ─── SUPABASE ───────────────────────────────────────────────
-const SB_URL  = 'https://ufybyvufusswyswoxjra.supabase.co';
-const SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmeWJ5dnVmdXNzd3lzd294anJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MDUyOTMsImV4cCI6MjA5MzM4MTI5M30.A-3RT1B5MjSLaX7SpHpyh1IVuYmHzW8Puy8lI3paVA0';
+const SB_URL = 'https://ufybyvufusswyswoxjra.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmeWJ5dnVmdXNzd3lzd294anJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MDUyOTMsImV4cCI6MjA5MzM4MTI5M30.A-3RT1B5MjSLaX7SpHpyh1IVuYmHzW8Puy8lI3paVA0';
 const db = window.supabase.createClient(SB_URL, SB_KEY);
 
-// ─── STATE ──────────────────────────────────────────────────
 let me = null, myName = null, myXP = 0, activeBug = null, activeCategory = 'all';
 
-// ─── INIT ───────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async () => {
-    // close modal on overlay click
     document.getElementById('authModal').addEventListener('click', e => { if (e.target.id === 'authModal') closeModal(); });
-
     try {
         const { data: { session } } = await db.auth.getSession();
         if (session) await setUser(session.user);
     } catch(e) {}
-
     db.auth.onAuthStateChange(async (event, session) => {
         if (event === 'SIGNED_IN' && session) await setUser(session.user);
         if (event === 'SIGNED_OUT') clearUser();
     });
-
     loadBugs();
+    loadStats();
 });
 
-// ─── USER ───────────────────────────────────────────────────
+// ─── STATS ───────────────────────────────────────────────────
+async function loadStats() {
+    try {
+        const [
+            { count: bugsCount },
+            { count: solsCount },
+            { count: usersCount }
+        ] = await Promise.all([
+            db.from('bugs').select('*', { count: 'exact', head: true }),
+            db.from('solutions').select('*', { count: 'exact', head: true }),
+            db.from('profiles').select('*', { count: 'exact', head: true })
+        ]);
+        document.getElementById('statBugs').textContent = bugsCount || 0;
+        document.getElementById('statSolutions').textContent = solsCount || 0;
+        document.getElementById('statWarriors').textContent = usersCount || 0;
+    } catch(e) {
+        // silently fail — stats not critical
+    }
+}
+
+// ─── USER ────────────────────────────────────────────────────
 async function setUser(user) {
     me = user;
     try {
@@ -278,22 +331,15 @@ async function addXP(amount) {
     } catch(e) {}
 }
 
-// ─── AUTH ACTIONS ────────────────────────────────────────────
-function handleAuth() {
-    if (me) doSignOut(); else openModal();
-}
-
-function openModal() {
-    document.getElementById('authModal').classList.add('show');
-}
-
+// ─── AUTH ────────────────────────────────────────────────────
+function handleAuth() { if (me) doSignOut(); else openModal(); }
+function openModal() { document.getElementById('authModal').classList.add('show'); }
 function closeModal() {
     document.getElementById('authModal').classList.remove('show');
     ['loginEmail','loginPass','signupUser','signupEmail','signupPass'].forEach(id => {
         const el = document.getElementById(id); if (el) el.value = '';
     });
 }
-
 function switchTab(t) {
     document.getElementById('loginTab').classList.toggle('active', t === 'login');
     document.getElementById('signupTab').classList.toggle('active', t === 'signup');
@@ -305,10 +351,8 @@ async function doLogin() {
     const email = document.getElementById('loginEmail').value.trim();
     const pass  = document.getElementById('loginPass').value;
     if (!email || !pass) { toast('Email aur password bharo!', 'err'); return; }
-
     const btn = document.getElementById('loginBtn');
     btn.textContent = 'Logging in...'; btn.classList.add('btn-disabled');
-
     try {
         const { data, error } = await db.auth.signInWithPassword({ email, password: pass });
         if (error) throw error;
@@ -316,10 +360,8 @@ async function doLogin() {
         closeModal();
         toast('Login ho gaya! 🎉', 'ok');
         loadBugs();
-    } catch(err) {
-        toast(err.message, 'err');
-    }
-
+        loadStats();
+    } catch(err) { toast(err.message, 'err'); }
     btn.textContent = 'Login'; btn.classList.remove('btn-disabled');
 }
 
@@ -327,29 +369,22 @@ async function doSignup() {
     const username = document.getElementById('signupUser').value.trim();
     const email    = document.getElementById('signupEmail').value.trim();
     const pass     = document.getElementById('signupPass').value;
-
     if (!username || !email || !pass) { toast('Sab fields bharo!', 'err'); return; }
     if (pass.length < 6) { toast('Password 6+ characters!', 'err'); return; }
-
     const btn = document.getElementById('signupBtn');
     btn.textContent = 'Creating...'; btn.classList.add('btn-disabled');
-
     try {
         const { data, error } = await db.auth.signUp({ email, password: pass });
         if (error) throw error;
-
         if (data.user) {
             await db.from('profiles').insert({ user_id: data.user.id, username, xp: 0, streak: 0 });
             await setUser(data.user);
         }
-
         closeModal();
         toast('Account ban gaya! 🎉', 'ok');
         loadBugs();
-    } catch(err) {
-        toast(err.message, 'err');
-    }
-
+        loadStats();
+    } catch(err) { toast(err.message, 'err'); }
     btn.textContent = 'Create Account'; btn.classList.remove('btn-disabled');
 }
 
@@ -366,8 +401,7 @@ function showPage(id) {
     document.getElementById(id).classList.add('active');
     window.scrollTo(0, 0);
 }
-
-function goHome() { showPage('homePage'); loadBugs(); }
+function goHome() { showPage('homePage'); loadBugs(); loadStats(); }
 function goPost() { if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; } showPage('postPage'); }
 
 // ─── FILTER ──────────────────────────────────────────────────
@@ -382,13 +416,11 @@ function filter(cat, btn) {
 async function loadBugs() {
     const grid = document.getElementById('bugsGrid');
     grid.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';
-
     try {
         let q = db.from('bugs').select('*').order('created_at', { ascending: false });
         if (activeCategory !== 'all') q = q.eq('category', activeCategory);
         const { data, error } = await q;
         if (error) throw error;
-
         if (!data || !data.length) {
             grid.innerHTML = `<div class="empty">
                 <h3>Koi bug nahi abhi! 🐛</h3>
@@ -399,7 +431,6 @@ async function loadBugs() {
             </div>`;
             return;
         }
-
         grid.innerHTML = data.map(b => `
             <div class="bug-card" onclick="openBug('${b.id}')">
                 <div class="bug-tag">${esc(b.category)}</div>
@@ -410,7 +441,6 @@ async function loadBugs() {
                     <span>💡 ${b.solutions_count || 0} solutions · ${timeAgo(b.created_at)}</span>
                 </div>
             </div>`).join('');
-
     } catch(err) {
         grid.innerHTML = `<div class="empty"><h3>Error 😔</h3><p>${esc(err.message)}</p><button class="btn btn-sm" onclick="loadBugs()">Retry</button></div>`;
     }
@@ -425,10 +455,8 @@ async function submitBug() {
     if (!title) { toast('Title bharo!', 'err'); return; }
     if (!cat)   { toast('Category choose karo!', 'err'); return; }
     if (!desc)  { toast('Description bharo!', 'err'); return; }
-
     const btn = document.getElementById('submitBugBtn');
     btn.textContent = 'Posting...'; btn.classList.add('btn-disabled');
-
     try {
         const { error } = await db.from('bugs').insert({
             title, category: cat, description: desc,
@@ -441,10 +469,7 @@ async function submitBug() {
         document.getElementById('bugCat').value = '';
         document.getElementById('bugDesc').value = '';
         goHome();
-    } catch(err) {
-        toast(err.message, 'err');
-    }
-
+    } catch(err) { toast(err.message, 'err'); }
     btn.textContent = 'Post Bug 🚀'; btn.classList.remove('btn-disabled');
 }
 
@@ -453,16 +478,14 @@ async function openBug(id) {
     showPage('detailPage');
     const wrap = document.getElementById('detailWrap');
     wrap.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';
-
     try {
-        const [{ data: bug, error: e1 }, { data: sols, error: e2 }] = await Promise.all([
+        const [{ data: bug, error: e1 }, { data: sols }] = await Promise.all([
             db.from('bugs').select('*').eq('id', id).single(),
             db.from('solutions').select('*').eq('bug_id', id).order('upvotes', { ascending: false })
         ]);
         if (e1) throw e1;
         activeBug = bug;
         const solutions = sols || [];
-
         wrap.innerHTML = `
             <button class="back-btn" onclick="goHome()">← Back to bugs</button>
             <div class="detail-card">
@@ -475,9 +498,7 @@ async function openBug(id) {
                     <span>💡 ${solutions.length} solutions</span>
                 </div>
             </div>
-
             <div class="solutions-header">Solutions (${solutions.length})</div>
-
             ${me ? `
                 <div class="solution-input-box">
                     <h4>Post your solution 💡</h4>
@@ -488,7 +509,6 @@ async function openBug(id) {
                     <p style="color:var(--text2);margin-bottom:1rem;">Solution post karne ke liye Sign In karo</p>
                     <button class="btn btn-sm" onclick="openModal()">Sign In</button>
                 </div>`}
-
             <div class="solutions-list">
                 ${solutions.length === 0
                     ? '<div class="empty" style="grid-column:unset;"><p>Koi solution nahi abhi 💪<br>Pehle warrior bano!</p></div>'
@@ -504,7 +524,6 @@ async function openBug(id) {
                             </div>
                         </div>`).join('')}
             </div>`;
-
     } catch(err) {
         wrap.innerHTML = `<button class="back-btn" onclick="goHome()">← Back</button><div class="empty"><h3>Error 😔</h3><p>${esc(err.message)}</p></div>`;
     }
@@ -515,10 +534,8 @@ async function submitSolution() {
     if (!me || !activeBug) return;
     const content = document.getElementById('solText').value.trim();
     if (!content) { toast('Solution likho pehle!', 'err'); return; }
-
     const btn = document.getElementById('solBtn');
     btn.textContent = 'Posting...'; btn.classList.add('btn-disabled');
-
     try {
         const { error } = await db.from('solutions').insert({
             bug_id: activeBug.id, content,
