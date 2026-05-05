@@ -64,7 +64,7 @@
         .bug-card p { color: var(--text2); font-size: 0.9rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 1rem; }
         .bug-footer { display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--text2); }
  
-        /* LEADERBOARD PAGE */
+        /* LEADERBOARD */
         .lb-wrap { max-width: 650px; margin: 2.5rem auto; padding-bottom: 3rem; }
         .lb-wrap h2 { font-size: 1.8rem; font-weight: 900; margin-bottom: 0.5rem; }
         .lb-wrap p { color: var(--text2); margin-bottom: 2rem; font-size: 0.95rem; }
@@ -79,26 +79,44 @@
         .lb-name span { display: block; font-size: 0.78rem; color: var(--text2); font-weight: 400; margin-top: 2px; }
         .lb-xp { background: var(--accent); color: var(--bg); border-radius: 8px; padding: 4px 12px; font-size: 0.85rem; font-weight: 700; }
         .lb-me { outline: 2px solid var(--accent); }
-        .lb-level { font-size: 0.78rem; color: var(--text2); margin-right: 8px; }
  
-        /* PROFILE PAGE */
+        /* PROFILE */
         .profile-wrap { max-width: 700px; margin: 2.5rem auto; padding-bottom: 3rem; }
         .profile-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; }
         .profile-top { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
-        .profile-avatar { width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), #0077ff); display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 900; color: var(--bg); flex-shrink: 0; }
-        .profile-info { flex: 1; }
-        .profile-info h2 { font-size: 1.6rem; font-weight: 900; margin-bottom: 4px; }
-        .profile-info .level-badge { display: inline-block; background: rgba(0,255,136,0.15); color: var(--accent); border: 1px solid var(--accent); border-radius: 6px; padding: 3px 12px; font-size: 0.82rem; font-weight: 700; }
+        .profile-avatar { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; font-weight: 900; color: #fff; flex-shrink: 0; }
+        .profile-info { flex: 1; min-width: 0; }
+        .profile-info h2 { font-size: 1.5rem; font-weight: 900; margin-bottom: 2px; }
+        .profile-info .username-tag { color: var(--text2); font-size: 0.9rem; margin-bottom: 6px; }
+        .profile-info .bio-text { color: var(--text2); font-size: 0.9rem; margin-bottom: 8px; line-height: 1.5; }
+        .level-badge { display: inline-block; background: rgba(0,255,136,0.15); color: var(--accent); border: 1px solid var(--accent); border-radius: 6px; padding: 3px 12px; font-size: 0.82rem; font-weight: 700; }
+        .interests-wrap { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+        .interest-tag { background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; padding: 3px 12px; font-size: 0.78rem; color: var(--text2); }
         .xp-bar-wrap { margin-top: 1.5rem; }
         .xp-bar-label { display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--text2); margin-bottom: 6px; }
         .xp-bar { background: var(--border); border-radius: 10px; height: 8px; overflow: hidden; }
-        .xp-bar-fill { background: linear-gradient(90deg, var(--accent), #0077ff); height: 100%; border-radius: 10px; transition: width 0.8s ease; }
+        .xp-bar-fill { height: 100%; border-radius: 10px; transition: width 0.8s ease; }
         .profile-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1.5rem; }
         .profile-stat { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; text-align: center; }
         .profile-stat-num { font-size: 1.5rem; font-weight: 900; color: var(--accent); }
         .profile-stat-label { font-size: 0.75rem; color: var(--text2); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .profile-bugs { margin-top: 1.5rem; }
         .profile-bugs h3 { font-size: 1rem; font-weight: 700; margin-bottom: 1rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
+ 
+        /* EDIT PROFILE MODAL */
+        .edit-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1001; padding: 1rem; overflow-y: auto; }
+        .edit-overlay.show { display: flex; }
+        .edit-modal { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; width: 100%; max-width: 500px; margin: auto; }
+        .edit-modal h2 { font-size: 1.3rem; margin-bottom: 1.5rem; }
+ 
+        /* Avatar color picker */
+        .color-picker-wrap { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+        .color-dot { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: all 0.2s; }
+        .color-dot.selected { border-color: #fff; transform: scale(1.15); }
+ 
+        /* Interests selector */
+        .interests-selector { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+        .interest-opt { background: var(--bg2); border: 1.5px solid var(--border); border-radius: 20px; padding: 5px 14px; font-size: 0.85rem; color: var(--text2); cursor: pointer; transition: all 0.2s; }
+        .interest-opt.selected { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
  
         /* POST PAGE */
         .form-wrap { max-width: 600px; margin: 3rem auto; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; }
@@ -111,7 +129,7 @@
         .field select option { background: var(--bg2); }
         .form-actions { display: flex; gap: 10px; margin-top: 1.5rem; }
  
-        /* DETAIL PAGE */
+        /* DETAIL */
         .detail-wrap { max-width: 750px; margin: 2rem auto; padding-bottom: 3rem; }
         .back-btn { display: inline-flex; align-items: center; gap: 6px; color: var(--text2); cursor: pointer; font-size: 0.9rem; margin-bottom: 1.5rem; transition: color 0.2s; background: none; border: none; }
         .back-btn:hover { color: var(--accent); }
@@ -132,7 +150,7 @@
         .best-badge { position: absolute; top: 1rem; right: 1rem; background: var(--accent); color: var(--bg); border-radius: 6px; padding: 3px 10px; font-size: 0.78rem; font-weight: 700; }
         .sol-author { font-size: 0.82rem; color: var(--text2); }
  
-        /* CONFIRM DIALOG */
+        /* CONFIRM */
         .confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 1rem; }
         .confirm-overlay.show { display: flex; }
         .confirm-box { background: var(--card); border: 1px solid var(--error); border-radius: 16px; padding: 2rem; width: 100%; max-width: 380px; text-align: center; }
@@ -175,7 +193,7 @@
             .stat-item { padding: 0.75rem 1.25rem; min-width: 90px; }
             .stat-number { font-size: 1.4rem; }
             .nav-right { gap: 8px; }
-            .profile-stats { grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+            .profile-stats { gap: 0.5rem; }
             .profile-top { flex-direction: column; align-items: flex-start; }
         }
     </style>
@@ -198,7 +216,6 @@
 </header>
  
 <main class="container">
- 
     <!-- HOME -->
     <div class="page active" id="homePage">
         <div class="hero">
@@ -281,7 +298,6 @@
     <div class="page" id="detailPage">
         <div class="detail-wrap" id="detailWrap"></div>
     </div>
- 
 </main>
  
 <!-- AUTH MODAL -->
@@ -309,7 +325,42 @@
     </div>
 </div>
  
-<!-- CONFIRM DELETE DIALOG -->
+<!-- EDIT PROFILE MODAL -->
+<div class="edit-overlay" id="editModal">
+    <div class="edit-modal">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+            <h2>✏️ Edit Profile</h2>
+            <button class="close-x" onclick="closeEditModal()">&times;</button>
+        </div>
+ 
+        <div class="field">
+            <label>Display Name</label>
+            <input type="text" id="editDisplayName" placeholder="Apna naam daalo (optional)">
+        </div>
+ 
+        <div class="field">
+            <label>Bio</label>
+            <textarea id="editBio" placeholder="Apne baare mein kuch likho..." style="min-height:80px;"></textarea>
+        </div>
+ 
+        <div class="field">
+            <label>Avatar Color</label>
+            <div class="color-picker-wrap" id="colorPicker"></div>
+        </div>
+ 
+        <div class="field">
+            <label>Interests (multiple select kar sakte ho)</label>
+            <div class="interests-selector" id="interestSelector"></div>
+        </div>
+ 
+        <div class="form-actions" style="margin-top:1.5rem;">
+            <button class="btn" id="saveProfileBtn" onclick="saveProfile()">Save Profile 💾</button>
+            <button class="btn btn-ghost" onclick="closeEditModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+ 
+<!-- CONFIRM DELETE -->
 <div class="confirm-overlay" id="confirmDialog">
     <div class="confirm-box">
         <h3>Delete Bug? 🗑️</h3>
@@ -328,8 +379,9 @@ const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 const db = window.supabase.createClient(SB_URL, SB_KEY);
  
 let me = null, myName = null, myXP = 0, activeBug = null, activeCategory = 'all', bugToDelete = null;
+let editSelectedColor = '#00ff88', editSelectedInterests = [];
  
-// ─── LEVEL SYSTEM ─────────────────────────────────────────────
+// ─── CONSTANTS ────────────────────────────────────────────────
 const LEVELS = [
     { min: 0,   max: 24,  name: 'Rookie',   emoji: '🌱' },
     { min: 25,  max: 49,  name: 'Warrior',  emoji: '⚔️' },
@@ -338,40 +390,60 @@ const LEVELS = [
     { min: 100, max: Infinity, name: 'Legend', emoji: '😈' }
 ];
  
-function getLevel(xp) {
-    return LEVELS.find(l => xp >= l.min && xp <= l.max) || LEVELS[0];
-}
+const AVATAR_COLORS = [
+    '#00ff88', '#0077ff', '#ff4444', '#ff9900',
+    '#aa44ff', '#ff44aa', '#00ccff', '#ffcc00'
+];
  
-function getLevelNum(xp) {
-    return LEVELS.findIndex(l => xp >= l.min && xp <= l.max) + 1;
-}
+const ALL_INTERESTS = [
+    '💻 Coding', '🎮 Gaming', '🎵 Music', '⚽ Football',
+    '🏏 Cricket', '📚 Studies', '🎨 Art', '🍕 Food',
+    '✈️ Travel', '💰 Finance', '🎬 Movies', '📱 Tech',
+    '🦸 Marvel', '🏋️ Fitness', '🎤 Rap', '📷 Photography'
+];
  
+function getLevel(xp) { return LEVELS.find(l => xp >= l.min && xp <= l.max) || LEVELS[0]; }
+function getLevelNum(xp) { return LEVELS.findIndex(l => xp >= l.min && xp <= l.max) + 1; }
 function getXPProgress(xp) {
     const lvl = getLevel(xp);
     if (lvl.max === Infinity) return 100;
-    const range = lvl.max - lvl.min + 1;
-    const progress = xp - lvl.min;
-    return Math.round((progress / range) * 100);
+    return Math.round(((xp - lvl.min) / (lvl.max - lvl.min + 1)) * 100);
 }
- 
 function getXPToNext(xp) {
     const lvl = getLevel(xp);
-    if (lvl.max === Infinity) return 0;
-    return lvl.max - xp + 1;
+    return lvl.max === Infinity ? 0 : lvl.max - xp + 1;
+}
+ 
+function makeAvatar(initial, color) {
+    return `<div class="profile-avatar" style="background:${color || '#00ff88'};">${initial}</div>`;
 }
  
 // ─── INIT ─────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('authModal').addEventListener('click', e => { if (e.target.id === 'authModal') closeModal(); });
     document.getElementById('confirmDialog').addEventListener('click', e => { if (e.target.id === 'confirmDialog') closeConfirm(); });
+    document.getElementById('editModal').addEventListener('click', e => { if (e.target.id === 'editModal') closeEditModal(); });
+ 
+    // Build color picker
+    document.getElementById('colorPicker').innerHTML = AVATAR_COLORS.map(c =>
+        `<div class="color-dot ${c === editSelectedColor ? 'selected' : ''}" style="background:${c};" onclick="selectColor('${c}')"></div>`
+    ).join('');
+ 
+    // Build interests
+    document.getElementById('interestSelector').innerHTML = ALL_INTERESTS.map(i =>
+        `<div class="interest-opt" onclick="toggleInterest(this, '${i}')">${i}</div>`
+    ).join('');
+ 
     try {
         const { data: { session } } = await db.auth.getSession();
         if (session) await setUser(session.user);
     } catch(e) {}
+ 
     db.auth.onAuthStateChange(async (event, session) => {
         if (event === 'SIGNED_IN' && session) await setUser(session.user);
         if (event === 'SIGNED_OUT') clearUser();
     });
+ 
     loadBugs();
     loadStats();
 });
@@ -396,12 +468,11 @@ async function loadLeaderboard() {
     list.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading warriors...</p></div>';
     try {
         const { data, error } = await db.from('profiles')
-            .select('username, xp, user_id')
-            .order('xp', { ascending: false })
-            .limit(20);
+            .select('username, display_name, xp, user_id, avatar_color')
+            .order('xp', { ascending: false }).limit(20);
         if (error) throw error;
         if (!data || !data.length) {
-            list.innerHTML = '<div class="empty"><h3>Koi warrior nahi abhi!</h3><p>Pehla bug post karo aur leaderboard pe aao! 😈</p></div>';
+            list.innerHTML = '<div class="empty"><h3>Koi warrior nahi abhi!</h3><p>Pehla bug post karo! 😈</p></div>';
             return;
         }
         const medals = ['🥇', '🥈', '🥉'];
@@ -410,18 +481,19 @@ async function loadLeaderboard() {
             const topClass = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
             const isMe = me && u.user_id === me.id;
             const lvl = getLevel(u.xp || 0);
+            const displayName = u.display_name || u.username || 'Anonymous';
             return `
                 <div class="lb-row ${topClass} ${isMe ? 'lb-me' : ''}" onclick="goProfile('${u.user_id}')">
                     <div class="lb-rank">${medal}</div>
                     <div class="lb-name">
-                        ${esc(u.username || 'Anonymous')}
+                        ${esc(displayName)}
                         <span>${lvl.emoji} ${lvl.name}${isMe ? ' · You! 😈' : ''}</span>
                     </div>
                     <div class="lb-xp">${u.xp || 0} XP</div>
                 </div>`;
         }).join('');
     } catch(err) {
-        list.innerHTML = `<div class="empty"><h3>Error 😔</h3><p>${esc(err.message)}</p><button class="btn btn-sm" onclick="loadLeaderboard()">Retry</button></div>`;
+        list.innerHTML = `<div class="empty"><h3>Error 😔</h3><p>${esc(err.message)}</p></div>`;
     }
 }
  
@@ -436,7 +508,6 @@ async function goProfile(userId) {
             db.from('bugs').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
             db.from('solutions').select('*').eq('user_id', userId)
         ]);
- 
         if (!profile) throw new Error('Profile not found');
  
         const xp = profile.xp || 0;
@@ -448,27 +519,43 @@ async function goProfile(userId) {
         const solsPosted = solutions ? solutions.length : 0;
         const bestSols = solutions ? solutions.filter(s => s.is_best_solution).length : 0;
         const isMe = me && me.id === userId;
-        const initial = (profile.username || 'A')[0].toUpperCase();
+        const displayName = profile.display_name || profile.username || 'Anonymous';
+        const initial = displayName[0].toUpperCase();
+        const color = profile.avatar_color || '#00ff88';
+        const interests = profile.interests || [];
  
         wrap.innerHTML = `
-            <button class="back-btn" onclick="history.back()">← Back</button>
+            <button class="back-btn" onclick="goHome()">← Back</button>
             <div class="profile-card">
                 <div class="profile-top">
-                    <div class="profile-avatar">${initial}</div>
+                    ${makeAvatar(initial, color)}
                     <div class="profile-info">
-                        <h2>${esc(profile.username || 'Anonymous')} ${isMe ? '<span style="font-size:1rem;">😈</span>' : ''}</h2>
+                        <h2>${esc(displayName)} ${isMe ? '😈' : ''}</h2>
+                        <div class="username-tag">@${esc(profile.username || 'anonymous')}</div>
+                        ${profile.bio ? `<div class="bio-text">${esc(profile.bio)}</div>` : ''}
                         <div class="level-badge">${lvl.emoji} Level ${lvlNum} — ${lvl.name}</div>
+                        ${interests.length > 0 ? `
+                            <div class="interests-wrap">
+                                ${interests.map(i => `<span class="interest-tag">${esc(i)}</span>`).join('')}
+                            </div>` : ''}
                     </div>
                 </div>
+ 
+                ${isMe ? `
+                    <button class="btn btn-ghost btn-sm" onclick="openEditModal()" style="margin-top:1rem;">
+                        ✏️ Edit Profile
+                    </button>` : ''}
+ 
                 <div class="xp-bar-wrap">
                     <div class="xp-bar-label">
                         <span>${xp} XP</span>
                         <span>${lvl.max === Infinity ? '😈 MAX LEVEL!' : toNext + ' XP to Level ' + (lvlNum + 1)}</span>
                     </div>
                     <div class="xp-bar">
-                        <div class="xp-bar-fill" style="width:${progress}%"></div>
+                        <div class="xp-bar-fill" style="width:${progress}%;background:linear-gradient(90deg,${color},#0077ff);"></div>
                     </div>
                 </div>
+ 
                 <div class="profile-stats">
                     <div class="profile-stat">
                         <div class="profile-stat-num">${bugsPosted}</div>
@@ -511,13 +598,95 @@ function goMyProfile() {
     goProfile(me.id);
 }
  
+// ─── EDIT PROFILE ─────────────────────────────────────────────
+async function openEditModal() {
+    // Load current profile data
+    try {
+        const { data } = await db.from('profiles').select('*').eq('user_id', me.id).single();
+        if (data) {
+            document.getElementById('editDisplayName').value = data.display_name || '';
+            document.getElementById('editBio').value = data.bio || '';
+            editSelectedColor = data.avatar_color || '#00ff88';
+            editSelectedInterests = data.interests || [];
+ 
+            // Update color dots
+            document.querySelectorAll('.color-dot').forEach(dot => {
+                dot.classList.toggle('selected', dot.style.background === editSelectedColor ||
+                    dot.getAttribute('onclick').includes(editSelectedColor));
+            });
+ 
+            // Update interests
+            document.querySelectorAll('.interest-opt').forEach(opt => {
+                opt.classList.toggle('selected', editSelectedInterests.includes(opt.textContent.trim()));
+            });
+        }
+    } catch(e) {}
+ 
+    document.getElementById('editModal').classList.add('show');
+}
+ 
+function closeEditModal() {
+    document.getElementById('editModal').classList.remove('show');
+}
+ 
+function selectColor(color) {
+    editSelectedColor = color;
+    document.querySelectorAll('.color-dot').forEach(dot => {
+        dot.classList.toggle('selected', dot.style.background === color);
+    });
+}
+ 
+function toggleInterest(el, interest) {
+    const clean = interest.trim();
+    if (editSelectedInterests.includes(clean)) {
+        editSelectedInterests = editSelectedInterests.filter(i => i !== clean);
+        el.classList.remove('selected');
+    } else {
+        if (editSelectedInterests.length >= 8) { toast('Max 8 interests!', 'err'); return; }
+        editSelectedInterests.push(clean);
+        el.classList.add('selected');
+    }
+}
+ 
+async function saveProfile() {
+    const displayName = document.getElementById('editDisplayName').value.trim();
+    const bio = document.getElementById('editBio').value.trim();
+    const btn = document.getElementById('saveProfileBtn');
+    btn.textContent = 'Saving...'; btn.classList.add('btn-disabled');
+ 
+    try {
+        const { error } = await db.from('profiles').update({
+            display_name: displayName || null,
+            bio: bio || null,
+            avatar_color: editSelectedColor,
+            interests: editSelectedInterests
+        }).eq('user_id', me.id);
+        if (error) throw error;
+ 
+        // Update nav display name
+        if (displayName) myName = displayName;
+        const lvl = getLevel(myXP);
+        document.getElementById('userName').textContent = lvl.emoji + ' ' + (displayName || myName);
+ 
+        closeEditModal();
+        toast('Profile update ho gaya! 🎉', 'ok');
+        goProfile(me.id); // Refresh profile
+    } catch(err) {
+        toast('Error: ' + err.message, 'err');
+    }
+ 
+    btn.textContent = 'Save Profile 💾'; btn.classList.remove('btn-disabled');
+}
+ 
 // ─── USER ─────────────────────────────────────────────────────
 async function setUser(user) {
     me = user;
     try {
-        const { data } = await db.from('profiles').select('username, xp').eq('user_id', user.id).maybeSingle();
-        if (data) { myName = data.username; myXP = data.xp || 0; }
-        else { myName = user.email.split('@')[0]; myXP = 0; }
+        const { data } = await db.from('profiles').select('username, display_name, xp').eq('user_id', user.id).maybeSingle();
+        if (data) {
+            myName = data.display_name || data.username || user.email.split('@')[0];
+            myXP = data.xp || 0;
+        } else { myName = user.email.split('@')[0]; myXP = 0; }
     } catch(e) { myName = user.email.split('@')[0]; myXP = 0; }
     renderUserUI();
 }
@@ -546,9 +715,7 @@ async function addXP(amount) {
         const lvl = getLevel(myXP);
         document.getElementById('userXP').textContent = myXP + ' XP';
         document.getElementById('userName').textContent = lvl.emoji + ' ' + myName;
-        if (newLvl > oldLvl) {
-            toast(`🎉 Level Up! Tu ab ${lvl.emoji} ${lvl.name} hai!`, 'ok');
-        }
+        if (newLvl > oldLvl) toast(`🎉 Level Up! Tu ab ${lvl.emoji} ${lvl.name} hai!`, 'ok');
     } catch(e) {}
 }
  
@@ -578,8 +745,7 @@ async function doLogin() {
         const { data, error } = await db.auth.signInWithPassword({ email, password: pass });
         if (error) throw error;
         await setUser(data.user);
-        closeModal();
-        toast('Login ho gaya! 🎉', 'ok');
+        closeModal(); toast('Login ho gaya! 🎉', 'ok');
         loadBugs(); loadStats();
     } catch(err) { toast(err.message, 'err'); }
     btn.textContent = 'Login'; btn.classList.remove('btn-disabled');
@@ -597,21 +763,18 @@ async function doSignup() {
         const { data, error } = await db.auth.signUp({ email, password: pass });
         if (error) throw error;
         if (data.user) {
-            await db.from('profiles').insert({ user_id: data.user.id, username, xp: 0, streak: 0 });
+            await db.from('profiles').insert({ user_id: data.user.id, username, xp: 0, streak: 0, avatar_color: '#00ff88' });
             await setUser(data.user);
         }
-        closeModal();
-        toast('Account ban gaya! 🎉', 'ok');
+        closeModal(); toast('Account ban gaya! 🎉', 'ok');
         loadBugs(); loadStats();
     } catch(err) { toast(err.message, 'err'); }
     btn.textContent = 'Create Account'; btn.classList.remove('btn-disabled');
 }
  
 async function doSignOut() {
-    await db.auth.signOut();
-    clearUser();
-    toast('Sign out ho gaya 👋', 'ok');
-    goHome();
+    await db.auth.signOut(); clearUser();
+    toast('Sign out ho gaya 👋', 'ok'); goHome();
 }
  
 // ─── NAVIGATION ───────────────────────────────────────────────
@@ -632,7 +795,7 @@ function filter(cat, btn) {
     loadBugs();
 }
  
-// ─── LOAD BUGS ────────────────────────────────────────────────
+// ─── BUGS ─────────────────────────────────────────────────────
 async function loadBugs() {
     const grid = document.getElementById('bugsGrid');
     grid.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';
@@ -666,7 +829,6 @@ async function loadBugs() {
     }
 }
  
-// ─── SUBMIT BUG ───────────────────────────────────────────────
 async function submitBug() {
     if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
     const title = document.getElementById('bugTitle').value.trim();
@@ -693,24 +855,16 @@ async function submitBug() {
     btn.textContent = 'Post Bug 🚀'; btn.classList.remove('btn-disabled');
 }
  
-// ─── DELETE BUG ───────────────────────────────────────────────
-function askDelete(bugId, e) {
-    e.stopPropagation();
-    bugToDelete = bugId;
-    document.getElementById('confirmDialog').classList.add('show');
-}
-function closeConfirm() {
-    document.getElementById('confirmDialog').classList.remove('show');
-    bugToDelete = null;
-}
+// ─── DELETE ───────────────────────────────────────────────────
+function askDelete(bugId, e) { e.stopPropagation(); bugToDelete = bugId; document.getElementById('confirmDialog').classList.add('show'); }
+function closeConfirm() { document.getElementById('confirmDialog').classList.remove('show'); bugToDelete = null; }
 async function confirmDelete() {
     if (!bugToDelete) return;
     closeConfirm();
     try {
         await db.from('solutions').delete().eq('bug_id', bugToDelete);
         await db.from('bugs').delete().eq('id', bugToDelete);
-        toast('Bug delete ho gaya! 🗑️', 'ok');
-        goHome();
+        toast('Bug delete ho gaya! 🗑️', 'ok'); goHome();
     } catch(err) { toast('Delete failed: ' + err.message, 'err'); }
 }
  
@@ -738,7 +892,7 @@ async function openBug(id) {
                     <span>by <strong style="cursor:pointer;color:var(--accent);" onclick="goProfile('${bug.user_id}')">${esc(bug.username || 'Anonymous')}</strong></span>
                     <span>${timeAgo(bug.created_at)}</span>
                     <span>💡 ${solutions.length} solutions</span>
-                    ${isOwner ? `<button class="btn btn-danger btn-sm" onclick="askDelete('${bug.id}', event)" style="margin-left:auto;">🗑️ Delete Bug</button>` : ''}
+                    ${isOwner ? `<button class="btn btn-danger btn-sm" onclick="askDelete('${bug.id}', event)" style="margin-left:auto;">🗑️ Delete</button>` : ''}
                 </div>
             </div>
             <div class="solutions-header">Solutions (${solutions.length})</div>
@@ -762,8 +916,7 @@ async function openBug(id) {
                             <div class="sol-actions">
                                 <button class="upvote" onclick="upvote('${s.id}')">👍 ${s.upvotes || 0}</button>
                                 <span class="sol-author" style="cursor:pointer;" onclick="goProfile('${s.user_id}')">by ${esc(s.username || 'Anonymous')}</span>
-                                ${isOwner && !s.is_best_solution
-                                    ? `<button class="btn btn-sm btn-ghost" onclick="markBest('${s.id}')">Mark Best ✅</button>` : ''}
+                                ${isOwner && !s.is_best_solution ? `<button class="btn btn-sm btn-ghost" onclick="markBest('${s.id}')">Mark Best ✅</button>` : ''}
                             </div>
                         </div>`).join('')}
             </div>`;
@@ -834,8 +987,7 @@ function timeAgo(d) {
 function toast(msg, type = 'ok') {
     document.querySelectorAll('.toast').forEach(t => t.remove());
     const t = document.createElement('div');
-    t.className = 'toast ' + type;
-    t.textContent = msg;
+    t.className = 'toast ' + type; t.textContent = msg;
     document.body.appendChild(t);
     setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(() => t.remove(), 300); }, 3000);
 }
