@@ -21,7 +21,8 @@
         .logo { font-size: 1.5rem; font-weight: 900; color: var(--accent); cursor: pointer; letter-spacing: -1px; }
         .logo span { color: var(--text2); font-weight: 400; font-size: 0.9rem; margin-left: 6px; }
         .nav-right { display: flex; align-items: center; gap: 12px; }
-        .user-pill { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 6px 14px; font-size: 0.85rem; color: var(--text2); display: flex; align-items: center; gap: 8px; }
+        .user-pill { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 6px 14px; font-size: 0.85rem; color: var(--text2); display: flex; align-items: center; gap: 8px; cursor: pointer; transition: border 0.2s; }
+        .user-pill:hover { border-color: var(--accent); }
         .xp { background: var(--accent); color: var(--bg); border-radius: 10px; padding: 2px 8px; font-size: 0.75rem; font-weight: 700; }
  
         /* BUTTONS */
@@ -68,7 +69,7 @@
         .lb-wrap h2 { font-size: 1.8rem; font-weight: 900; margin-bottom: 0.5rem; }
         .lb-wrap p { color: var(--text2); margin-bottom: 2rem; font-size: 0.95rem; }
         .lb-list { display: flex; flex-direction: column; gap: 0.75rem; }
-        .lb-row { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.5rem; display: flex; align-items: center; gap: 1rem; transition: border 0.2s; }
+        .lb-row { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.5rem; display: flex; align-items: center; gap: 1rem; transition: border 0.2s; cursor: pointer; }
         .lb-row:hover { border-color: var(--accent); }
         .lb-row.top1 { border-color: #FFD700; background: linear-gradient(135deg, rgba(255,215,0,0.08), var(--card)); }
         .lb-row.top2 { border-color: #C0C0C0; background: linear-gradient(135deg, rgba(192,192,192,0.06), var(--card)); }
@@ -78,6 +79,26 @@
         .lb-name span { display: block; font-size: 0.78rem; color: var(--text2); font-weight: 400; margin-top: 2px; }
         .lb-xp { background: var(--accent); color: var(--bg); border-radius: 8px; padding: 4px 12px; font-size: 0.85rem; font-weight: 700; }
         .lb-me { outline: 2px solid var(--accent); }
+        .lb-level { font-size: 0.78rem; color: var(--text2); margin-right: 8px; }
+ 
+        /* PROFILE PAGE */
+        .profile-wrap { max-width: 700px; margin: 2.5rem auto; padding-bottom: 3rem; }
+        .profile-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; }
+        .profile-top { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .profile-avatar { width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), #0077ff); display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 900; color: var(--bg); flex-shrink: 0; }
+        .profile-info { flex: 1; }
+        .profile-info h2 { font-size: 1.6rem; font-weight: 900; margin-bottom: 4px; }
+        .profile-info .level-badge { display: inline-block; background: rgba(0,255,136,0.15); color: var(--accent); border: 1px solid var(--accent); border-radius: 6px; padding: 3px 12px; font-size: 0.82rem; font-weight: 700; }
+        .xp-bar-wrap { margin-top: 1.5rem; }
+        .xp-bar-label { display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--text2); margin-bottom: 6px; }
+        .xp-bar { background: var(--border); border-radius: 10px; height: 8px; overflow: hidden; }
+        .xp-bar-fill { background: linear-gradient(90deg, var(--accent), #0077ff); height: 100%; border-radius: 10px; transition: width 0.8s ease; }
+        .profile-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1.5rem; }
+        .profile-stat { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; text-align: center; }
+        .profile-stat-num { font-size: 1.5rem; font-weight: 900; color: var(--accent); }
+        .profile-stat-label { font-size: 0.75rem; color: var(--text2); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .profile-bugs { margin-top: 1.5rem; }
+        .profile-bugs h3 { font-size: 1rem; font-weight: 700; margin-bottom: 1rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
  
         /* POST PAGE */
         .form-wrap { max-width: 600px; margin: 3rem auto; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; }
@@ -154,6 +175,8 @@
             .stat-item { padding: 0.75rem 1.25rem; min-width: 90px; }
             .stat-number { font-size: 1.4rem; }
             .nav-right { gap: 8px; }
+            .profile-stats { grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+            .profile-top { flex-direction: column; align-items: flex-start; }
         }
     </style>
 </head>
@@ -163,7 +186,7 @@
     <nav class="container">
         <div class="logo" onclick="goHome()">BUGOUT <span>by MindForgers</span></div>
         <div class="nav-right">
-            <div class="user-pill" id="userPill" style="display:none;">
+            <div class="user-pill" id="userPill" style="display:none;" onclick="goMyProfile()">
                 <span id="userName"></span>
                 <span class="xp" id="userXP">0 XP</span>
             </div>
@@ -219,6 +242,13 @@
             <div class="lb-list" id="lbList">
                 <div class="loading"><div class="spinner"></div><p>Loading warriors...</p></div>
             </div>
+        </div>
+    </div>
+ 
+    <!-- PROFILE -->
+    <div class="page" id="profilePage">
+        <div class="profile-wrap" id="profileWrap">
+            <div class="loading"><div class="spinner"></div><p>Loading profile...</p></div>
         </div>
     </div>
  
@@ -299,6 +329,38 @@ const db = window.supabase.createClient(SB_URL, SB_KEY);
  
 let me = null, myName = null, myXP = 0, activeBug = null, activeCategory = 'all', bugToDelete = null;
  
+// ─── LEVEL SYSTEM ─────────────────────────────────────────────
+const LEVELS = [
+    { min: 0,   max: 24,  name: 'Rookie',   emoji: '🌱' },
+    { min: 25,  max: 49,  name: 'Warrior',  emoji: '⚔️' },
+    { min: 50,  max: 74,  name: 'Knight',   emoji: '🛡️' },
+    { min: 75,  max: 99,  name: 'Champion', emoji: '🏆' },
+    { min: 100, max: Infinity, name: 'Legend', emoji: '😈' }
+];
+ 
+function getLevel(xp) {
+    return LEVELS.find(l => xp >= l.min && xp <= l.max) || LEVELS[0];
+}
+ 
+function getLevelNum(xp) {
+    return LEVELS.findIndex(l => xp >= l.min && xp <= l.max) + 1;
+}
+ 
+function getXPProgress(xp) {
+    const lvl = getLevel(xp);
+    if (lvl.max === Infinity) return 100;
+    const range = lvl.max - lvl.min + 1;
+    const progress = xp - lvl.min;
+    return Math.round((progress / range) * 100);
+}
+ 
+function getXPToNext(xp) {
+    const lvl = getLevel(xp);
+    if (lvl.max === Infinity) return 0;
+    return lvl.max - xp + 1;
+}
+ 
+// ─── INIT ─────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('authModal').addEventListener('click', e => { if (e.target.id === 'authModal') closeModal(); });
     document.getElementById('confirmDialog').addEventListener('click', e => { if (e.target.id === 'confirmDialog') closeConfirm(); });
@@ -314,7 +376,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     loadStats();
 });
  
-// ─── STATS ───────────────────────────────────────────────────
+// ─── STATS ────────────────────────────────────────────────────
 async function loadStats() {
     try {
         const [{ count: b }, { count: s }, { count: u }] = await Promise.all([
@@ -328,7 +390,7 @@ async function loadStats() {
     } catch(e) {}
 }
  
-// ─── LEADERBOARD ─────────────────────────────────────────────
+// ─── LEADERBOARD ──────────────────────────────────────────────
 async function loadLeaderboard() {
     const list = document.getElementById('lbList');
     list.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading warriors...</p></div>';
@@ -338,24 +400,22 @@ async function loadLeaderboard() {
             .order('xp', { ascending: false })
             .limit(20);
         if (error) throw error;
- 
         if (!data || !data.length) {
             list.innerHTML = '<div class="empty"><h3>Koi warrior nahi abhi!</h3><p>Pehla bug post karo aur leaderboard pe aao! 😈</p></div>';
             return;
         }
- 
         const medals = ['🥇', '🥈', '🥉'];
         list.innerHTML = data.map((u, i) => {
-            const rank = i + 1;
-            const medal = medals[i] || `#${rank}`;
+            const medal = medals[i] || `#${i+1}`;
             const topClass = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
             const isMe = me && u.user_id === me.id;
+            const lvl = getLevel(u.xp || 0);
             return `
-                <div class="lb-row ${topClass} ${isMe ? 'lb-me' : ''}">
+                <div class="lb-row ${topClass} ${isMe ? 'lb-me' : ''}" onclick="goProfile('${u.user_id}')">
                     <div class="lb-rank">${medal}</div>
                     <div class="lb-name">
                         ${esc(u.username || 'Anonymous')}
-                        ${isMe ? '<span>← You! 😈</span>' : ''}
+                        <span>${lvl.emoji} ${lvl.name}${isMe ? ' · You! 😈' : ''}</span>
                     </div>
                     <div class="lb-xp">${u.xp || 0} XP</div>
                 </div>`;
@@ -365,7 +425,93 @@ async function loadLeaderboard() {
     }
 }
  
-// ─── USER ────────────────────────────────────────────────────
+// ─── PROFILE ──────────────────────────────────────────────────
+async function goProfile(userId) {
+    showPage('profilePage');
+    const wrap = document.getElementById('profileWrap');
+    wrap.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading profile...</p></div>';
+    try {
+        const [{ data: profile }, { data: bugs }, { data: solutions }] = await Promise.all([
+            db.from('profiles').select('*').eq('user_id', userId).single(),
+            db.from('bugs').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
+            db.from('solutions').select('*').eq('user_id', userId)
+        ]);
+ 
+        if (!profile) throw new Error('Profile not found');
+ 
+        const xp = profile.xp || 0;
+        const lvl = getLevel(xp);
+        const lvlNum = getLevelNum(xp);
+        const progress = getXPProgress(xp);
+        const toNext = getXPToNext(xp);
+        const bugsPosted = bugs ? bugs.length : 0;
+        const solsPosted = solutions ? solutions.length : 0;
+        const bestSols = solutions ? solutions.filter(s => s.is_best_solution).length : 0;
+        const isMe = me && me.id === userId;
+        const initial = (profile.username || 'A')[0].toUpperCase();
+ 
+        wrap.innerHTML = `
+            <button class="back-btn" onclick="history.back()">← Back</button>
+            <div class="profile-card">
+                <div class="profile-top">
+                    <div class="profile-avatar">${initial}</div>
+                    <div class="profile-info">
+                        <h2>${esc(profile.username || 'Anonymous')} ${isMe ? '<span style="font-size:1rem;">😈</span>' : ''}</h2>
+                        <div class="level-badge">${lvl.emoji} Level ${lvlNum} — ${lvl.name}</div>
+                    </div>
+                </div>
+                <div class="xp-bar-wrap">
+                    <div class="xp-bar-label">
+                        <span>${xp} XP</span>
+                        <span>${lvl.max === Infinity ? '😈 MAX LEVEL!' : toNext + ' XP to Level ' + (lvlNum + 1)}</span>
+                    </div>
+                    <div class="xp-bar">
+                        <div class="xp-bar-fill" style="width:${progress}%"></div>
+                    </div>
+                </div>
+                <div class="profile-stats">
+                    <div class="profile-stat">
+                        <div class="profile-stat-num">${bugsPosted}</div>
+                        <div class="profile-stat-label">🐛 Bugs</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="profile-stat-num">${solsPosted}</div>
+                        <div class="profile-stat-label">💡 Solutions</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="profile-stat-num">${bestSols}</div>
+                        <div class="profile-stat-label">✅ Best</div>
+                    </div>
+                </div>
+            </div>
+ 
+            ${bugsPosted > 0 ? `
+                <div class="profile-bugs">
+                    <h3>Recent Bugs</h3>
+                    <div style="display:flex;flex-direction:column;gap:0.75rem;">
+                        ${bugs.slice(0, 5).map(b => `
+                            <div class="bug-card" onclick="openBug('${b.id}')">
+                                <div class="bug-tag">${esc(b.category)}</div>
+                                <h3 style="font-size:1rem;">${esc(b.title)}</h3>
+                                <div class="bug-footer" style="margin-top:0.5rem;">
+                                    <span>${timeAgo(b.created_at)}</span>
+                                    <span>💡 ${b.solutions_count || 0} solutions</span>
+                                </div>
+                            </div>`).join('')}
+                    </div>
+                </div>` : ''}
+        `;
+    } catch(err) {
+        wrap.innerHTML = `<button class="back-btn" onclick="goHome()">← Back</button><div class="empty"><h3>Profile nahi mila 😔</h3><p>${esc(err.message)}</p></div>`;
+    }
+}
+ 
+function goMyProfile() {
+    if (!me) { openModal(); return; }
+    goProfile(me.id);
+}
+ 
+// ─── USER ─────────────────────────────────────────────────────
 async function setUser(user) {
     me = user;
     try {
@@ -384,7 +530,8 @@ function renderUserUI() {
     document.getElementById('userPill').style.display = on ? 'flex' : 'none';
     document.getElementById('postBtn').style.display = on ? 'inline-flex' : 'none';
     if (on) {
-        document.getElementById('userName').textContent = myName;
+        const lvl = getLevel(myXP);
+        document.getElementById('userName').textContent = lvl.emoji + ' ' + myName;
         document.getElementById('userXP').textContent = myXP + ' XP';
     }
 }
@@ -392,13 +539,20 @@ function renderUserUI() {
 async function addXP(amount) {
     if (!me) return;
     try {
+        const oldLvl = getLevelNum(myXP);
         myXP += amount;
         await db.from('profiles').update({ xp: myXP }).eq('user_id', me.id);
+        const newLvl = getLevelNum(myXP);
+        const lvl = getLevel(myXP);
         document.getElementById('userXP').textContent = myXP + ' XP';
+        document.getElementById('userName').textContent = lvl.emoji + ' ' + myName;
+        if (newLvl > oldLvl) {
+            toast(`🎉 Level Up! Tu ab ${lvl.emoji} ${lvl.name} hai!`, 'ok');
+        }
     } catch(e) {}
 }
  
-// ─── AUTH ────────────────────────────────────────────────────
+// ─── AUTH ─────────────────────────────────────────────────────
 function handleAuth() { if (me) doSignOut(); else openModal(); }
 function openModal() { document.getElementById('authModal').classList.add('show'); }
 function closeModal() {
@@ -460,7 +614,7 @@ async function doSignOut() {
     goHome();
 }
  
-// ─── NAVIGATION ──────────────────────────────────────────────
+// ─── NAVIGATION ───────────────────────────────────────────────
 function showPage(id) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(id).classList.add('active');
@@ -470,7 +624,7 @@ function goHome() { showPage('homePage'); loadBugs(); loadStats(); }
 function goPost() { if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; } showPage('postPage'); }
 function goLeaderboard() { showPage('leaderboardPage'); loadLeaderboard(); }
  
-// ─── FILTER ──────────────────────────────────────────────────
+// ─── FILTER ───────────────────────────────────────────────────
 function filter(cat, btn) {
     activeCategory = cat;
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -478,7 +632,7 @@ function filter(cat, btn) {
     loadBugs();
 }
  
-// ─── LOAD BUGS ───────────────────────────────────────────────
+// ─── LOAD BUGS ────────────────────────────────────────────────
 async function loadBugs() {
     const grid = document.getElementById('bugsGrid');
     grid.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';
@@ -512,7 +666,7 @@ async function loadBugs() {
     }
 }
  
-// ─── SUBMIT BUG ──────────────────────────────────────────────
+// ─── SUBMIT BUG ───────────────────────────────────────────────
 async function submitBug() {
     if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
     const title = document.getElementById('bugTitle').value.trim();
@@ -539,7 +693,7 @@ async function submitBug() {
     btn.textContent = 'Post Bug 🚀'; btn.classList.remove('btn-disabled');
 }
  
-// ─── DELETE BUG ──────────────────────────────────────────────
+// ─── DELETE BUG ───────────────────────────────────────────────
 function askDelete(bugId, e) {
     e.stopPropagation();
     bugToDelete = bugId;
@@ -560,7 +714,7 @@ async function confirmDelete() {
     } catch(err) { toast('Delete failed: ' + err.message, 'err'); }
 }
  
-// ─── OPEN BUG ────────────────────────────────────────────────
+// ─── OPEN BUG ─────────────────────────────────────────────────
 async function openBug(id) {
     showPage('detailPage');
     const wrap = document.getElementById('detailWrap');
@@ -581,7 +735,7 @@ async function openBug(id) {
                 <h2>${esc(bug.title)}</h2>
                 <p class="desc">${esc(bug.description)}</p>
                 <div class="detail-meta">
-                    <span>by <strong>${esc(bug.username || 'Anonymous')}</strong></span>
+                    <span>by <strong style="cursor:pointer;color:var(--accent);" onclick="goProfile('${bug.user_id}')">${esc(bug.username || 'Anonymous')}</strong></span>
                     <span>${timeAgo(bug.created_at)}</span>
                     <span>💡 ${solutions.length} solutions</span>
                     ${isOwner ? `<button class="btn btn-danger btn-sm" onclick="askDelete('${bug.id}', event)" style="margin-left:auto;">🗑️ Delete Bug</button>` : ''}
@@ -607,7 +761,7 @@ async function openBug(id) {
                             <p>${esc(s.content)}</p>
                             <div class="sol-actions">
                                 <button class="upvote" onclick="upvote('${s.id}')">👍 ${s.upvotes || 0}</button>
-                                <span class="sol-author">by ${esc(s.username || 'Anonymous')}</span>
+                                <span class="sol-author" style="cursor:pointer;" onclick="goProfile('${s.user_id}')">by ${esc(s.username || 'Anonymous')}</span>
                                 ${isOwner && !s.is_best_solution
                                     ? `<button class="btn btn-sm btn-ghost" onclick="markBest('${s.id}')">Mark Best ✅</button>` : ''}
                             </div>
@@ -618,7 +772,7 @@ async function openBug(id) {
     }
 }
  
-// ─── SOLUTION ────────────────────────────────────────────────
+// ─── SOLUTION ─────────────────────────────────────────────────
 async function submitSolution() {
     if (!me || !activeBug) return;
     const content = document.getElementById('solText').value.trim();
@@ -661,7 +815,7 @@ async function markBest(solId) {
     } catch(e) { toast('Error!', 'err'); }
 }
  
-// ─── UTILS ───────────────────────────────────────────────────
+// ─── UTILS ────────────────────────────────────────────────────
 function esc(s) {
     if (s == null) return '';
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -688,4 +842,3 @@ function toast(msg, type = 'ok') {
 </script>
 </body>
 </html>
- 
