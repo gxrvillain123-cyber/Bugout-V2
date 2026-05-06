@@ -14,7 +14,7 @@
         }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
         .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
- 
+
         /* NAV */
         header { background: var(--bg2); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
         nav { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; }
@@ -24,17 +24,17 @@
         .user-pill { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 6px 14px; font-size: 0.85rem; color: var(--text2); display: flex; align-items: center; gap: 8px; cursor: pointer; transition: border 0.2s; }
         .user-pill:hover { border-color: var(--accent); }
         .xp { background: var(--accent); color: var(--bg); border-radius: 10px; padding: 2px 8px; font-size: 0.75rem; font-weight: 700; }
- 
+
         /* MSG BELL */
         .msg-bell { position: relative; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; cursor: pointer; font-size: 1.1rem; transition: border 0.2s; display: none; }
         .msg-bell:hover { border-color: var(--accent); }
         .msg-badge { position: absolute; top: -5px; right: -5px; background: var(--error); color: #fff; border-radius: 50%; width: 18px; height: 18px; font-size: 0.65rem; font-weight: 700; display: flex; align-items: center; justify-content: center; display: none; }
- 
+
         /* NOTIF BELL */
         .notif-bell { position: relative; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; cursor: pointer; font-size: 1.1rem; transition: border 0.2s; display: none; }
         .notif-bell:hover { border-color: var(--accent); }
         .notif-badge { position: absolute; top: -5px; right: -5px; background: var(--error); color: #fff; border-radius: 50%; width: 18px; height: 18px; font-size: 0.65rem; font-weight: 700; align-items: center; justify-content: center; display: none; }
- 
+
         /* BUTTONS */
         .btn { background: var(--accent); color: var(--bg); border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.95rem; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
         .btn:hover { background: var(--accent2); transform: translateY(-1px); }
@@ -45,11 +45,11 @@
         .btn-danger:hover { background: var(--error); color: #fff; transform: translateY(-1px); }
         .btn-sm { padding: 6px 14px; font-size: 0.85rem; }
         .btn-disabled { opacity: 0.5; pointer-events: none; }
- 
+
         /* PAGES */
         .page { display: none; }
         .page.active { display: block; }
- 
+
         /* SEARCH BAR */
         .search-wrap { max-width: 600px; margin: 0 auto 1.5rem; position: relative; }
         .search-input { width: 100%; background: var(--card); border: 1.5px solid var(--border); border-radius: 12px; padding: 12px 44px 12px 16px; color: var(--text); font-size: 0.95rem; outline: none; transition: border 0.2s; }
@@ -57,20 +57,20 @@
         .search-input::placeholder { color: var(--text2); }
         .search-clear { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text2); font-size: 1.1rem; cursor: pointer; display: none; }
         .search-clear:hover { color: var(--text); }
- 
+
         /* HOME */
         .hero { text-align: center; padding: 4rem 0 2rem; }
         .hero h1 { font-size: 2.8rem; font-weight: 900; line-height: 1.1; margin-bottom: 1rem; }
         .hero h1 span { color: var(--accent); }
         .hero p { color: var(--text2); font-size: 1.1rem; margin-bottom: 2rem; }
- 
+
         /* STATS BAR */
         .stats-bar { display: flex; justify-content: center; gap: 2rem; margin-bottom: 2.5rem; flex-wrap: wrap; }
         .stat-item { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 2rem; text-align: center; min-width: 120px; transition: border 0.2s; cursor: default; }
         .stat-item:hover { border-color: var(--accent); }
         .stat-number { font-size: 1.8rem; font-weight: 900; color: var(--accent); line-height: 1; margin-bottom: 4px; }
         .stat-label { font-size: 0.78rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
- 
+
         .filters { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 1.5rem; }
         .filter-btn { background: var(--card); color: var(--text2); border: 1px solid var(--border); padding: 6px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; }
         .filter-btn:hover, .filter-btn.active { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
@@ -81,29 +81,24 @@
         .bug-card h3 { font-size: 1.1rem; margin-bottom: 8px; line-height: 1.3; }
         .bug-card p { color: var(--text2); font-size: 0.9rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 1rem; }
         .bug-footer { display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--text2); }
- 
-        /* ═══ BUG STATUS BADGES ═══ */
-        .status-badge {
-            display: inline-flex; align-items: center; gap: 4px;
-            border-radius: 20px; padding: 3px 10px; font-size: 0.72rem; font-weight: 700;
-            letter-spacing: 0.3px; margin-left: 6px;
-        }
+
+        /* BUG STATUS BADGES */
+        .status-badge { display: inline-flex; align-items: center; gap: 4px; border-radius: 20px; padding: 3px 10px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.3px; margin-left: 6px; }
         .status-open    { background: rgba(255,68,68,0.15);   color: #ff6666; border: 1px solid rgba(255,68,68,0.3); }
         .status-in_progress { background: rgba(255,170,0,0.15); color: #ffaa00; border: 1px solid rgba(255,170,0,0.3); }
         .status-solved  { background: rgba(0,255,136,0.15);   color: var(--accent); border: 1px solid rgba(0,255,136,0.3); }
- 
-        /* Status select dropdown (detail page) */
+
         .status-select-wrap { display: flex; align-items: center; gap: 10px; margin-top: 1rem; padding: 0.75rem 1rem; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; }
         .status-select-wrap label { font-size: 0.82rem; color: var(--text2); font-weight: 600; white-space: nowrap; }
         .status-select { background: var(--card); border: 1.5px solid var(--border); border-radius: 8px; padding: 6px 12px; color: var(--text); font-size: 0.88rem; outline: none; cursor: pointer; transition: border 0.2s; }
         .status-select:focus { border-color: var(--accent); }
         .status-select option { background: var(--bg2); }
- 
+
         /* BUG TAGS */
         .bug-tags-wrap { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
         .bug-tag-pill { background: rgba(0,255,136,0.08); color: var(--accent); border: 1px solid rgba(0,255,136,0.2); border-radius: 20px; padding: 2px 9px; font-size: 0.72rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
         .bug-tag-pill:hover { background: rgba(0,255,136,0.2); }
- 
+
         /* TAG INPUT */
         .tag-input-wrap { display: flex; flex-wrap: wrap; gap: 6px; background: var(--bg2); border: 1.5px solid var(--border); border-radius: 8px; padding: 8px; min-height: 44px; cursor: text; transition: border 0.2s; }
         .tag-input-wrap:focus-within { border-color: var(--accent); }
@@ -112,17 +107,17 @@
         .tag-pill-remove:hover { opacity: 1; }
         .tag-raw-input { background: none; border: none; outline: none; color: var(--text); font-size: 0.9rem; min-width: 120px; flex: 1; padding: 2px 4px; }
         .tag-hint { font-size: 0.78rem; color: var(--text2); margin-top: 5px; }
- 
+
         /* BOOKMARK BUTTON ON CARD */
         .bookmark-btn-card { position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.2rem; cursor: pointer; opacity: 0.5; transition: all 0.2s; z-index: 2; }
         .bookmark-btn-card:hover { opacity: 1; transform: scale(1.2); }
         .bookmark-btn-card.saved { opacity: 1; }
- 
+
         /* BOOKMARKS PAGE */
         .bookmarks-wrap { max-width: 900px; margin: 2.5rem auto; padding-bottom: 3rem; }
         .bookmarks-wrap h2 { font-size: 1.8rem; font-weight: 900; margin-bottom: 0.5rem; }
         .bookmarks-wrap > p { color: var(--text2); margin-bottom: 2rem; font-size: 0.95rem; }
- 
+
         /* BADGES */
         .badges-wrap { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 1rem; }
         .badge-item { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 8px 14px; display: flex; align-items: center; gap: 8px; font-size: 0.85rem; transition: border 0.2s; }
@@ -130,7 +125,7 @@
         .badge-item .badge-icon { font-size: 1.4rem; }
         .badge-item .badge-name { font-weight: 700; color: var(--text); font-size: 0.82rem; }
         .badge-item .badge-desc { font-size: 0.72rem; color: var(--text2); margin-top: 1px; }
- 
+
         /* COMMENTS */
         .comments-section { margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem; }
         .comments-toggle { background: none; border: none; color: var(--text2); font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 4px 0; transition: color 0.2s; }
@@ -147,7 +142,7 @@
         .comment-input:focus { border-color: var(--accent); }
         .comment-send { background: var(--accent); color: var(--bg); border: none; border-radius: 8px; padding: 8px 14px; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
         .comment-send:hover { background: var(--accent2); }
- 
+
         /* NOTIFICATIONS PANEL */
         .notif-panel { position: absolute; top: calc(100% + 8px); right: 0; width: 340px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 16px 48px rgba(0,0,0,0.5); z-index: 200; overflow: hidden; display: none; }
         .notif-panel.show { display: block; }
@@ -166,7 +161,7 @@
         .notif-empty { text-align: center; padding: 2.5rem 1rem; color: var(--text2); font-size: 0.9rem; }
         .notif-bell-wrap { position: relative; display: none; }
         .notif-bell-wrap.show { display: block; }
- 
+
         /* LEADERBOARD */
         .lb-wrap { max-width: 650px; margin: 2.5rem auto; padding-bottom: 3rem; }
         .lb-wrap h2 { font-size: 1.8rem; font-weight: 900; margin-bottom: 0.5rem; }
@@ -182,7 +177,7 @@
         .lb-name span { display: block; font-size: 0.78rem; color: var(--text2); font-weight: 400; margin-top: 2px; }
         .lb-xp { background: var(--accent); color: var(--bg); border-radius: 8px; padding: 4px 12px; font-size: 0.85rem; font-weight: 700; }
         .lb-me { outline: 2px solid var(--accent); }
- 
+
         /* PROFILE */
         .profile-wrap { max-width: 700px; margin: 2.5rem auto; padding-bottom: 3rem; }
         .profile-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; }
@@ -199,20 +194,20 @@
         .xp-bar-label { display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--text2); margin-bottom: 6px; }
         .xp-bar { background: var(--border); border-radius: 10px; height: 8px; overflow: hidden; }
         .xp-bar-fill { height: 100%; border-radius: 10px; transition: width 0.8s ease; }
- 
+
         /* FOLLOW STATS */
         .follow-stats { display: flex; gap: 1.5rem; margin-top: 1rem; }
         .follow-stat { cursor: pointer; }
         .follow-stat:hover .follow-count { color: var(--accent); }
         .follow-count { font-size: 1.1rem; font-weight: 900; color: var(--text); }
         .follow-label { font-size: 0.78rem; color: var(--text2); }
- 
+
         .profile-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1.5rem; }
         .profile-stat { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; text-align: center; }
         .profile-stat-num { font-size: 1.5rem; font-weight: 900; color: var(--accent); }
         .profile-stat-label { font-size: 0.75rem; color: var(--text2); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
         .profile-bugs h3 { font-size: 1rem; font-weight: 700; margin-bottom: 1rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
- 
+
         /* FOLLOW LIST */
         .follow-list-wrap { max-width: 600px; margin: 2rem auto; padding-bottom: 3rem; }
         .follow-list-wrap h2 { font-size: 1.4rem; font-weight: 900; margin-bottom: 1.5rem; }
@@ -222,7 +217,7 @@
         .follow-user-info { flex: 1; }
         .follow-user-name { font-weight: 700; font-size: 0.95rem; }
         .follow-user-level { font-size: 0.78rem; color: var(--text2); margin-top: 2px; }
- 
+
         /* EDIT PROFILE MODAL */
         .edit-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1001; padding: 1rem; overflow-y: auto; }
         .edit-overlay.show { display: flex; }
@@ -233,7 +228,7 @@
         .interests-selector { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
         .interest-opt { background: var(--bg2); border: 1.5px solid var(--border); border-radius: 20px; padding: 5px 14px; font-size: 0.85rem; color: var(--text2); cursor: pointer; transition: all 0.2s; }
         .interest-opt.selected { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
- 
+
         /* POST PAGE */
         .form-wrap { max-width: 600px; margin: 3rem auto; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; }
         .form-wrap h2 { margin-bottom: 1.5rem; font-size: 1.4rem; }
@@ -244,7 +239,158 @@
         .field textarea { min-height: 130px; resize: vertical; }
         .field select option { background: var(--bg2); }
         .form-actions { display: flex; gap: 10px; margin-top: 1.5rem; }
- 
+
+        /* ═══════════════════════════════════
+           AI BUG SOLVER
+        ═══════════════════════════════════ */
+        .ai-solver-btn {
+            width: 100%;
+            margin-bottom: 0.75rem;
+            background: linear-gradient(135deg, rgba(0,255,136,0.12), rgba(0,119,255,0.12));
+            border: 1.5px solid rgba(0,255,136,0.4);
+            color: var(--accent);
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            letter-spacing: 0.3px;
+        }
+        .ai-solver-btn:hover {
+            background: linear-gradient(135deg, rgba(0,255,136,0.2), rgba(0,119,255,0.2));
+            border-color: var(--accent);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(0,255,136,0.15);
+        }
+        .ai-solver-btn:disabled {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        .ai-box {
+            display: none;
+            background: linear-gradient(135deg, rgba(0,255,136,0.04), rgba(0,0,0,0));
+            border: 1.5px solid rgba(0,255,136,0.25);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            animation: fadeIn 0.3s ease;
+        }
+        .ai-box.show { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+        .ai-box-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid rgba(0,255,136,0.15);
+        }
+        .ai-box-title {
+            font-weight: 800;
+            font-size: 0.9rem;
+            color: var(--accent);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .ai-box-subtitle {
+            font-size: 0.75rem;
+            color: var(--text2);
+            margin-left: auto;
+        }
+        .ai-loading-wrap {
+            text-align: center;
+            padding: 1.5rem 1rem;
+        }
+        .ai-loading-wrap .spinner { width: 28px; height: 28px; margin: 0 auto 0.75rem; }
+        .ai-loading-text {
+            font-size: 0.85rem;
+            color: var(--text2);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+        .ai-suggestion-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1rem 1.1rem;
+            margin-bottom: 0.75rem;
+            transition: border 0.2s;
+            position: relative;
+        }
+        .ai-suggestion-card:last-of-type { margin-bottom: 0; }
+        .ai-suggestion-card:hover { border-color: rgba(0,255,136,0.3); }
+        .ai-suggestion-label {
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .ai-suggestion-text {
+            font-size: 0.88rem;
+            color: var(--text2);
+            line-height: 1.65;
+            white-space: pre-wrap;
+        }
+        .ai-use-sol-btn {
+            margin-top: 10px;
+            background: transparent;
+            border: 1px solid rgba(0,255,136,0.3);
+            color: var(--accent);
+            border-radius: 6px;
+            padding: 5px 14px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .ai-use-sol-btn:hover {
+            background: rgba(0,255,136,0.1);
+            border-color: var(--accent);
+        }
+        .ai-footer-note {
+            font-size: 0.72rem;
+            color: var(--text2);
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .ai-error-wrap {
+            text-align: center;
+            padding: 1rem;
+            color: var(--error);
+            font-size: 0.88rem;
+        }
+        /* AI badge on solution card */
+        .ai-sol-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: linear-gradient(135deg, rgba(0,255,136,0.15), rgba(0,119,255,0.1));
+            border: 1px solid rgba(0,255,136,0.3);
+            color: var(--accent);
+            border-radius: 20px;
+            padding: 2px 10px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+
         /* DETAIL */
         .detail-wrap { max-width: 750px; margin: 2rem auto; padding-bottom: 3rem; }
         .back-btn { display: inline-flex; align-items: center; gap: 6px; color: var(--text2); cursor: pointer; font-size: 0.9rem; margin-bottom: 1.5rem; transition: color 0.2s; background: none; border: none; }
@@ -265,7 +411,7 @@
         .upvote:hover { border-color: var(--accent); color: var(--accent); }
         .best-badge { position: absolute; top: 1rem; right: 1rem; background: var(--accent); color: var(--bg); border-radius: 6px; padding: 3px 10px; font-size: 0.78rem; font-weight: 700; }
         .sol-author { font-size: 0.82rem; color: var(--text2); }
- 
+
         /* CONFIRM */
         .confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 1rem; }
         .confirm-overlay.show { display: flex; }
@@ -273,7 +419,7 @@
         .confirm-box h3 { font-size: 1.2rem; margin-bottom: 0.5rem; }
         .confirm-box p { color: var(--text2); font-size: 0.9rem; margin-bottom: 1.5rem; }
         .confirm-actions { display: flex; gap: 10px; justify-content: center; }
- 
+
         /* MODAL */
         .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 999; padding: 1rem; }
         .overlay.show { display: flex; }
@@ -287,20 +433,20 @@
         .tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
         .tab-pane { display: none; }
         .tab-pane.active { display: block; }
- 
+
         /* STATES */
         .loading { text-align: center; padding: 4rem; color: var(--text2); grid-column: 1/-1; }
         .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .empty { text-align: center; padding: 4rem; color: var(--text2); grid-column: 1/-1; }
         .empty h3 { color: var(--text); margin-bottom: 0.5rem; font-size: 1.2rem; }
- 
+
         /* TOAST */
         .toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 20px; font-size: 0.9rem; z-index: 9999; animation: slideUp 0.3s ease; max-width: 280px; }
         .toast.ok { border-color: var(--accent); }
         .toast.err { border-color: var(--error); color: var(--error); }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
- 
+
         /* MESSAGING */
         .inbox-wrap { max-width: 750px; margin: 2.5rem auto; padding-bottom: 3rem; }
         .inbox-wrap h2 { font-size: 1.8rem; font-weight: 900; margin-bottom: 0.5rem; }
@@ -348,7 +494,7 @@
         .followers-list { max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; }
         .follower-select-row { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.75rem; cursor: pointer; transition: all 0.2s; }
         .follower-select-row:hover { border-color: var(--accent); background: rgba(0,255,136,0.05); }
- 
+
         /* NOTIFICATIONS PAGE */
         .notifs-wrap { max-width: 650px; margin: 2.5rem auto; padding-bottom: 3rem; }
         .notifs-wrap h2 { font-size: 1.8rem; font-weight: 900; margin-bottom: 0.5rem; }
@@ -360,7 +506,7 @@
         .notif-row-body { flex: 1; }
         .notif-row-text { font-size: 0.9rem; line-height: 1.4; margin-bottom: 4px; }
         .notif-row-time { font-size: 0.78rem; color: var(--text2); }
- 
+
         @media (max-width: 600px) {
             .hero h1 { font-size: 1.8rem; }
             .bugs-grid { grid-template-columns: 1fr; }
@@ -378,7 +524,7 @@
     </style>
 </head>
 <body>
- 
+
 <header>
     <nav class="container">
         <div class="logo" onclick="goHome()">BUGOUT <span>by MindForgers</span></div>
@@ -413,7 +559,7 @@
         </div>
     </nav>
 </header>
- 
+
 <main class="container">
     <!-- HOME -->
     <div class="page active" id="homePage">
@@ -447,7 +593,6 @@
             <button class="filter-btn" onclick="filter('Career',this)">💼 Career</button>
             <button class="filter-btn" onclick="filter('Relationships',this)">❤️ Relationships</button>
             <button class="filter-btn" onclick="filter('Random',this)">🎲 Random</button>
-            <!-- ══ STATUS FILTERS ══ -->
             <button class="filter-btn" onclick="filterByStatus('open',this)">🔴 Open</button>
             <button class="filter-btn" onclick="filterByStatus('in_progress',this)">🟡 In Progress</button>
             <button class="filter-btn" onclick="filterByStatus('solved',this)">🟢 Solved</button>
@@ -457,7 +602,7 @@
             <div class="loading"><div class="spinner"></div><p>Loading...</p></div>
         </div>
     </div>
- 
+
     <!-- LEADERBOARD -->
     <div class="page" id="leaderboardPage">
         <div class="lb-wrap">
@@ -469,14 +614,14 @@
             </div>
         </div>
     </div>
- 
+
     <!-- PROFILE -->
     <div class="page" id="profilePage">
         <div class="profile-wrap" id="profileWrap">
             <div class="loading"><div class="spinner"></div><p>Loading profile...</p></div>
         </div>
     </div>
- 
+
     <!-- FOLLOW LIST -->
     <div class="page" id="followListPage">
         <div class="follow-list-wrap">
@@ -487,7 +632,7 @@
             </div>
         </div>
     </div>
- 
+
     <!-- BOOKMARKS PAGE -->
     <div class="page" id="bookmarksPage">
         <div class="bookmarks-wrap">
@@ -499,7 +644,7 @@
             </div>
         </div>
     </div>
- 
+
     <!-- POST -->
     <div class="page" id="postPage">
         <div class="form-wrap">
@@ -526,18 +671,35 @@
                 </div>
                 <div class="tag-hint">Enter ya comma daba ke tag add karo</div>
             </div>
+
+            <!-- AI BUG SOLVER SECTION -->
+            <button class="ai-solver-btn" id="aiSolveBtn" onclick="getAISolutions()">
+                🤖 Get AI Solutions First (Optional)
+            </button>
+            <div class="ai-box" id="aiBox">
+                <div class="ai-box-header">
+                    <span>🤖</span>
+                    <span class="ai-box-title">AI Suggestions</span>
+                    <span class="ai-box-subtitle">Powered by Groq · LLaMA 3</span>
+                </div>
+                <div id="aiSuggestionsContent"></div>
+                <div class="ai-footer-note">
+                    ⚡ Ye AI suggestions hain — community solutions alag ho sakte hain. Bug post karna optional hai.
+                </div>
+            </div>
+
             <div class="form-actions">
                 <button class="btn" id="submitBugBtn" onclick="submitBug()">Post Bug 🚀</button>
                 <button class="btn btn-ghost" onclick="goHome()">Cancel</button>
             </div>
         </div>
     </div>
- 
+
     <!-- DETAIL -->
     <div class="page" id="detailPage">
         <div class="detail-wrap" id="detailWrap"></div>
     </div>
- 
+
     <!-- INBOX PAGE -->
     <div class="page" id="inboxPage">
         <div class="inbox-wrap">
@@ -552,7 +714,7 @@
             </div>
         </div>
     </div>
- 
+
     <!-- CHAT PAGE -->
     <div class="page" id="chatPage">
         <div class="chat-wrap">
@@ -575,7 +737,7 @@
             </div>
         </div>
     </div>
- 
+
     <!-- NOTIFICATIONS PAGE -->
     <div class="page" id="notifsPage">
         <div class="notifs-wrap">
@@ -590,7 +752,7 @@
         </div>
     </div>
 </main>
- 
+
 <!-- AUTH MODAL -->
 <div class="overlay" id="authModal">
     <div class="modal">
@@ -615,7 +777,7 @@
         </div>
     </div>
 </div>
- 
+
 <!-- EDIT PROFILE MODAL -->
 <div class="edit-overlay" id="editModal">
     <div class="edit-modal">
@@ -633,7 +795,7 @@
         </div>
     </div>
 </div>
- 
+
 <!-- CONFIRM DELETE -->
 <div class="confirm-overlay" id="confirmDialog">
     <div class="confirm-box">
@@ -645,7 +807,7 @@
         </div>
     </div>
 </div>
- 
+
 <!-- NEW MESSAGE MODAL -->
 <div class="new-msg-overlay" id="newMsgModal">
     <div class="new-msg-modal">
@@ -660,13 +822,17 @@
         </div>
     </div>
 </div>
- 
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SB_URL = 'https://ufybyvufusswyswoxjra.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmeWJ5dnVmdXNzd3lzd294anJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MDUyOTMsImV4cCI6MjA5MzM4MTI5M30.A-3RT1B5MjSLaX7SpHpyh1IVuYmHzW8Puy8lI3paVA0';
 const db = window.supabase.createClient(SB_URL, SB_KEY);
- 
+
+// ⚠️ GROQ API KEY — Groq console se naya key banana after use
+const GROQ_API_KEY = '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';
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+
 let me = null, myName = null, myXP = 0, activeBug = null, activeCategory = 'all', bugToDelete = null;
 let editSelectedColor = '#00ff88', editSelectedInterests = [];
 let currentProfileId = null;
@@ -680,9 +846,8 @@ let allBugsCache = [];
 let notifCheckInterval = null;
 let notifPanelOpen = false;
 let myBookmarks = new Set();
-// ══ NEW: status filter state ══
 let activeStatusFilter = null;
- 
+
 const LEVELS = [
     { min: 0,   max: 24,  name: 'Rookie',   emoji: '🌱' },
     { min: 25,  max: 49,  name: 'Warrior',  emoji: '⚔️' },
@@ -690,7 +855,7 @@ const LEVELS = [
     { min: 75,  max: 99,  name: 'Champion', emoji: '🏆' },
     { min: 100, max: Infinity, name: 'Legend', emoji: '😈' }
 ];
- 
+
 const BADGE_DEFS = [
     { name: 'First Blood',   icon: '🩸', desc: 'Pehla bug post kiya!',        check: (bugs, sols, xp) => bugs >= 1 },
     { name: 'Problem Solver',icon: '💡', desc: 'Pehla solution diya!',         check: (bugs, sols, xp) => sols >= 1 },
@@ -701,10 +866,10 @@ const BADGE_DEFS = [
     { name: 'Champion',      icon: '🏆', desc: '75 XP earn kiya!',            check: (bugs, sols, xp) => xp >= 75 },
     { name: 'Legend',        icon: '😈', desc: '100 XP earn kiya!',           check: (bugs, sols, xp) => xp >= 100 },
 ];
- 
+
 const AVATAR_COLORS = ['#00ff88','#0077ff','#ff4444','#ff9900','#aa44ff','#ff44aa','#00ccff','#ffcc00'];
 const ALL_INTERESTS = ['💻 Coding','🎮 Gaming','🎵 Music','⚽ Football','🏏 Cricket','📚 Studies','🎨 Art','🍕 Food','✈️ Travel','💰 Finance','🎬 Movies','📱 Tech','🦸 Marvel','🏋️ Fitness','🎤 Rap','📷 Photography'];
- 
+
 function getLevel(xp) { return LEVELS.find(l => xp >= l.min && xp <= l.max) || LEVELS[0]; }
 function getLevelNum(xp) { return LEVELS.findIndex(l => xp >= l.min && xp <= l.max) + 1; }
 function getXPProgress(xp) { const l = getLevel(xp); if (l.max===Infinity) return 100; return Math.round(((xp-l.min)/(l.max-l.min+1))*100); }
@@ -712,8 +877,7 @@ function getXPToNext(xp) { const l = getLevel(xp); return l.max===Infinity ? 0 :
 function makeAvatar(initial, color, size=80) {
     return `<div class="profile-avatar" style="background:${color||'#00ff88'};width:${size}px;height:${size}px;font-size:${size*0.4}px;">${initial}</div>`;
 }
- 
-// ══ STATUS HELPERS ══
+
 function getStatusBadge(status) {
     const map = {
         'open':        { cls: 'status-open',        label: '🔴 Open' },
@@ -723,18 +887,149 @@ function getStatusBadge(status) {
     const s = map[status] || map['open'];
     return `<span class="status-badge ${s.cls}">${s.label}</span>`;
 }
- 
+
 async function updateBugStatus(bugId, newStatus) {
     try {
         await db.from('bugs').update({ status: newStatus }).eq('id', bugId);
         activeBug.status = newStatus;
-        // Update the inline badge in detail view
-        const badgeEl = document.getElementById('detail-status-badge');
-        if (badgeEl) badgeEl.outerHTML = `<span id="detail-status-badge" class="status-badge ${newStatus==='open'?'status-open':newStatus==='in_progress'?'status-in_progress':'status-solved'}">${getStatusBadge(newStatus).replace(/<[^>]+>/g,'')}</span>`;
         toast(`Status updated: ${newStatus === 'open' ? '🔴 Open' : newStatus === 'in_progress' ? '🟡 In Progress' : '🟢 Solved'}`, 'ok');
     } catch(err) { toast('Status update failed: ' + err.message, 'err'); }
 }
- 
+
+// ═══════════════════════════════════════════════════════════════
+//  🤖 AI BUG SOLVER — GROQ API
+// ═══════════════════════════════════════════════════════════════
+async function getAISolutions() {
+    const title = document.getElementById('bugTitle').value.trim();
+    const desc  = document.getElementById('bugDesc').value.trim();
+    const cat   = document.getElementById('bugCat').value;
+
+    if (!title && !desc) {
+        toast('Pehle title ya description likho!', 'err');
+        return;
+    }
+
+    const btn = document.getElementById('aiSolveBtn');
+    const box = document.getElementById('aiBox');
+    const content = document.getElementById('aiSuggestionsContent');
+
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner" style="width:18px;height:18px;margin:0;border-width:2px;"></div> AI soch raha hai...';
+    box.classList.add('show');
+    content.innerHTML = `
+        <div class="ai-loading-wrap">
+            <div class="spinner"></div>
+            <div class="ai-loading-text">🧠 Analyzing your problem...</div>
+        </div>`;
+
+    const problemText = `${title ? 'Problem: ' + title : ''}${desc ? '\n\nDetails: ' + desc : ''}${cat ? '\n\nCategory: ' + cat : ''}`.trim();
+
+    const prompt = `You are an expert problem solver. A user has posted this problem on BUGOUT — a community platform where warriors help each other solve problems.
+
+Problem:
+${problemText}
+
+Give exactly 3 practical, actionable solutions. Format your response EXACTLY like this (use these exact separators):
+
+SOLUTION_1:
+[Your first solution here — be specific and practical]
+
+SOLUTION_2:
+[Your second solution here — different approach from first]
+
+SOLUTION_3:
+[Your third solution here — another angle or perspective]
+
+Keep each solution concise but helpful (2-4 sentences max). Be direct. No fluff.`;
+
+    try {
+        const response = await fetch(GROQ_API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${GROQ_API_KEY}`
+            },
+            body: JSON.stringify({
+                model: 'llama3-8b-8192',
+                messages: [{ role: 'user', content: prompt }],
+                max_tokens: 600,
+                temperature: 0.7
+            })
+        });
+
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.error?.message || 'Groq API error');
+        }
+
+        const data = await response.json();
+        const rawText = data.choices?.[0]?.message?.content || '';
+
+        // Parse the 3 solutions
+        const solutions = [];
+        const parts = rawText.split(/SOLUTION_[123]:/);
+        for (let i = 1; i <= 3; i++) {
+            const text = parts[i] ? parts[i].trim() : null;
+            if (text) solutions.push(text);
+        }
+
+        if (!solutions.length) {
+            // Fallback: just show raw text split by paragraphs
+            const paras = rawText.split('\n\n').filter(p => p.trim().length > 20).slice(0, 3);
+            paras.forEach(p => solutions.push(p.trim()));
+        }
+
+        if (!solutions.length) throw new Error('Response parse nahi hua — dobara try karo');
+
+        const labels = ['💡 Solution 1', '🔥 Solution 2', '⚡ Solution 3'];
+        content.innerHTML = solutions.map((sol, i) => `
+            <div class="ai-suggestion-card">
+                <div class="ai-suggestion-label">
+                    <span class="ai-sol-badge">🤖 AI</span>
+                    ${labels[i] || '💡 Solution ' + (i+1)}
+                </div>
+                <div class="ai-suggestion-text">${esc(sol)}</div>
+                <button class="ai-use-sol-btn" onclick="useAISolution(${i})">
+                    ↗ Use as my solution
+                </button>
+            </div>
+        `).join('');
+
+        // Store solutions globally for "Use" button
+        window._aiSolutions = solutions;
+
+        toast('🤖 AI solutions ready!', 'ok');
+
+    } catch(err) {
+        content.innerHTML = `
+            <div class="ai-error-wrap">
+                <p>😔 AI solution nahi mila</p>
+                <p style="font-size:0.78rem;margin-top:4px;opacity:0.7;">${esc(err.message)}</p>
+                <button class="btn btn-ghost btn-sm" style="margin-top:10px;" onclick="getAISolutions()">Retry</button>
+            </div>`;
+        toast('AI error: ' + err.message, 'err');
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = '🤖 Get AI Solutions Again';
+}
+
+function useAISolution(index) {
+    const solutions = window._aiSolutions || [];
+    const sol = solutions[index];
+    if (!sol) return;
+
+    // If we're on post page, fill solText if on detail page, otherwise copy
+    const solTextEl = document.getElementById('solText');
+    if (solTextEl) {
+        solTextEl.value = sol;
+        solTextEl.focus();
+        toast('✅ Solution box mein fill ho gaya!', 'ok');
+    } else {
+        navigator.clipboard.writeText(sol).then(() => toast('📋 Solution copy ho gaya!', 'ok')).catch(() => toast('Manually copy karo!', 'err'));
+    }
+}
+
 // ─── INIT ─────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('authModal').addEventListener('click', e => { if (e.target.id==='authModal') closeModal(); });
@@ -744,27 +1039,27 @@ window.addEventListener('DOMContentLoaded', async () => {
     document.addEventListener('click', e => {
         if (notifPanelOpen && !document.getElementById('notifBellWrap').contains(e.target)) closeNotifPanel();
     });
- 
+
     document.getElementById('colorPicker').innerHTML = AVATAR_COLORS.map(c =>
         `<div class="color-dot ${c===editSelectedColor?'selected':''}" style="background:${c};" onclick="selectColor('${c}')"></div>`
     ).join('');
     document.getElementById('interestSelector').innerHTML = ALL_INTERESTS.map(i =>
         `<div class="interest-opt" onclick="toggleInterest(this,'${i}')">${i}</div>`
     ).join('');
- 
+
     try {
         const { data: { session } } = await db.auth.getSession();
         if (session) await setUser(session.user);
     } catch(e) {}
- 
+
     db.auth.onAuthStateChange(async (event, session) => {
         if (event==='SIGNED_IN' && session) await setUser(session.user);
         if (event==='SIGNED_OUT') clearUser();
     });
- 
+
     loadBugs(); loadStats();
 });
- 
+
 // ─── STATS ────────────────────────────────────────────────────
 async function loadStats() {
     try {
@@ -778,7 +1073,7 @@ async function loadStats() {
         document.getElementById('statWarriors').textContent = u||0;
     } catch(e) {}
 }
- 
+
 // ─── LEADERBOARD ──────────────────────────────────────────────
 async function loadLeaderboard() {
     const list = document.getElementById('lbList');
@@ -809,7 +1104,7 @@ async function loadLeaderboard() {
         list.innerHTML = `<div class="empty"><h3>Error 😔</h3><p>${esc(err.message)}</p></div>`;
     }
 }
- 
+
 // ═══════════════════════════════════════════════════════════════
 //  BOOKMARK SYSTEM
 // ═══════════════════════════════════════════════════════════════
@@ -820,7 +1115,7 @@ async function loadMyBookmarks() {
         myBookmarks = new Set((data || []).map(b => b.bug_id));
     } catch(e) {}
 }
- 
+
 async function toggleBookmark(bugId, e) {
     e.stopPropagation();
     if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
@@ -841,13 +1136,13 @@ async function toggleBookmark(bugId, e) {
         }
     } catch(err) { toast('Error: ' + err.message, 'err'); }
 }
- 
+
 async function goBookmarks() {
     if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
     showPage('bookmarksPage');
     loadBookmarksPage();
 }
- 
+
 async function loadBookmarksPage() {
     const grid = document.getElementById('bookmarksGrid');
     grid.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';
@@ -870,7 +1165,7 @@ async function loadBookmarksPage() {
         grid.innerHTML = `<div class="empty"><h3>Error 😔</h3><p>${esc(err.message)}</p></div>`;
     }
 }
- 
+
 // ═══════════════════════════════════════════════════════════════
 //  BADGES SYSTEM
 // ═══════════════════════════════════════════════════════════════
@@ -894,14 +1189,14 @@ async function checkAndAwardBadges() {
         }
     } catch(e) {}
 }
- 
+
 async function loadUserBadges(userId) {
     try {
         const { data } = await db.from('user_badges').select('*').eq('user_id', userId).order('earned_at', { ascending: true });
         return data || [];
     } catch(e) { return []; }
 }
- 
+
 function renderBadges(badges) {
     if (!badges.length) return '<p style="color:var(--text2);font-size:0.85rem;">Koi badge nahi abhi — bugs post karo aur solutions do! 💪</p>';
     return `<div class="badges-wrap">${badges.map(b => {
@@ -915,7 +1210,7 @@ function renderBadges(badges) {
         </div>`;
     }).join('')}</div>`;
 }
- 
+
 // ─── FOLLOW SYSTEM ────────────────────────────────────────────
 async function getFollowCounts(userId) {
     try {
@@ -926,7 +1221,7 @@ async function getFollowCounts(userId) {
         return { followers: followers||0, following: following||0 };
     } catch(e) { return { followers: 0, following: 0 }; }
 }
- 
+
 async function isFollowing(userId) {
     if (!me) return false;
     try {
@@ -934,7 +1229,7 @@ async function isFollowing(userId) {
         return !!data;
     } catch(e) { return false; }
 }
- 
+
 async function toggleFollow(userId, btn) {
     if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
     if (userId === me.id) return;
@@ -957,7 +1252,7 @@ async function toggleFollow(userId, btn) {
     } catch(err) { toast('Error: ' + err.message, 'err'); }
     btn.classList.remove('btn-disabled');
 }
- 
+
 async function showFollowList(userId, type) {
     showPage('followListPage');
     document.getElementById('followListTitle').textContent = type === 'followers' ? '👥 Followers' : '👣 Following';
@@ -991,7 +1286,7 @@ async function showFollowList(userId, type) {
         content.innerHTML = `<div class="empty"><h3>Error 😔</h3><p>${esc(err.message)}</p></div>`;
     }
 }
- 
+
 // ─── PROFILE ──────────────────────────────────────────────────
 async function goProfile(userId) {
     currentProfileId = userId;
@@ -1008,7 +1303,7 @@ async function goProfile(userId) {
             loadUserBadges(userId)
         ]);
         if (!profile) throw new Error('Profile not found');
- 
+
         const xp = profile.xp || 0;
         const lvl = getLevel(xp);
         const lvlNum = getLevelNum(xp);
@@ -1022,7 +1317,7 @@ async function goProfile(userId) {
         const color = profile.avatar_color || '#00ff88';
         const interests = profile.interests || [];
         const canMsg = me && !isMe;
- 
+
         wrap.innerHTML = `
             <button class="back-btn" onclick="goHome()">← Back</button>
             <div class="profile-card">
@@ -1094,9 +1389,9 @@ async function goProfile(userId) {
         wrap.innerHTML = `<button class="back-btn" onclick="goHome()">← Back</button><div class="empty"><h3>Profile nahi mila 😔</h3><p>${esc(err.message)}</p></div>`;
     }
 }
- 
+
 function goMyProfile() { if (!me) { openModal(); return; } goProfile(me.id); }
- 
+
 // ─── EDIT PROFILE ─────────────────────────────────────────────
 async function openEditModal() {
     try {
@@ -1154,7 +1449,7 @@ async function saveProfile() {
     } catch(err) { toast('Error: ' + err.message, 'err'); }
     btn.textContent = 'Save Profile 💾'; btn.classList.remove('btn-disabled');
 }
- 
+
 // ─── USER ─────────────────────────────────────────────────────
 async function setUser(user) {
     me = user;
@@ -1168,7 +1463,7 @@ async function setUser(user) {
     startNotifCheck();
     await loadMyBookmarks();
 }
- 
+
 function clearUser() {
     me = null; myName = null; myXP = 0; myBookmarks = new Set();
     if (unreadCheckInterval) { clearInterval(unreadCheckInterval); unreadCheckInterval = null; }
@@ -1176,7 +1471,7 @@ function clearUser() {
     if (msgSubscription) { msgSubscription.unsubscribe(); msgSubscription = null; }
     renderUserUI();
 }
- 
+
 function renderUserUI() {
     const on = !!me;
     document.getElementById('authBtn').textContent = on ? 'Sign Out' : 'Sign In';
@@ -1191,7 +1486,7 @@ function renderUserUI() {
         document.getElementById('userXP').textContent = myXP + ' XP';
     }
 }
- 
+
 async function addXP(amount) {
     if (!me) return;
     try {
@@ -1206,7 +1501,7 @@ async function addXP(amount) {
         await checkAndAwardBadges();
     } catch(e) {}
 }
- 
+
 // ─── AUTH ─────────────────────────────────────────────────────
 function handleAuth() { if (me) doSignOut(); else openModal(); }
 function openModal() { document.getElementById('authModal').classList.add('show'); }
@@ -1222,7 +1517,7 @@ function switchTab(t) {
     document.getElementById('loginPane').classList.toggle('active', t==='login');
     document.getElementById('signupPane').classList.toggle('active', t==='signup');
 }
- 
+
 async function doLogin() {
     const email = document.getElementById('loginEmail').value.trim();
     const pass  = document.getElementById('loginPass').value;
@@ -1238,7 +1533,7 @@ async function doLogin() {
     } catch(err) { toast(err.message, 'err'); }
     btn.textContent = 'Login'; btn.classList.remove('btn-disabled');
 }
- 
+
 async function doSignup() {
     const username = document.getElementById('signupUser').value.trim();
     const email    = document.getElementById('signupEmail').value.trim();
@@ -1259,12 +1554,12 @@ async function doSignup() {
     } catch(err) { toast(err.message, 'err'); }
     btn.textContent = 'Create Account'; btn.classList.remove('btn-disabled');
 }
- 
+
 async function doSignOut() {
     await db.auth.signOut(); clearUser();
     toast('Sign out ho gaya 👋', 'ok'); goHome();
 }
- 
+
 // ─── NAVIGATION ───────────────────────────────────────────────
 function showPage(id) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -1274,31 +1569,37 @@ function showPage(id) {
     closeNotifPanel();
 }
 function goHome() { showPage('homePage'); clearSearch(); activeStatusFilter = null; loadBugs(); loadStats(); }
-function goPost() { if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; } resetTagInput(); showPage('postPage'); }
+function goPost() {
+    if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
+    resetTagInput();
+    // Reset AI box too
+    document.getElementById('aiBox').classList.remove('show');
+    document.getElementById('aiSolveBtn').disabled = false;
+    document.getElementById('aiSolveBtn').innerHTML = '🤖 Get AI Solutions First (Optional)';
+    window._aiSolutions = [];
+    showPage('postPage');
+}
 function goLeaderboard() { showPage('leaderboardPage'); loadLeaderboard(); }
 function goInbox() {
     if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
     showPage('inboxPage'); loadInbox();
 }
- 
+
 // ─── FILTER ───────────────────────────────────────────────────
 function filter(cat, btn) {
     activeCategory = cat;
-    activeStatusFilter = null; // reset status filter when category changes
+    activeStatusFilter = null;
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     if (btn) btn.classList.add('active');
     const searchVal = document.getElementById('searchInput').value.trim();
     if (searchVal) searchBugs(searchVal);
     else loadBugs();
 }
- 
-// ══ STATUS FILTER ══
+
 function filterByStatus(status, btn) {
-    // Toggle: click same again to deselect
     if (activeStatusFilter === status) {
         activeStatusFilter = null;
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        // Re-activate the category filter
         loadBugs();
         return;
     }
@@ -1307,7 +1608,7 @@ function filterByStatus(status, btn) {
     if (btn) btn.classList.add('active');
     loadBugs();
 }
- 
+
 // ═══════════════════════════════════════════════════════════════
 //  SEARCH SYSTEM
 // ═══════════════════════════════════════════════════════════════
@@ -1317,14 +1618,14 @@ function handleSearch(val) {
     if (!val.trim()) { document.getElementById('searchResultsLabel').style.display = 'none'; loadBugs(); return; }
     searchTimeout = setTimeout(() => searchBugs(val.trim()), 350);
 }
- 
+
 function clearSearch() {
     document.getElementById('searchInput').value = '';
     document.getElementById('searchClear').style.display = 'none';
     document.getElementById('searchResultsLabel').style.display = 'none';
     loadBugs();
 }
- 
+
 async function searchBugs(query) {
     const grid = document.getElementById('bugsGrid');
     grid.innerHTML = '<div class="loading"><div class="spinner"></div><p>Searching...</p></div>';
@@ -1353,7 +1654,7 @@ async function searchBugs(query) {
         grid.innerHTML = `<div class="empty"><h3>Error 😔</h3><p>${esc(err.message)}</p></div>`;
     }
 }
- 
+
 function highlightMatch(text, query) {
     if (!query || !text) return esc(text || '');
     const escaped = esc(text);
@@ -1364,7 +1665,7 @@ function highlightMatch(text, query) {
         `<mark style="background:rgba(0,255,136,0.25);color:var(--accent);border-radius:3px;">${escaped.slice(idx, idx+query.length)}</mark>` +
         escaped.slice(idx + query.length);
 }
- 
+
 function renderBugCard(b, searchQuery) {
     const tags = b.tags && b.tags.length ? b.tags : [];
     const tagsHTML = tags.length ? `<div class="bug-tags-wrap">${tags.map(t =>
@@ -1373,7 +1674,7 @@ function renderBugCard(b, searchQuery) {
     const isSaved = myBookmarks.has(b.id);
     const bookmarkBtn = me ? `<button class="bookmark-btn-card ${isSaved?'saved':''}" data-bookmark="${b.id}"
         onclick="toggleBookmark('${b.id}', event)" title="${isSaved?'Bookmarked!':'Bookmark'}">🔖</button>` : '';
- 
+
     return `
         <div class="bug-card" onclick="openBug('${b.id}')">
             ${bookmarkBtn}
@@ -1390,13 +1691,13 @@ function renderBugCard(b, searchQuery) {
             </div>
         </div>`;
 }
- 
+
 function filterByTag(tag) {
     document.getElementById('searchInput').value = tag;
     document.getElementById('searchClear').style.display = 'block';
     searchBugs(tag);
 }
- 
+
 // ─── BUGS ─────────────────────────────────────────────────────
 async function loadBugs() {
     const grid = document.getElementById('bugsGrid');
@@ -1418,7 +1719,7 @@ async function loadBugs() {
         grid.innerHTML = `<div class="empty"><h3>Error 😔</h3><p>${esc(err.message)}</p><button class="btn btn-sm" onclick="loadBugs()">Retry</button></div>`;
     }
 }
- 
+
 // ═══════════════════════════════════════════════════════════════
 //  TAGS SYSTEM
 // ═══════════════════════════════════════════════════════════════
@@ -1427,7 +1728,7 @@ function resetTagInput() {
     renderTagPills();
     document.getElementById('tagRawInput').value = '';
 }
- 
+
 function renderTagPills() {
     const wrap = document.getElementById('tagInputWrap');
     const input = document.getElementById('tagRawInput');
@@ -1440,7 +1741,7 @@ function renderTagPills() {
     });
     input.placeholder = currentTags.length >= 5 ? 'Max 5 tags!' : (currentTags.length ? '' : 'e.g. javascript, react, css');
 }
- 
+
 function addTag(raw) {
     const tag = raw.trim().toLowerCase().replace(/[^a-z0-9_\-]/g, '').slice(0, 20);
     if (!tag) return;
@@ -1450,16 +1751,16 @@ function addTag(raw) {
     renderTagPills();
     document.getElementById('tagRawInput').value = '';
 }
- 
+
 function removeTag(index) { currentTags.splice(index, 1); renderTagPills(); }
- 
+
 function handleTagKey(e) {
     const val = e.target.value;
     if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTag(val.replace(',', '')); }
     else if (e.key === 'Backspace' && !val && currentTags.length) { removeTag(currentTags.length - 1); }
 }
 function handleTagInput(val) { if (val.endsWith(',')) addTag(val.slice(0, -1)); }
- 
+
 async function submitBug() {
     if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
     const title = document.getElementById('bugTitle').value.trim();
@@ -1477,7 +1778,7 @@ async function submitBug() {
             title, category: cat, description: desc,
             user_id: me.id, username: myName||me.email.split('@')[0],
             solutions_count: 0, tags: currentTags,
-            status: 'open'   // ══ NEW: always start as open ══
+            status: 'open'
         });
         if (error) throw error;
         await addXP(10);
@@ -1490,7 +1791,7 @@ async function submitBug() {
     } catch(err) { toast(err.message, 'err'); }
     btn.textContent = 'Post Bug 🚀'; btn.classList.remove('btn-disabled');
 }
- 
+
 // ─── DELETE ───────────────────────────────────────────────────
 function askDelete(bugId, e) { e.stopPropagation(); bugToDelete = bugId; document.getElementById('confirmDialog').classList.add('show'); }
 function closeConfirm() { document.getElementById('confirmDialog').classList.remove('show'); bugToDelete = null; }
@@ -1504,7 +1805,7 @@ async function confirmDelete() {
         toast('Bug delete ho gaya! 🗑️', 'ok'); goHome();
     } catch(err) { toast('Delete failed: ' + err.message, 'err'); }
 }
- 
+
 // ─── OPEN BUG ─────────────────────────────────────────────────
 async function openBug(id) {
     showPage('detailPage');
@@ -1523,10 +1824,9 @@ async function openBug(id) {
         const tagsHTML = tags.length ? `<div class="bug-tags-wrap" style="margin-top:8px;">${tags.map(t =>
             `<span class="bug-tag-pill" onclick="filterByTagFromDetail('${esc(t)}')">#${esc(t)}</span>`
         ).join('')}</div>` : '';
- 
+
         const currentStatus = bug.status || 'open';
- 
-        // ══ STATUS CONTROL — only for owner ══
+
         const statusControlHTML = isOwner ? `
             <div class="status-select-wrap">
                 <label>📊 Status:</label>
@@ -1536,7 +1836,7 @@ async function openBug(id) {
                     <option value="solved"      ${currentStatus==='solved'      ?'selected':''}>🟢 Solved</option>
                 </select>
             </div>` : '';
- 
+
         wrap.innerHTML = `
             <button class="back-btn" onclick="goHome()">← Back to bugs</button>
             <div class="detail-card">
@@ -1560,7 +1860,19 @@ async function openBug(id) {
                 <div class="solution-input-box">
                     <h4>Post your solution 💡</h4>
                     <div class="field"><textarea id="solText" placeholder="Share your solution..." rows="4"></textarea></div>
-                    <button class="btn btn-sm" id="solBtn" onclick="submitSolution()">Post Solution</button>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <button class="btn btn-sm" id="solBtn" onclick="submitSolution()">Post Solution</button>
+                        <button class="ai-solver-btn" style="width:auto;padding:6px 14px;font-size:0.82rem;" onclick="getAISolutionsForDetail('${bug.id}')">🤖 Ask AI</button>
+                    </div>
+                    <div class="ai-box" id="aiBoxDetail" style="margin-top:0.75rem;">
+                        <div class="ai-box-header">
+                            <span>🤖</span>
+                            <span class="ai-box-title">AI Suggestions</span>
+                            <span class="ai-box-subtitle">Powered by Groq · LLaMA 3</span>
+                        </div>
+                        <div id="aiDetailContent"></div>
+                        <div class="ai-footer-note">⚡ Click "↗ Use as my solution" to fill the box above.</div>
+                    </div>
                 </div>` : `
                 <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;text-align:center;">
                     <p style="color:var(--text2);margin-bottom:1rem;">Solution post karne ke liye Sign In karo</p>
@@ -1575,7 +1887,73 @@ async function openBug(id) {
         wrap.innerHTML = `<button class="back-btn" onclick="goHome()">← Back</button><div class="empty"><h3>Error 😔</h3><p>${esc(err.message)}</p></div>`;
     }
 }
- 
+
+// AI on detail page
+async function getAISolutionsForDetail(bugId) {
+    if (!activeBug) return;
+    const box = document.getElementById('aiBoxDetail');
+    const content = document.getElementById('aiDetailContent');
+    if (!box || !content) return;
+
+    box.classList.add('show');
+    content.innerHTML = `<div class="ai-loading-wrap"><div class="spinner"></div><div class="ai-loading-text">🧠 Analyzing bug...</div></div>`;
+
+    const problemText = `Problem: ${activeBug.title}\n\nDetails: ${activeBug.description}\n\nCategory: ${activeBug.category}`;
+    const prompt = `You are an expert problem solver. Someone posted this problem on BUGOUT.
+
+${problemText}
+
+Give exactly 3 practical, actionable solutions. Format EXACTLY like this:
+
+SOLUTION_1:
+[Solution here]
+
+SOLUTION_2:
+[Solution here]
+
+SOLUTION_3:
+[Solution here]
+
+Keep each 2-4 sentences. Be direct and practical.`;
+
+    try {
+        const response = await fetch(GROQ_API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_API_KEY}` },
+            body: JSON.stringify({ model: 'llama3-8b-8192', messages: [{ role: 'user', content: prompt }], max_tokens: 600, temperature: 0.7 })
+        });
+        if (!response.ok) { const e = await response.json(); throw new Error(e.error?.message || 'API error'); }
+        const data = await response.json();
+        const rawText = data.choices?.[0]?.message?.content || '';
+        const solutions = [];
+        const parts = rawText.split(/SOLUTION_[123]:/);
+        for (let i = 1; i <= 3; i++) { if (parts[i]) solutions.push(parts[i].trim()); }
+        if (!solutions.length) {
+            rawText.split('\n\n').filter(p => p.trim().length > 20).slice(0, 3).forEach(p => solutions.push(p.trim()));
+        }
+        if (!solutions.length) throw new Error('Response parse nahi hua');
+        const labels = ['💡 Solution 1', '🔥 Solution 2', '⚡ Solution 3'];
+        content.innerHTML = solutions.map((sol, i) => `
+            <div class="ai-suggestion-card">
+                <div class="ai-suggestion-label"><span class="ai-sol-badge">🤖 AI</span>${labels[i]||'💡 Solution '+(i+1)}</div>
+                <div class="ai-suggestion-text">${esc(sol)}</div>
+                <button class="ai-use-sol-btn" onclick="fillSolText(${i})">↗ Use as my solution</button>
+            </div>`).join('');
+        window._aiDetailSolutions = solutions;
+        toast('🤖 AI ready!', 'ok');
+    } catch(err) {
+        content.innerHTML = `<div class="ai-error-wrap"><p>😔 AI error: ${esc(err.message)}</p><button class="btn btn-ghost btn-sm" style="margin-top:8px;" onclick="getAISolutionsForDetail('${bugId}')">Retry</button></div>`;
+    }
+}
+
+function fillSolText(index) {
+    const solutions = window._aiDetailSolutions || [];
+    const sol = solutions[index];
+    if (!sol) return;
+    const el = document.getElementById('solText');
+    if (el) { el.value = sol; el.focus(); toast('✅ Solution fill ho gaya!', 'ok'); }
+}
+
 function renderSolutionCard(s, isOwner, bugId) {
     return `
         <div class="sol-card ${s.is_best_solution?'best':''}" id="sol-${s.id}">
@@ -1603,7 +1981,7 @@ function renderSolutionCard(s, isOwner, bugId) {
             </div>
         </div>`;
 }
- 
+
 function filterByTagFromDetail(tag) {
     goHome();
     setTimeout(() => {
@@ -1612,7 +1990,7 @@ function filterByTagFromDetail(tag) {
         searchBugs(tag);
     }, 100);
 }
- 
+
 // ─── SOLUTION ─────────────────────────────────────────────────
 async function submitSolution() {
     if (!me || !activeBug) return;
@@ -1628,13 +2006,12 @@ async function submitSolution() {
         });
         if (error) throw error;
         await db.from('bugs').update({ solutions_count: (activeBug.solutions_count||0)+1 }).eq('id', activeBug.id);
- 
-        // ══ AUTO STATUS: open → in_progress when first solution ══
+
         if ((activeBug.status || 'open') === 'open') {
             await db.from('bugs').update({ status: 'in_progress' }).eq('id', activeBug.id);
             activeBug.status = 'in_progress';
         }
- 
+
         await addXP(5);
         if (activeBug.user_id !== me.id) {
             await createNotification(activeBug.user_id, 'solution_posted',
@@ -1647,7 +2024,7 @@ async function submitSolution() {
         btn.textContent = 'Post Solution'; btn.classList.remove('btn-disabled');
     }
 }
- 
+
 async function upvote(solId) {
     if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
     try {
@@ -1656,18 +2033,17 @@ async function upvote(solId) {
         openBug(activeBug.id);
     } catch(e) { toast('Error!', 'err'); }
 }
- 
+
 async function markBest(solId) {
     if (!me || !activeBug) return;
     try {
         const { data: sol } = await db.from('solutions').select('user_id, username').eq('id', solId).single();
         await db.from('solutions').update({ is_best_solution: false }).eq('bug_id', activeBug.id);
         await db.from('solutions').update({ is_best_solution: true }).eq('id', solId);
- 
-        // ══ AUTO STATUS: → solved when best solution marked ══
+
         await db.from('bugs').update({ status: 'solved' }).eq('id', activeBug.id);
         activeBug.status = 'solved';
- 
+
         if (sol && sol.user_id !== me.id) {
             await createNotification(sol.user_id, 'best_solution',
                 `Tumhara solution "${activeBug.title.slice(0,40)}" ke liye Best Solution mark hua! ✅`, activeBug.id);
@@ -1676,7 +2052,7 @@ async function markBest(solId) {
         openBug(activeBug.id);
     } catch(e) { toast('Error!', 'err'); }
 }
- 
+
 // ═══════════════════════════════════════════════════════════════
 //  COMMENTS SYSTEM
 // ═══════════════════════════════════════════════════════════════
@@ -1686,7 +2062,7 @@ async function toggleComments(solId) {
     section.style.display = isHidden ? 'block' : 'none';
     if (isHidden) await loadComments(solId);
 }
- 
+
 async function loadComments(solId) {
     const list = document.getElementById(`comments-list-${solId}`);
     const countEl = document.getElementById(`comment-count-${solId}`);
@@ -1713,7 +2089,7 @@ async function loadComments(solId) {
         list.innerHTML = `<div style="color:var(--error);font-size:0.82rem;">Error: ${esc(err.message)}</div>`;
     }
 }
- 
+
 async function postComment(solId) {
     if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
     const input = document.getElementById(`comment-input-${solId}`);
@@ -1731,11 +2107,11 @@ async function postComment(solId) {
         toast('Comment post ho gaya! 💬', 'ok');
     } catch(err) { toast('Error: ' + err.message, 'err'); input.value = content; }
 }
- 
+
 function handleCommentKey(e, solId) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); postComment(solId); }
 }
- 
+
 // ═══════════════════════════════════════════════════════════════
 //  NOTIFICATION SYSTEM
 // ═══════════════════════════════════════════════════════════════
@@ -1744,7 +2120,7 @@ async function createNotification(userId, type, message, relatedId) {
         await db.from('notifications').insert({ user_id: userId, type, message, related_id: relatedId, is_read: false });
     } catch(e) {}
 }
- 
+
 async function checkNotifs() {
     if (!me) return;
     try {
@@ -1754,17 +2130,17 @@ async function checkNotifs() {
         else { badge.style.display = 'none'; }
     } catch(e) {}
 }
- 
+
 function startNotifCheck() {
     checkNotifs();
     if (notifCheckInterval) clearInterval(notifCheckInterval);
     notifCheckInterval = setInterval(checkNotifs, 20000);
 }
- 
+
 function toggleNotifPanel() { if (notifPanelOpen) closeNotifPanel(); else openNotifPanel(); }
 function openNotifPanel() { document.getElementById('notifPanel').classList.add('show'); notifPanelOpen = true; loadNotifPanel(); }
 function closeNotifPanel() { document.getElementById('notifPanel').classList.remove('show'); notifPanelOpen = false; }
- 
+
 async function loadNotifPanel() {
     const list = document.getElementById('notifPanelList');
     list.innerHTML = '<div class="notif-empty">Loading...</div>';
@@ -1781,7 +2157,7 @@ async function loadNotifPanel() {
         }).join('');
     } catch(e) { list.innerHTML = '<div class="notif-empty">Error loading 😔</div>'; }
 }
- 
+
 async function loadNotifsPage() {
     const list = document.getElementById('notifsList');
     list.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';
@@ -1806,14 +2182,14 @@ async function loadNotifsPage() {
         }).join('');
     } catch(err) { list.innerHTML = `<div class="empty"><h3>Error 😔</h3><p>${esc(err.message)}</p></div>`; }
 }
- 
+
 async function handleNotifClick(notifId, type, relatedId) {
     closeNotifPanel();
     try { await db.from('notifications').update({ is_read: true }).eq('id', notifId); checkNotifs(); } catch(e) {}
     if (type==='solution_posted'||type==='best_solution') { if (relatedId && relatedId!=='null') openBug(relatedId); }
     else if (type==='followed') { if (relatedId && relatedId!=='null') goProfile(relatedId); }
 }
- 
+
 async function markAllNotifsRead() {
     if (!me) return;
     try {
@@ -1822,7 +2198,7 @@ async function markAllNotifsRead() {
         toast('Sab read mark ho gayi!', 'ok');
     } catch(e) {}
 }
- 
+
 // ═══════════════════════════════════════════════════════════════
 //  MESSAGING SYSTEM
 // ═══════════════════════════════════════════════════════════════
@@ -1835,13 +2211,13 @@ async function checkUnread() {
         else { badge.style.display = 'none'; }
     } catch(e) {}
 }
- 
+
 function startUnreadCheck() {
     checkUnread();
     if (unreadCheckInterval) clearInterval(unreadCheckInterval);
     unreadCheckInterval = setInterval(checkUnread, 15000);
 }
- 
+
 async function loadInbox() {
     const list = document.getElementById('inboxList');
     list.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';
@@ -1892,7 +2268,7 @@ async function loadInbox() {
         list.innerHTML = `<div class="empty"><h3>Error 😔</h3><p>${esc(err.message)}</p></div>`;
     }
 }
- 
+
 async function openChat(partnerId) {
     if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
     chatPartnerId = partnerId;
@@ -1916,7 +2292,7 @@ async function openChat(partnerId) {
         subscribeToChat();
     } catch(err) { toast('Error: ' + err.message, 'err'); }
 }
- 
+
 async function loadChatMessages() {
     const container = document.getElementById('chatMessages');
     try {
@@ -1944,12 +2320,12 @@ async function loadChatMessages() {
         scrollToBottom();
     } catch(err) { container.innerHTML = `<div class="empty"><h3>Error 😔</h3></div>`; }
 }
- 
+
 function scrollToBottom() {
     const c = document.getElementById('chatMessages');
     if (c) setTimeout(() => { c.scrollTop = c.scrollHeight; }, 50);
 }
- 
+
 function subscribeToChat() {
     if (msgSubscription) msgSubscription.unsubscribe();
     msgSubscription = db.channel('chat-' + me.id + '-' + chatPartnerId)
@@ -1962,7 +2338,7 @@ function subscribeToChat() {
             checkUnread();
         }).subscribe();
 }
- 
+
 function appendMessage(msg, isMine) {
     const container = document.getElementById('chatMessages');
     const timeStr = new Date(msg.created_at).toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
@@ -1974,7 +2350,7 @@ function appendMessage(msg, isMine) {
     container.appendChild(div);
     scrollToBottom();
 }
- 
+
 async function sendMessage() {
     if (!me || !chatPartnerId) return;
     const input = document.getElementById('chatInput');
@@ -1994,10 +2370,10 @@ async function sendMessage() {
     btn.disabled = false;
     input.focus();
 }
- 
+
 function handleChatKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
 function autoResizeInput(el) { el.style.height = '44px'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; }
- 
+
 async function openNewMsgModal() {
     if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
     document.getElementById('newMsgModal').classList.add('show');
@@ -2010,7 +2386,7 @@ async function openNewMsgModal() {
         renderFollowersList(allFollowersList);
     } catch(err) { list.innerHTML = `<div class="empty"><h3>Error 😔</h3></div>`; }
 }
- 
+
 function renderFollowersList(profiles) {
     const list = document.getElementById('followersList');
     if (!profiles.length) { list.innerHTML = '<div style="text-align:center;color:var(--text2);padding:1rem;">Koi nahi mila 🔍</div>'; return; }
@@ -2023,15 +2399,15 @@ function renderFollowersList(profiles) {
         </div>`;
     }).join('');
 }
- 
+
 function filterFollowersList() {
     const query = document.getElementById('followerSearch').value.toLowerCase();
     renderFollowersList(allFollowersList.filter(p => (p.display_name || p.username || '').toLowerCase().includes(query)));
 }
- 
+
 function startNewChat(partnerId) { closeNewMsgModal(); openChat(partnerId); }
 function closeNewMsgModal() { document.getElementById('newMsgModal').classList.remove('show'); }
- 
+
 // ─── UTILS ────────────────────────────────────────────────────
 function esc(s) {
     if (s==null) return '';
