@@ -14,7 +14,7 @@
         }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
         .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
- 
+
         /* NAV */
         header { background: var(--bg2); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
         nav { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; }
@@ -24,12 +24,17 @@
         .user-pill { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 6px 14px; font-size: 0.85rem; color: var(--text2); display: flex; align-items: center; gap: 8px; cursor: pointer; transition: border 0.2s; }
         .user-pill:hover { border-color: var(--accent); }
         .xp { background: var(--accent); color: var(--bg); border-radius: 10px; padding: 2px 8px; font-size: 0.75rem; font-weight: 700; }
- 
+
         /* MSG BELL */
         .msg-bell { position: relative; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; cursor: pointer; font-size: 1.1rem; transition: border 0.2s; display: none; }
         .msg-bell:hover { border-color: var(--accent); }
         .msg-badge { position: absolute; top: -5px; right: -5px; background: var(--error); color: #fff; border-radius: 50%; width: 18px; height: 18px; font-size: 0.65rem; font-weight: 700; display: flex; align-items: center; justify-content: center; display: none; }
- 
+
+        /* NOTIF BELL */
+        .notif-bell { position: relative; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; cursor: pointer; font-size: 1.1rem; transition: border 0.2s; display: none; }
+        .notif-bell:hover { border-color: var(--accent); }
+        .notif-badge { position: absolute; top: -5px; right: -5px; background: var(--error); color: #fff; border-radius: 50%; width: 18px; height: 18px; font-size: 0.65rem; font-weight: 700; align-items: center; justify-content: center; display: none; }
+
         /* BUTTONS */
         .btn { background: var(--accent); color: var(--bg); border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.95rem; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
         .btn:hover { background: var(--accent2); transform: translateY(-1px); }
@@ -40,25 +45,34 @@
         .btn-danger:hover { background: var(--error); color: #fff; transform: translateY(-1px); }
         .btn-sm { padding: 6px 14px; font-size: 0.85rem; }
         .btn-disabled { opacity: 0.5; pointer-events: none; }
- 
+
         /* PAGES */
         .page { display: none; }
         .page.active { display: block; }
- 
+
+        /* ─── SEARCH BAR ─── */
+        .search-wrap { max-width: 600px; margin: 0 auto 1.5rem; position: relative; }
+        .search-input { width: 100%; background: var(--card); border: 1.5px solid var(--border); border-radius: 12px; padding: 12px 44px 12px 16px; color: var(--text); font-size: 0.95rem; outline: none; transition: border 0.2s; }
+        .search-input:focus { border-color: var(--accent); }
+        .search-input::placeholder { color: var(--text2); }
+        .search-icon { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--text2); font-size: 1.1rem; pointer-events: none; }
+        .search-clear { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text2); font-size: 1.1rem; cursor: pointer; display: none; }
+        .search-clear:hover { color: var(--text); }
+
         /* HOME */
         .hero { text-align: center; padding: 4rem 0 2rem; }
         .hero h1 { font-size: 2.8rem; font-weight: 900; line-height: 1.1; margin-bottom: 1rem; }
         .hero h1 span { color: var(--accent); }
         .hero p { color: var(--text2); font-size: 1.1rem; margin-bottom: 2rem; }
- 
+
         /* STATS BAR */
         .stats-bar { display: flex; justify-content: center; gap: 2rem; margin-bottom: 2.5rem; flex-wrap: wrap; }
         .stat-item { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 2rem; text-align: center; min-width: 120px; transition: border 0.2s; cursor: default; }
         .stat-item:hover { border-color: var(--accent); }
         .stat-number { font-size: 1.8rem; font-weight: 900; color: var(--accent); line-height: 1; margin-bottom: 4px; }
         .stat-label { font-size: 0.78rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
- 
-        .filters { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 2.5rem; }
+
+        .filters { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 1.5rem; }
         .filter-btn { background: var(--card); color: var(--text2); border: 1px solid var(--border); padding: 6px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; }
         .filter-btn:hover, .filter-btn.active { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
         .bugs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.5rem; padding-bottom: 3rem; }
@@ -68,7 +82,40 @@
         .bug-card h3 { font-size: 1.1rem; margin-bottom: 8px; line-height: 1.3; }
         .bug-card p { color: var(--text2); font-size: 0.9rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 1rem; }
         .bug-footer { display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--text2); }
- 
+
+        /* ─── BUG TAGS (pill style on cards) ─── */
+        .bug-tags-wrap { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+        .bug-tag-pill { background: rgba(0,255,136,0.08); color: var(--accent); border: 1px solid rgba(0,255,136,0.2); border-radius: 20px; padding: 2px 9px; font-size: 0.72rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .bug-tag-pill:hover { background: rgba(0,255,136,0.2); }
+
+        /* ─── TAG INPUT (post form) ─── */
+        .tag-input-wrap { display: flex; flex-wrap: wrap; gap: 6px; background: var(--bg2); border: 1.5px solid var(--border); border-radius: 8px; padding: 8px; min-height: 44px; cursor: text; transition: border 0.2s; }
+        .tag-input-wrap:focus-within { border-color: var(--accent); }
+        .tag-pill { background: rgba(0,255,136,0.15); color: var(--accent); border-radius: 20px; padding: 3px 10px 3px 10px; font-size: 0.82rem; font-weight: 600; display: flex; align-items: center; gap: 5px; }
+        .tag-pill-remove { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 0.9rem; padding: 0; line-height: 1; opacity: 0.7; }
+        .tag-pill-remove:hover { opacity: 1; }
+        .tag-raw-input { background: none; border: none; outline: none; color: var(--text); font-size: 0.9rem; min-width: 120px; flex: 1; padding: 2px 4px; }
+        .tag-hint { font-size: 0.78rem; color: var(--text2); margin-top: 5px; }
+
+        /* ─── NOTIFICATIONS PANEL ─── */
+        .notif-panel { position: absolute; top: calc(100% + 8px); right: 0; width: 340px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 16px 48px rgba(0,0,0,0.5); z-index: 200; overflow: hidden; display: none; }
+        .notif-panel.show { display: block; }
+        .notif-panel-head { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.2rem; border-bottom: 1px solid var(--border); }
+        .notif-panel-head h3 { font-size: 0.95rem; font-weight: 700; }
+        .notif-mark-read { background: none; border: none; color: var(--accent); font-size: 0.78rem; cursor: pointer; }
+        .notif-mark-read:hover { text-decoration: underline; }
+        .notif-list { max-height: 340px; overflow-y: auto; }
+        .notif-item { padding: 0.9rem 1.2rem; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; display: flex; gap: 10px; align-items: flex-start; }
+        .notif-item:hover { background: rgba(255,255,255,0.03); }
+        .notif-item.unread { background: rgba(0,255,136,0.04); border-left: 3px solid var(--accent); }
+        .notif-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
+        .notif-text { flex: 1; font-size: 0.85rem; line-height: 1.4; color: var(--text2); }
+        .notif-text strong { color: var(--text); }
+        .notif-time { font-size: 0.72rem; color: var(--text2); margin-top: 3px; }
+        .notif-empty { text-align: center; padding: 2.5rem 1rem; color: var(--text2); font-size: 0.9rem; }
+        .notif-bell-wrap { position: relative; display: none; }
+        .notif-bell-wrap.show { display: block; }
+
         /* LEADERBOARD */
         .lb-wrap { max-width: 650px; margin: 2.5rem auto; padding-bottom: 3rem; }
         .lb-wrap h2 { font-size: 1.8rem; font-weight: 900; margin-bottom: 0.5rem; }
@@ -84,7 +131,7 @@
         .lb-name span { display: block; font-size: 0.78rem; color: var(--text2); font-weight: 400; margin-top: 2px; }
         .lb-xp { background: var(--accent); color: var(--bg); border-radius: 8px; padding: 4px 12px; font-size: 0.85rem; font-weight: 700; }
         .lb-me { outline: 2px solid var(--accent); }
- 
+
         /* PROFILE */
         .profile-wrap { max-width: 700px; margin: 2.5rem auto; padding-bottom: 3rem; }
         .profile-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; }
@@ -101,20 +148,20 @@
         .xp-bar-label { display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--text2); margin-bottom: 6px; }
         .xp-bar { background: var(--border); border-radius: 10px; height: 8px; overflow: hidden; }
         .xp-bar-fill { height: 100%; border-radius: 10px; transition: width 0.8s ease; }
- 
+
         /* FOLLOW STATS */
         .follow-stats { display: flex; gap: 1.5rem; margin-top: 1rem; }
         .follow-stat { cursor: pointer; }
         .follow-stat:hover .follow-count { color: var(--accent); }
         .follow-count { font-size: 1.1rem; font-weight: 900; color: var(--text); }
         .follow-label { font-size: 0.78rem; color: var(--text2); }
- 
+
         .profile-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1.5rem; }
         .profile-stat { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; text-align: center; }
         .profile-stat-num { font-size: 1.5rem; font-weight: 900; color: var(--accent); }
         .profile-stat-label { font-size: 0.75rem; color: var(--text2); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
         .profile-bugs h3 { font-size: 1rem; font-weight: 700; margin-bottom: 1rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
- 
+
         /* FOLLOWERS/FOLLOWING LIST */
         .follow-list-wrap { max-width: 600px; margin: 2rem auto; padding-bottom: 3rem; }
         .follow-list-wrap h2 { font-size: 1.4rem; font-weight: 900; margin-bottom: 1.5rem; }
@@ -124,7 +171,7 @@
         .follow-user-info { flex: 1; }
         .follow-user-name { font-weight: 700; font-size: 0.95rem; }
         .follow-user-level { font-size: 0.78rem; color: var(--text2); margin-top: 2px; }
- 
+
         /* EDIT PROFILE MODAL */
         .edit-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1001; padding: 1rem; overflow-y: auto; }
         .edit-overlay.show { display: flex; }
@@ -135,7 +182,7 @@
         .interests-selector { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
         .interest-opt { background: var(--bg2); border: 1.5px solid var(--border); border-radius: 20px; padding: 5px 14px; font-size: 0.85rem; color: var(--text2); cursor: pointer; transition: all 0.2s; }
         .interest-opt.selected { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
- 
+
         /* POST PAGE */
         .form-wrap { max-width: 600px; margin: 3rem auto; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; }
         .form-wrap h2 { margin-bottom: 1.5rem; font-size: 1.4rem; }
@@ -146,7 +193,7 @@
         .field textarea { min-height: 130px; resize: vertical; }
         .field select option { background: var(--bg2); }
         .form-actions { display: flex; gap: 10px; margin-top: 1.5rem; }
- 
+
         /* DETAIL */
         .detail-wrap { max-width: 750px; margin: 2rem auto; padding-bottom: 3rem; }
         .back-btn { display: inline-flex; align-items: center; gap: 6px; color: var(--text2); cursor: pointer; font-size: 0.9rem; margin-bottom: 1.5rem; transition: color 0.2s; background: none; border: none; }
@@ -167,7 +214,7 @@
         .upvote:hover { border-color: var(--accent); color: var(--accent); }
         .best-badge { position: absolute; top: 1rem; right: 1rem; background: var(--accent); color: var(--bg); border-radius: 6px; padding: 3px 10px; font-size: 0.78rem; font-weight: 700; }
         .sol-author { font-size: 0.82rem; color: var(--text2); }
- 
+
         /* CONFIRM */
         .confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 1rem; }
         .confirm-overlay.show { display: flex; }
@@ -175,7 +222,7 @@
         .confirm-box h3 { font-size: 1.2rem; margin-bottom: 0.5rem; }
         .confirm-box p { color: var(--text2); font-size: 0.9rem; margin-bottom: 1.5rem; }
         .confirm-actions { display: flex; gap: 10px; justify-content: center; }
- 
+
         /* MODAL */
         .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 999; padding: 1rem; }
         .overlay.show { display: flex; }
@@ -189,25 +236,23 @@
         .tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
         .tab-pane { display: none; }
         .tab-pane.active { display: block; }
- 
+
         /* STATES */
         .loading { text-align: center; padding: 4rem; color: var(--text2); grid-column: 1/-1; }
         .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .empty { text-align: center; padding: 4rem; color: var(--text2); grid-column: 1/-1; }
         .empty h3 { color: var(--text); margin-bottom: 0.5rem; font-size: 1.2rem; }
- 
+
         /* TOAST */
         .toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 20px; font-size: 0.9rem; z-index: 9999; animation: slideUp 0.3s ease; max-width: 280px; }
         .toast.ok { border-color: var(--accent); }
         .toast.err { border-color: var(--error); color: var(--error); }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
- 
+
         /* ═══════════════════════════════════════
            MESSAGING SYSTEM STYLES
         ═══════════════════════════════════════ */
- 
-        /* INBOX PAGE */
         .inbox-wrap { max-width: 750px; margin: 2.5rem auto; padding-bottom: 3rem; }
         .inbox-wrap h2 { font-size: 1.8rem; font-weight: 900; margin-bottom: 0.5rem; }
         .inbox-wrap > p { color: var(--text2); margin-bottom: 2rem; font-size: 0.95rem; }
@@ -222,8 +267,6 @@
         .inbox-meta { text-align: right; flex-shrink: 0; }
         .inbox-time { font-size: 0.75rem; color: var(--text2); margin-bottom: 4px; }
         .unread-dot { background: var(--accent); color: var(--bg); border-radius: 50%; width: 20px; height: 20px; font-size: 0.7rem; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-left: auto; }
- 
-        /* CHAT PAGE */
         .chat-wrap { max-width: 750px; margin: 0 auto; display: flex; flex-direction: column; height: calc(100vh - 70px); }
         .chat-header { background: var(--card); border-bottom: 1px solid var(--border); padding: 1rem 1.5rem; display: flex; align-items: center; gap: 1rem; flex-shrink: 0; position: sticky; top: 70px; z-index: 10; }
         .chat-header-info { flex: 1; }
@@ -248,8 +291,6 @@
         .chat-day-divider::before { left:0; }
         .chat-day-divider::after { right:0; }
         .msg-read-status { font-size: 0.7rem; color: var(--text2); margin-top: 2px; padding-right: 4px; }
- 
-        /* NEW MESSAGE MODAL */
         .new-msg-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1002; padding: 1rem; }
         .new-msg-overlay.show { display: flex; }
         .new-msg-modal { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; width: 100%; max-width: 480px; }
@@ -258,7 +299,19 @@
         .followers-list { max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; }
         .follower-select-row { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.75rem; cursor: pointer; transition: all 0.2s; }
         .follower-select-row:hover { border-color: var(--accent); background: rgba(0,255,136,0.05); }
- 
+
+        /* NOTIFICATIONS PAGE */
+        .notifs-wrap { max-width: 650px; margin: 2.5rem auto; padding-bottom: 3rem; }
+        .notifs-wrap h2 { font-size: 1.8rem; font-weight: 900; margin-bottom: 0.5rem; }
+        .notifs-list { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1.5rem; }
+        .notif-row { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.5rem; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; transition: all 0.2s; }
+        .notif-row:hover { border-color: var(--accent); }
+        .notif-row.unread { border-left: 3px solid var(--accent); background: rgba(0,255,136,0.03); }
+        .notif-row-icon { font-size: 1.4rem; flex-shrink: 0; }
+        .notif-row-body { flex: 1; }
+        .notif-row-text { font-size: 0.9rem; line-height: 1.4; margin-bottom: 4px; }
+        .notif-row-time { font-size: 0.78rem; color: var(--text2); }
+
         @media (max-width: 600px) {
             .hero h1 { font-size: 1.8rem; }
             .bugs-grid { grid-template-columns: 1fr; }
@@ -271,11 +324,12 @@
             .profile-top { flex-direction: column; align-items: flex-start; }
             .msg-bubble { max-width: 85%; }
             .chat-wrap { height: calc(100vh - 64px); }
+            .notif-panel { width: 290px; right: -10px; }
         }
     </style>
 </head>
 <body>
- 
+
 <header>
     <nav class="container">
         <div class="logo" onclick="goHome()">BUGOUT <span>by MindForgers</span></div>
@@ -283,6 +337,22 @@
             <div class="user-pill" id="userPill" style="display:none;" onclick="goMyProfile()">
                 <span id="userName"></span>
                 <span class="xp" id="userXP">0 XP</span>
+            </div>
+            <!-- NOTIFICATION BELL -->
+            <div class="notif-bell-wrap" id="notifBellWrap">
+                <div class="notif-bell" id="notifBell" onclick="toggleNotifPanel()" title="Notifications">
+                    🔔
+                    <div class="notif-badge" id="notifBadge">0</div>
+                </div>
+                <div class="notif-panel" id="notifPanel">
+                    <div class="notif-panel-head">
+                        <h3>🔔 Notifications</h3>
+                        <button class="notif-mark-read" onclick="markAllNotifsRead()">Mark all read</button>
+                    </div>
+                    <div class="notif-list" id="notifPanelList">
+                        <div class="notif-empty">Loading...</div>
+                    </div>
+                </div>
             </div>
             <!-- MSG BELL -->
             <div class="msg-bell" id="msgBell" onclick="goInbox()" title="Messages">
@@ -295,7 +365,7 @@
         </div>
     </nav>
 </header>
- 
+
 <main class="container">
     <!-- HOME -->
     <div class="page active" id="homePage">
@@ -317,7 +387,12 @@
                 <div class="stat-label">⚔️ Warriors</div>
             </div>
         </div>
-        <div class="filters">
+        <!-- SEARCH BAR -->
+        <div class="search-wrap">
+            <input type="text" class="search-input" id="searchInput" placeholder="🔍  Search bugs by title, description or tag..." oninput="handleSearch(this.value)">
+            <button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
+        </div>
+        <div class="filters" id="filtersRow">
             <button class="filter-btn active" onclick="filter('all',this)">All</button>
             <button class="filter-btn" onclick="filter('Coding',this)">💻 Coding</button>
             <button class="filter-btn" onclick="filter('Life',this)">🌱 Life</button>
@@ -326,11 +401,12 @@
             <button class="filter-btn" onclick="filter('Relationships',this)">❤️ Relationships</button>
             <button class="filter-btn" onclick="filter('Random',this)">🎲 Random</button>
         </div>
+        <div id="searchResultsLabel" style="text-align:center;color:var(--text2);font-size:0.88rem;margin-bottom:1rem;display:none;"></div>
         <div class="bugs-grid" id="bugsGrid">
             <div class="loading"><div class="spinner"></div><p>Loading...</p></div>
         </div>
     </div>
- 
+
     <!-- LEADERBOARD -->
     <div class="page" id="leaderboardPage">
         <div class="lb-wrap">
@@ -342,14 +418,14 @@
             </div>
         </div>
     </div>
- 
+
     <!-- PROFILE -->
     <div class="page" id="profilePage">
         <div class="profile-wrap" id="profileWrap">
             <div class="loading"><div class="spinner"></div><p>Loading profile...</p></div>
         </div>
     </div>
- 
+
     <!-- FOLLOW LIST -->
     <div class="page" id="followListPage">
         <div class="follow-list-wrap">
@@ -360,7 +436,7 @@
             </div>
         </div>
     </div>
- 
+
     <!-- POST -->
     <div class="page" id="postPage">
         <div class="form-wrap">
@@ -379,18 +455,27 @@
                 </select>
             </div>
             <div class="field"><label>Description</label><textarea id="bugDesc" placeholder="Describe your problem in detail..."></textarea></div>
+            <!-- TAGS FIELD -->
+            <div class="field">
+                <label>Tags <span style="color:var(--text2);font-weight:400;text-transform:none;letter-spacing:0;">(optional, max 5)</span></label>
+                <div class="tag-input-wrap" id="tagInputWrap" onclick="document.getElementById('tagRawInput').focus()">
+                    <input type="text" class="tag-raw-input" id="tagRawInput" placeholder="e.g. javascript, react, css" maxlength="30"
+                        onkeydown="handleTagKey(event)" oninput="handleTagInput(this.value)">
+                </div>
+                <div class="tag-hint">Enter ya comma daba ke tag add karo</div>
+            </div>
             <div class="form-actions">
                 <button class="btn" id="submitBugBtn" onclick="submitBug()">Post Bug 🚀</button>
                 <button class="btn btn-ghost" onclick="goHome()">Cancel</button>
             </div>
         </div>
     </div>
- 
+
     <!-- DETAIL -->
     <div class="page" id="detailPage">
         <div class="detail-wrap" id="detailWrap"></div>
     </div>
- 
+
     <!-- INBOX PAGE -->
     <div class="page" id="inboxPage">
         <div class="inbox-wrap">
@@ -405,7 +490,7 @@
             </div>
         </div>
     </div>
- 
+
     <!-- CHAT PAGE -->
     <div class="page" id="chatPage">
         <div class="chat-wrap">
@@ -428,8 +513,22 @@
             </div>
         </div>
     </div>
+
+    <!-- NOTIFICATIONS PAGE -->
+    <div class="page" id="notifsPage">
+        <div class="notifs-wrap">
+            <button class="back-btn" onclick="goHome()">← Back</button>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <h2>🔔 Notifications</h2>
+                <button class="btn btn-sm btn-ghost" onclick="markAllNotifsRead()">Mark all read</button>
+            </div>
+            <div class="notifs-list" id="notifsList">
+                <div class="loading"><div class="spinner"></div><p>Loading...</p></div>
+            </div>
+        </div>
+    </div>
 </main>
- 
+
 <!-- AUTH MODAL -->
 <div class="overlay" id="authModal">
     <div class="modal">
@@ -454,7 +553,7 @@
         </div>
     </div>
 </div>
- 
+
 <!-- EDIT PROFILE MODAL -->
 <div class="edit-overlay" id="editModal">
     <div class="edit-modal">
@@ -472,7 +571,7 @@
         </div>
     </div>
 </div>
- 
+
 <!-- CONFIRM DELETE -->
 <div class="confirm-overlay" id="confirmDialog">
     <div class="confirm-box">
@@ -484,7 +583,7 @@
         </div>
     </div>
 </div>
- 
+
 <!-- NEW MESSAGE MODAL -->
 <div class="new-msg-overlay" id="newMsgModal">
     <div class="new-msg-modal">
@@ -499,23 +598,34 @@
         </div>
     </div>
 </div>
- 
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SB_URL = 'https://ufybyvufusswyswoxjra.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmeWJ5dnVmdXNzd3lzd294anJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MDUyOTMsImV4cCI6MjA5MzM4MTI5M30.A-3RT1B5MjSLaX7SpHpyh1IVuYmHzW8Puy8lI3paVA0';
 const db = window.supabase.createClient(SB_URL, SB_KEY);
- 
+
 let me = null, myName = null, myXP = 0, activeBug = null, activeCategory = 'all', bugToDelete = null;
 let editSelectedColor = '#00ff88', editSelectedInterests = [];
 let currentProfileId = null;
- 
+
 // ─── MESSAGING STATE ───────────────────────────────────────────
 let chatPartnerId = null, chatPartnerProfile = null;
 let msgSubscription = null;
 let allFollowersList = [];
 let unreadCheckInterval = null;
- 
+
+// ─── TAGS STATE ────────────────────────────────────────────────
+let currentTags = [];
+
+// ─── SEARCH STATE ─────────────────────────────────────────────
+let searchTimeout = null;
+let allBugsCache = [];
+
+// ─── NOTIFICATIONS STATE ──────────────────────────────────────
+let notifCheckInterval = null;
+let notifPanelOpen = false;
+
 const LEVELS = [
     { min: 0,   max: 24,  name: 'Rookie',   emoji: '🌱' },
     { min: 25,  max: 49,  name: 'Warrior',  emoji: '⚔️' },
@@ -523,10 +633,10 @@ const LEVELS = [
     { min: 75,  max: 99,  name: 'Champion', emoji: '🏆' },
     { min: 100, max: Infinity, name: 'Legend', emoji: '😈' }
 ];
- 
+
 const AVATAR_COLORS = ['#00ff88','#0077ff','#ff4444','#ff9900','#aa44ff','#ff44aa','#00ccff','#ffcc00'];
 const ALL_INTERESTS = ['💻 Coding','🎮 Gaming','🎵 Music','⚽ Football','🏏 Cricket','📚 Studies','🎨 Art','🍕 Food','✈️ Travel','💰 Finance','🎬 Movies','📱 Tech','🦸 Marvel','🏋️ Fitness','🎤 Rap','📷 Photography'];
- 
+
 function getLevel(xp) { return LEVELS.find(l => xp >= l.min && xp <= l.max) || LEVELS[0]; }
 function getLevelNum(xp) { return LEVELS.findIndex(l => xp >= l.min && xp <= l.max) + 1; }
 function getXPProgress(xp) { const l = getLevel(xp); if (l.max===Infinity) return 100; return Math.round(((xp-l.min)/(l.max-l.min+1))*100); }
@@ -534,35 +644,42 @@ function getXPToNext(xp) { const l = getLevel(xp); return l.max===Infinity ? 0 :
 function makeAvatar(initial, color, size=80) {
     return `<div class="profile-avatar" style="background:${color||'#00ff88'};width:${size}px;height:${size}px;font-size:${size*0.4}px;">${initial}</div>`;
 }
- 
+
 // ─── INIT ─────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('authModal').addEventListener('click', e => { if (e.target.id==='authModal') closeModal(); });
     document.getElementById('confirmDialog').addEventListener('click', e => { if (e.target.id==='confirmDialog') closeConfirm(); });
     document.getElementById('editModal').addEventListener('click', e => { if (e.target.id==='editModal') closeEditModal(); });
     document.getElementById('newMsgModal').addEventListener('click', e => { if (e.target.id==='newMsgModal') closeNewMsgModal(); });
- 
+
+    // Close notif panel on outside click
+    document.addEventListener('click', e => {
+        if (notifPanelOpen && !document.getElementById('notifBellWrap').contains(e.target)) {
+            closeNotifPanel();
+        }
+    });
+
     document.getElementById('colorPicker').innerHTML = AVATAR_COLORS.map(c =>
         `<div class="color-dot ${c===editSelectedColor?'selected':''}" style="background:${c};" onclick="selectColor('${c}')"></div>`
     ).join('');
- 
+
     document.getElementById('interestSelector').innerHTML = ALL_INTERESTS.map(i =>
         `<div class="interest-opt" onclick="toggleInterest(this,'${i}')">${i}</div>`
     ).join('');
- 
+
     try {
         const { data: { session } } = await db.auth.getSession();
         if (session) await setUser(session.user);
     } catch(e) {}
- 
+
     db.auth.onAuthStateChange(async (event, session) => {
         if (event==='SIGNED_IN' && session) await setUser(session.user);
         if (event==='SIGNED_OUT') clearUser();
     });
- 
+
     loadBugs(); loadStats();
 });
- 
+
 // ─── STATS ────────────────────────────────────────────────────
 async function loadStats() {
     try {
@@ -576,7 +693,7 @@ async function loadStats() {
         document.getElementById('statWarriors').textContent = u||0;
     } catch(e) {}
 }
- 
+
 // ─── LEADERBOARD ──────────────────────────────────────────────
 async function loadLeaderboard() {
     const list = document.getElementById('lbList');
@@ -611,7 +728,7 @@ async function loadLeaderboard() {
         list.innerHTML = `<div class="empty"><h3>Error 😔</h3><p>${esc(err.message)}</p></div>`;
     }
 }
- 
+
 // ─── FOLLOW SYSTEM ────────────────────────────────────────────
 async function getFollowCounts(userId) {
     try {
@@ -622,7 +739,7 @@ async function getFollowCounts(userId) {
         return { followers: followers||0, following: following||0 };
     } catch(e) { return { followers: 0, following: 0 }; }
 }
- 
+
 async function isFollowing(userId) {
     if (!me) return false;
     try {
@@ -631,7 +748,7 @@ async function isFollowing(userId) {
         return !!data;
     } catch(e) { return false; }
 }
- 
+
 async function toggleFollow(userId, btn) {
     if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
     if (userId === me.id) return;
@@ -649,6 +766,8 @@ async function toggleFollow(userId, btn) {
             btn.textContent = '✓ Following';
             btn.classList.remove('btn-ghost');
             btn.classList.add('btn', 'btn-sm');
+            // Create follow notification
+            await createNotification(userId, 'followed', `${myName} ne tumhe follow kiya! 👥`, me.id);
             toast('Follow ho gaya! 👥', 'ok');
         }
         const counts = await getFollowCounts(userId);
@@ -657,7 +776,7 @@ async function toggleFollow(userId, btn) {
     } catch(err) { toast('Error: ' + err.message, 'err'); }
     btn.classList.remove('btn-disabled');
 }
- 
+
 async function showFollowList(userId, type) {
     showPage('followListPage');
     document.getElementById('followListTitle').textContent = type === 'followers' ? '👥 Followers' : '👣 Following';
@@ -699,7 +818,7 @@ async function showFollowList(userId, type) {
         content.innerHTML = `<div class="empty"><h3>Error 😔</h3><p>${esc(err.message)}</p></div>`;
     }
 }
- 
+
 // ─── PROFILE ──────────────────────────────────────────────────
 async function goProfile(userId) {
     currentProfileId = userId;
@@ -715,7 +834,7 @@ async function goProfile(userId) {
             isFollowing(userId)
         ]);
         if (!profile) throw new Error('Profile not found');
- 
+
         const xp = profile.xp || 0;
         const lvl = getLevel(xp);
         const lvlNum = getLevelNum(xp);
@@ -729,10 +848,8 @@ async function goProfile(userId) {
         const initial = displayName[0].toUpperCase();
         const color = profile.avatar_color || '#00ff88';
         const interests = profile.interests || [];
- 
-        // Anyone can message anyone (logged in)
         const canMsg = me && !isMe;
- 
+
         wrap.innerHTML = `
             <button class="back-btn" onclick="goHome()">← Back</button>
             <div class="profile-card">
@@ -749,7 +866,7 @@ async function goProfile(userId) {
                             </div>` : ''}
                     </div>
                 </div>
- 
+
                 <div class="follow-stats">
                     <div class="follow-stat" onclick="showFollowList('${userId}', 'followers')">
                         <div class="follow-count" id="profile-followers-count">${counts.followers}</div>
@@ -760,7 +877,7 @@ async function goProfile(userId) {
                         <div class="follow-label">Following</div>
                     </div>
                 </div>
- 
+
                 <div style="display:flex;gap:10px;margin-top:1rem;flex-wrap:wrap;">
                     ${isMe ? `
                         <button class="btn btn-ghost btn-sm" onclick="openEditModal()">✏️ Edit Profile</button>
@@ -774,7 +891,7 @@ async function goProfile(userId) {
                         <button class="btn btn-ghost btn-sm" onclick="openModal()">Sign In to Follow</button>
                     `}
                 </div>
- 
+
                 <div class="xp-bar-wrap">
                     <div class="xp-bar-label">
                         <span>${xp} XP</span>
@@ -784,7 +901,7 @@ async function goProfile(userId) {
                         <div class="xp-bar-fill" style="width:${progress}%;background:linear-gradient(90deg,${color},#0077ff);"></div>
                     </div>
                 </div>
- 
+
                 <div class="profile-stats">
                     <div class="profile-stat">
                         <div class="profile-stat-num">${bugsPosted}</div>
@@ -800,7 +917,7 @@ async function goProfile(userId) {
                     </div>
                 </div>
             </div>
- 
+
             ${bugsPosted > 0 ? `
                 <div class="profile-bugs">
                     <h3>Recent Bugs</h3>
@@ -821,18 +938,9 @@ async function goProfile(userId) {
         wrap.innerHTML = `<button class="back-btn" onclick="goHome()">← Back</button><div class="empty"><h3>Profile nahi mila 😔</h3><p>${esc(err.message)}</p></div>`;
     }
 }
- 
-async function isFollowingMe(userId) {
-    if (!me) return false;
-    try {
-        const { data } = await db.from('follows')
-            .select('id').eq('follower_id', userId).eq('following_id', me.id).maybeSingle();
-        return !!data;
-    } catch(e) { return false; }
-}
- 
+
 function goMyProfile() { if (!me) { openModal(); return; } goProfile(me.id); }
- 
+
 // ─── EDIT PROFILE ─────────────────────────────────────────────
 async function openEditModal() {
     try {
@@ -852,16 +960,16 @@ async function openEditModal() {
     } catch(e) {}
     document.getElementById('editModal').classList.add('show');
 }
- 
+
 function closeEditModal() { document.getElementById('editModal').classList.remove('show'); }
- 
+
 function selectColor(color) {
     editSelectedColor = color;
     document.querySelectorAll('.color-dot').forEach(dot => {
         dot.classList.toggle('selected', dot.getAttribute('onclick').includes(color));
     });
 }
- 
+
 function toggleInterest(el, interest) {
     const clean = interest.trim();
     if (editSelectedInterests.includes(clean)) {
@@ -873,7 +981,7 @@ function toggleInterest(el, interest) {
         el.classList.add('selected');
     }
 }
- 
+
 async function saveProfile() {
     const displayName = document.getElementById('editDisplayName').value.trim();
     const bio = document.getElementById('editBio').value.trim();
@@ -896,7 +1004,7 @@ async function saveProfile() {
     } catch(err) { toast('Error: ' + err.message, 'err'); }
     btn.textContent = 'Save Profile 💾'; btn.classList.remove('btn-disabled');
 }
- 
+
 // ─── USER ─────────────────────────────────────────────────────
 async function setUser(user) {
     me = user;
@@ -907,28 +1015,31 @@ async function setUser(user) {
     } catch(e) { myName = user.email.split('@')[0]; myXP = 0; }
     renderUserUI();
     startUnreadCheck();
+    startNotifCheck();
 }
- 
+
 function clearUser() {
     me = null; myName = null; myXP = 0;
     if (unreadCheckInterval) { clearInterval(unreadCheckInterval); unreadCheckInterval = null; }
+    if (notifCheckInterval) { clearInterval(notifCheckInterval); notifCheckInterval = null; }
     if (msgSubscription) { msgSubscription.unsubscribe(); msgSubscription = null; }
     renderUserUI();
 }
- 
+
 function renderUserUI() {
     const on = !!me;
     document.getElementById('authBtn').textContent = on ? 'Sign Out' : 'Sign In';
     document.getElementById('userPill').style.display = on ? 'flex' : 'none';
     document.getElementById('postBtn').style.display = on ? 'inline-flex' : 'none';
     document.getElementById('msgBell').style.display = on ? 'flex' : 'none';
+    document.getElementById('notifBellWrap').classList.toggle('show', on);
     if (on) {
         const lvl = getLevel(myXP);
         document.getElementById('userName').textContent = lvl.emoji + ' ' + myName;
         document.getElementById('userXP').textContent = myXP + ' XP';
     }
 }
- 
+
 async function addXP(amount) {
     if (!me) return;
     try {
@@ -942,7 +1053,7 @@ async function addXP(amount) {
         if (newLvl > oldLvl) toast(`🎉 Level Up! Tu ab ${lvl.emoji} ${lvl.name} hai!`, 'ok');
     } catch(e) {}
 }
- 
+
 // ─── AUTH ─────────────────────────────────────────────────────
 function handleAuth() { if (me) doSignOut(); else openModal(); }
 function openModal() { document.getElementById('authModal').classList.add('show'); }
@@ -958,7 +1069,7 @@ function switchTab(t) {
     document.getElementById('loginPane').classList.toggle('active', t==='login');
     document.getElementById('signupPane').classList.toggle('active', t==='signup');
 }
- 
+
 async function doLogin() {
     const email = document.getElementById('loginEmail').value.trim();
     const pass  = document.getElementById('loginPass').value;
@@ -974,7 +1085,7 @@ async function doLogin() {
     } catch(err) { toast(err.message, 'err'); }
     btn.textContent = 'Login'; btn.classList.remove('btn-disabled');
 }
- 
+
 async function doSignup() {
     const username = document.getElementById('signupUser').value.trim();
     const email    = document.getElementById('signupEmail').value.trim();
@@ -995,39 +1106,150 @@ async function doSignup() {
     } catch(err) { toast(err.message, 'err'); }
     btn.textContent = 'Create Account'; btn.classList.remove('btn-disabled');
 }
- 
+
 async function doSignOut() {
     await db.auth.signOut(); clearUser();
     toast('Sign out ho gaya 👋', 'ok'); goHome();
 }
- 
+
 // ─── NAVIGATION ───────────────────────────────────────────────
 function showPage(id) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(id).classList.add('active');
     window.scrollTo(0, 0);
-    // Unsubscribe from chat when leaving chat page
     if (id !== 'chatPage' && msgSubscription) {
         msgSubscription.unsubscribe();
         msgSubscription = null;
     }
+    closeNotifPanel();
 }
-function goHome() { showPage('homePage'); loadBugs(); loadStats(); }
-function goPost() { if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; } showPage('postPage'); }
+function goHome() {
+    showPage('homePage');
+    clearSearch();
+    loadBugs(); loadStats();
+}
+function goPost() { if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; } resetTagInput(); showPage('postPage'); }
 function goLeaderboard() { showPage('leaderboardPage'); loadLeaderboard(); }
 function goInbox() {
     if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
     showPage('inboxPage'); loadInbox();
 }
- 
+function goNotifs() {
+    if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
+    showPage('notifsPage'); loadNotifsPage();
+}
+
 // ─── FILTER ───────────────────────────────────────────────────
 function filter(cat, btn) {
     activeCategory = cat;
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     if (btn) btn.classList.add('active');
+    const searchVal = document.getElementById('searchInput').value.trim();
+    if (searchVal) {
+        searchBugs(searchVal);
+    } else {
+        loadBugs();
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  SEARCH SYSTEM
+// ═══════════════════════════════════════════════════════════════
+
+function handleSearch(val) {
+    const clearBtn = document.getElementById('searchClear');
+    clearBtn.style.display = val ? 'block' : 'none';
+    document.querySelector('.search-icon') && (document.querySelector('.search-icon').style.display = val ? 'none' : 'block');
+
+    clearTimeout(searchTimeout);
+    if (!val.trim()) {
+        document.getElementById('searchResultsLabel').style.display = 'none';
+        loadBugs();
+        return;
+    }
+    searchTimeout = setTimeout(() => searchBugs(val.trim()), 350);
+}
+
+function clearSearch() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('searchClear').style.display = 'none';
+    document.getElementById('searchResultsLabel').style.display = 'none';
     loadBugs();
 }
- 
+
+async function searchBugs(query) {
+    const grid = document.getElementById('bugsGrid');
+    grid.innerHTML = '<div class="loading"><div class="spinner"></div><p>Searching...</p></div>';
+    const label = document.getElementById('searchResultsLabel');
+
+    try {
+        // Fetch all bugs (with category filter if active)
+        let q = db.from('bugs').select('*').order('created_at', { ascending: false });
+        if (activeCategory !== 'all') q = q.eq('category', activeCategory);
+        const { data, error } = await q;
+        if (error) throw error;
+
+        const lq = query.toLowerCase();
+        const filtered = (data || []).filter(b => {
+            const inTitle = b.title && b.title.toLowerCase().includes(lq);
+            const inDesc = b.description && b.description.toLowerCase().includes(lq);
+            const inTags = b.tags && b.tags.some(t => t.toLowerCase().includes(lq));
+            return inTitle || inDesc || inTags;
+        });
+
+        label.style.display = 'block';
+        label.textContent = `${filtered.length} result${filtered.length !== 1 ? 's' : ''} for "${query}"`;
+
+        if (!filtered.length) {
+            grid.innerHTML = `<div class="empty">
+                <h3>Koi bug nahi mila 🔍</h3>
+                <p>"${esc(query)}" se match nahi hua koi bug.</p>
+            </div>`;
+            return;
+        }
+
+        grid.innerHTML = filtered.map(b => renderBugCard(b, lq)).join('');
+    } catch(err) {
+        grid.innerHTML = `<div class="empty"><h3>Error 😔</h3><p>${esc(err.message)}</p></div>`;
+    }
+}
+
+function highlightMatch(text, query) {
+    if (!query || !text) return esc(text || '');
+    const escaped = esc(text);
+    const lq = query.toLowerCase();
+    const idx = escaped.toLowerCase().indexOf(lq);
+    if (idx === -1) return escaped;
+    return escaped.slice(0, idx) +
+        `<mark style="background:rgba(0,255,136,0.25);color:var(--accent);border-radius:3px;">${escaped.slice(idx, idx+query.length)}</mark>` +
+        escaped.slice(idx + query.length);
+}
+
+function renderBugCard(b, searchQuery) {
+    const tags = b.tags && b.tags.length ? b.tags : [];
+    const tagsHTML = tags.length ? `<div class="bug-tags-wrap">${tags.map(t =>
+        `<span class="bug-tag-pill" onclick="event.stopPropagation();filterByTag('${esc(t)}')">#${esc(t)}</span>`
+    ).join('')}</div>` : '';
+
+    return `
+        <div class="bug-card" onclick="openBug('${b.id}')">
+            <div class="bug-tag">${esc(b.category)}</div>
+            ${tagsHTML}
+            <h3>${searchQuery ? highlightMatch(b.title, searchQuery) : esc(b.title)}</h3>
+            <p>${searchQuery ? highlightMatch(b.description, searchQuery) : esc(b.description)}</p>
+            <div class="bug-footer">
+                <span>by ${esc(b.username||'Anonymous')}</span>
+                <span>💡 ${b.solutions_count||0} solutions · ${timeAgo(b.created_at)}</span>
+            </div>
+        </div>`;
+}
+
+function filterByTag(tag) {
+    document.getElementById('searchInput').value = tag;
+    document.getElementById('searchClear').style.display = 'block';
+    searchBugs(tag);
+}
+
 // ─── BUGS ─────────────────────────────────────────────────────
 async function loadBugs() {
     const grid = document.getElementById('bugsGrid');
@@ -1047,26 +1269,76 @@ async function loadBugs() {
             </div>`;
             return;
         }
-        grid.innerHTML = data.map(b => `
-            <div class="bug-card" onclick="openBug('${b.id}')">
-                <div class="bug-tag">${esc(b.category)}</div>
-                <h3>${esc(b.title)}</h3>
-                <p>${esc(b.description)}</p>
-                <div class="bug-footer">
-                    <span>by ${esc(b.username||'Anonymous')}</span>
-                    <span>💡 ${b.solutions_count||0} solutions · ${timeAgo(b.created_at)}</span>
-                </div>
-            </div>`).join('');
+        grid.innerHTML = data.map(b => renderBugCard(b, null)).join('');
     } catch(err) {
         grid.innerHTML = `<div class="empty"><h3>Error 😔</h3><p>${esc(err.message)}</p><button class="btn btn-sm" onclick="loadBugs()">Retry</button></div>`;
     }
 }
- 
+
+// ═══════════════════════════════════════════════════════════════
+//  TAGS SYSTEM
+// ═══════════════════════════════════════════════════════════════
+
+function resetTagInput() {
+    currentTags = [];
+    renderTagPills();
+    document.getElementById('tagRawInput').value = '';
+}
+
+function renderTagPills() {
+    const wrap = document.getElementById('tagInputWrap');
+    const input = document.getElementById('tagRawInput');
+    // Remove existing pills
+    wrap.querySelectorAll('.tag-pill').forEach(p => p.remove());
+    // Add pills before input
+    currentTags.forEach((tag, i) => {
+        const pill = document.createElement('span');
+        pill.className = 'tag-pill';
+        pill.innerHTML = `#${esc(tag)} <button class="tag-pill-remove" onclick="removeTag(${i})">×</button>`;
+        wrap.insertBefore(pill, input);
+    });
+    input.placeholder = currentTags.length >= 5 ? 'Max 5 tags!' : (currentTags.length ? '' : 'e.g. javascript, react, css');
+}
+
+function addTag(raw) {
+    const tag = raw.trim().toLowerCase().replace(/[^a-z0-9_\-]/g, '').slice(0, 20);
+    if (!tag) return;
+    if (currentTags.length >= 5) { toast('Max 5 tags allowed!', 'err'); return; }
+    if (currentTags.includes(tag)) return;
+    currentTags.push(tag);
+    renderTagPills();
+    document.getElementById('tagRawInput').value = '';
+}
+
+function removeTag(index) {
+    currentTags.splice(index, 1);
+    renderTagPills();
+}
+
+function handleTagKey(e) {
+    const val = e.target.value;
+    if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        addTag(val.replace(',', ''));
+    } else if (e.key === 'Backspace' && !val && currentTags.length) {
+        removeTag(currentTags.length - 1);
+    }
+}
+
+function handleTagInput(val) {
+    if (val.endsWith(',')) {
+        addTag(val.slice(0, -1));
+    }
+}
+
 async function submitBug() {
     if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
     const title = document.getElementById('bugTitle').value.trim();
     const cat   = document.getElementById('bugCat').value;
     const desc  = document.getElementById('bugDesc').value.trim();
+    // Finalize any pending tag input
+    const rawInput = document.getElementById('tagRawInput').value.trim();
+    if (rawInput) addTag(rawInput);
     if (!title) { toast('Title bharo!', 'err'); return; }
     if (!cat)   { toast('Category choose karo!', 'err'); return; }
     if (!desc)  { toast('Description bharo!', 'err'); return; }
@@ -1075,7 +1347,8 @@ async function submitBug() {
     try {
         const { error } = await db.from('bugs').insert({
             title, category: cat, description: desc,
-            user_id: me.id, username: myName||me.email.split('@')[0], solutions_count: 0
+            user_id: me.id, username: myName||me.email.split('@')[0],
+            solutions_count: 0, tags: currentTags
         });
         if (error) throw error;
         await addXP(10);
@@ -1083,11 +1356,12 @@ async function submitBug() {
         document.getElementById('bugTitle').value = '';
         document.getElementById('bugCat').value = '';
         document.getElementById('bugDesc').value = '';
+        resetTagInput();
         goHome();
     } catch(err) { toast(err.message, 'err'); }
     btn.textContent = 'Post Bug 🚀'; btn.classList.remove('btn-disabled');
 }
- 
+
 // ─── DELETE ───────────────────────────────────────────────────
 function askDelete(bugId, e) { e.stopPropagation(); bugToDelete = bugId; document.getElementById('confirmDialog').classList.add('show'); }
 function closeConfirm() { document.getElementById('confirmDialog').classList.remove('show'); bugToDelete = null; }
@@ -1099,7 +1373,7 @@ async function confirmDelete() {
         toast('Bug delete ho gaya! 🗑️', 'ok'); goHome();
     } catch(err) { toast('Delete failed: ' + err.message, 'err'); }
 }
- 
+
 // ─── OPEN BUG ─────────────────────────────────────────────────
 async function openBug(id) {
     showPage('detailPage');
@@ -1114,12 +1388,18 @@ async function openBug(id) {
         activeBug = bug;
         const solutions = sols || [];
         const isOwner = me && bug.user_id === me.id;
+        const tags = bug.tags && bug.tags.length ? bug.tags : [];
+        const tagsHTML = tags.length ? `<div class="bug-tags-wrap" style="margin-top:8px;">${tags.map(t =>
+            `<span class="bug-tag-pill" onclick="filterByTagFromDetail('${esc(t)}')">#${esc(t)}</span>`
+        ).join('')}</div>` : '';
+
         wrap.innerHTML = `
             <button class="back-btn" onclick="goHome()">← Back to bugs</button>
             <div class="detail-card">
                 <div class="bug-tag">${esc(bug.category)}</div>
                 <h2>${esc(bug.title)}</h2>
-                <p class="desc">${esc(bug.description)}</p>
+                ${tagsHTML}
+                <p class="desc" style="margin-top:12px;">${esc(bug.description)}</p>
                 <div class="detail-meta">
                     <span>by <strong style="cursor:pointer;color:var(--accent);" onclick="goProfile('${bug.user_id}')">${esc(bug.username||'Anonymous')}</strong></span>
                     <span>${timeAgo(bug.created_at)}</span>
@@ -1156,7 +1436,16 @@ async function openBug(id) {
         wrap.innerHTML = `<button class="back-btn" onclick="goHome()">← Back</button><div class="empty"><h3>Error 😔</h3><p>${esc(err.message)}</p></div>`;
     }
 }
- 
+
+function filterByTagFromDetail(tag) {
+    goHome();
+    setTimeout(() => {
+        document.getElementById('searchInput').value = tag;
+        document.getElementById('searchClear').style.display = 'block';
+        searchBugs(tag);
+    }, 100);
+}
+
 // ─── SOLUTION ─────────────────────────────────────────────────
 async function submitSolution() {
     if (!me || !activeBug) return;
@@ -1173,6 +1462,11 @@ async function submitSolution() {
         if (error) throw error;
         await db.from('bugs').update({ solutions_count: (activeBug.solutions_count||0)+1 }).eq('id', activeBug.id);
         await addXP(5);
+        // Notify bug owner
+        if (activeBug.user_id !== me.id) {
+            await createNotification(activeBug.user_id, 'solution_posted',
+                `${myName} ne tumhare bug "${activeBug.title.slice(0,40)}" ka solution diya! 💡`, activeBug.id);
+        }
         toast('Solution post ho gaya! +5 XP 🎉', 'ok');
         openBug(activeBug.id);
     } catch(err) {
@@ -1180,7 +1474,7 @@ async function submitSolution() {
         btn.textContent = 'Post Solution'; btn.classList.remove('btn-disabled');
     }
 }
- 
+
 async function upvote(solId) {
     if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
     try {
@@ -1189,22 +1483,161 @@ async function upvote(solId) {
         openBug(activeBug.id);
     } catch(e) { toast('Error!', 'err'); }
 }
- 
+
 async function markBest(solId) {
     if (!me || !activeBug) return;
     try {
+        const { data: sol } = await db.from('solutions').select('user_id, username').eq('id', solId).single();
         await db.from('solutions').update({ is_best_solution: false }).eq('bug_id', activeBug.id);
         await db.from('solutions').update({ is_best_solution: true }).eq('id', solId);
+        // Notify solution author
+        if (sol && sol.user_id !== me.id) {
+            await createNotification(sol.user_id, 'best_solution',
+                `Tumhara solution "${activeBug.title.slice(0,40)}" ke liye Best Solution mark hua! ✅`, activeBug.id);
+        }
         toast('Best solution marked! ✅', 'ok');
         openBug(activeBug.id);
     } catch(e) { toast('Error!', 'err'); }
 }
- 
+
+// ═══════════════════════════════════════════════════════════════
+//  NOTIFICATION SYSTEM
+// ═══════════════════════════════════════════════════════════════
+
+async function createNotification(userId, type, message, relatedId) {
+    try {
+        await db.from('notifications').insert({
+            user_id: userId, type, message,
+            related_id: relatedId, is_read: false
+        });
+    } catch(e) {}
+}
+
+async function checkNotifs() {
+    if (!me) return;
+    try {
+        const { count } = await db.from('notifications')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', me.id)
+            .eq('is_read', false);
+        const badge = document.getElementById('notifBadge');
+        if (count && count > 0) {
+            badge.textContent = count > 9 ? '9+' : count;
+            badge.style.display = 'flex';
+        } else {
+            badge.style.display = 'none';
+        }
+    } catch(e) {}
+}
+
+function startNotifCheck() {
+    checkNotifs();
+    if (notifCheckInterval) clearInterval(notifCheckInterval);
+    notifCheckInterval = setInterval(checkNotifs, 20000);
+}
+
+function toggleNotifPanel() {
+    if (notifPanelOpen) {
+        closeNotifPanel();
+    } else {
+        openNotifPanel();
+    }
+}
+
+function openNotifPanel() {
+    document.getElementById('notifPanel').classList.add('show');
+    notifPanelOpen = true;
+    loadNotifPanel();
+}
+
+function closeNotifPanel() {
+    document.getElementById('notifPanel').classList.remove('show');
+    notifPanelOpen = false;
+}
+
+async function loadNotifPanel() {
+    const list = document.getElementById('notifPanelList');
+    list.innerHTML = '<div class="notif-empty">Loading...</div>';
+    try {
+        const { data, error } = await db.from('notifications')
+            .select('*').eq('user_id', me.id)
+            .order('created_at', { ascending: false }).limit(15);
+        if (error) throw error;
+        if (!data || !data.length) {
+            list.innerHTML = '<div class="notif-empty">Koi notification nahi abhi 🔔</div>';
+            return;
+        }
+        list.innerHTML = data.map(n => {
+            const icon = n.type === 'solution_posted' ? '💡' : n.type === 'followed' ? '👥' : n.type === 'best_solution' ? '✅' : '🔔';
+            return `<div class="notif-item ${n.is_read ? '' : 'unread'}" onclick="handleNotifClick('${n.id}','${n.type}','${n.related_id}')">
+                <div class="notif-icon">${icon}</div>
+                <div>
+                    <div class="notif-text">${esc(n.message)}</div>
+                    <div class="notif-time">${timeAgo(n.created_at)}</div>
+                </div>
+            </div>`;
+        }).join('');
+    } catch(e) {
+        list.innerHTML = '<div class="notif-empty">Error loading notifications 😔</div>';
+    }
+}
+
+async function loadNotifsPage() {
+    const list = document.getElementById('notifsList');
+    list.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';
+    try {
+        const { data, error } = await db.from('notifications')
+            .select('*').eq('user_id', me.id)
+            .order('created_at', { ascending: false });
+        if (error) throw error;
+        // Mark all as read after loading
+        await db.from('notifications').update({ is_read: true }).eq('user_id', me.id).eq('is_read', false);
+        checkNotifs();
+        if (!data || !data.length) {
+            list.innerHTML = '<div class="empty"><h3>Koi notification nahi abhi 🔔</h3><p>Jab koi tumhara bug solve kare ya follow kare, yahan dikhega!</p></div>';
+            return;
+        }
+        list.innerHTML = data.map(n => {
+            const icon = n.type === 'solution_posted' ? '💡' : n.type === 'followed' ? '👥' : n.type === 'best_solution' ? '✅' : '🔔';
+            return `<div class="notif-row ${n.is_read ? '' : 'unread'}" onclick="handleNotifClick('${n.id}','${n.type}','${n.related_id}')">
+                <div class="notif-row-icon">${icon}</div>
+                <div class="notif-row-body">
+                    <div class="notif-row-text">${esc(n.message)}</div>
+                    <div class="notif-row-time">${timeAgo(n.created_at)}</div>
+                </div>
+            </div>`;
+        }).join('');
+    } catch(err) {
+        list.innerHTML = `<div class="empty"><h3>Error 😔</h3><p>${esc(err.message)}</p></div>`;
+    }
+}
+
+async function handleNotifClick(notifId, type, relatedId) {
+    closeNotifPanel();
+    // Mark as read
+    try { await db.from('notifications').update({ is_read: true }).eq('id', notifId); checkNotifs(); } catch(e) {}
+    // Navigate
+    if (type === 'solution_posted' || type === 'best_solution') {
+        if (relatedId && relatedId !== 'null') openBug(relatedId);
+    } else if (type === 'followed') {
+        if (relatedId && relatedId !== 'null') goProfile(relatedId);
+    }
+}
+
+async function markAllNotifsRead() {
+    if (!me) return;
+    try {
+        await db.from('notifications').update({ is_read: true }).eq('user_id', me.id).eq('is_read', false);
+        checkNotifs();
+        loadNotifPanel();
+        toast('Sab notifications read mark ho gayi!', 'ok');
+    } catch(e) {}
+}
+
 // ═══════════════════════════════════════════════════════════════
 //  MESSAGING SYSTEM
 // ═══════════════════════════════════════════════════════════════
- 
-// ─── UNREAD COUNT (Bell badge) ────────────────────────────────
+
 async function checkUnread() {
     if (!me) return;
     try {
@@ -1221,35 +1654,26 @@ async function checkUnread() {
         }
     } catch(e) {}
 }
- 
+
 function startUnreadCheck() {
     checkUnread();
     if (unreadCheckInterval) clearInterval(unreadCheckInterval);
-    unreadCheckInterval = setInterval(checkUnread, 15000); // har 15 sec
+    unreadCheckInterval = setInterval(checkUnread, 15000);
 }
- 
-// ─── INBOX ────────────────────────────────────────────────────
+
 async function loadInbox() {
     const list = document.getElementById('inboxList');
     list.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';
     try {
-        // Get all conversations (latest message per person)
-        const { data: sent } = await db.from('messages')
-            .select('*').eq('sender_id', me.id)
-            .order('created_at', { ascending: false });
- 
-        const { data: received } = await db.from('messages')
-            .select('*').eq('receiver_id', me.id)
-            .order('created_at', { ascending: false });
- 
+        const { data: sent } = await db.from('messages').select('*').eq('sender_id', me.id).order('created_at', { ascending: false });
+        const { data: received } = await db.from('messages').select('*').eq('receiver_id', me.id).order('created_at', { ascending: false });
         const allMsgs = [...(sent || []), ...(received || [])];
- 
+
         if (!allMsgs.length) {
             list.innerHTML = `<div class="empty"><h3>Koi message nahi abhi 💬</h3><p>Kisi warrior ko message karo!</p><button class="btn btn-sm" style="margin-top:1rem;" onclick="openNewMsgModal()">+ New Message</button></div>`;
             return;
         }
- 
-        // Group by conversation partner
+
         const convMap = new Map();
         allMsgs.forEach(msg => {
             const partnerId = msg.sender_id === me.id ? msg.receiver_id : msg.sender_id;
@@ -1257,30 +1681,20 @@ async function loadInbox() {
                 convMap.set(partnerId, msg);
             }
         });
- 
-        // Sort by latest
+
         const conversations = [...convMap.entries()].sort((a, b) =>
             new Date(b[1].created_at) - new Date(a[1].created_at)
         );
- 
-        // Get unread counts per sender
-        const { data: unreadData } = await db.from('messages')
-            .select('sender_id')
-            .eq('receiver_id', me.id)
-            .eq('is_read', false);
+
+        const { data: unreadData } = await db.from('messages').select('sender_id').eq('receiver_id', me.id).eq('is_read', false);
         const unreadMap = {};
-        (unreadData || []).forEach(m => {
-            unreadMap[m.sender_id] = (unreadMap[m.sender_id] || 0) + 1;
-        });
- 
-        // Fetch all partner profiles
+        (unreadData || []).forEach(m => { unreadMap[m.sender_id] = (unreadMap[m.sender_id] || 0) + 1; });
+
         const partnerIds = conversations.map(([id]) => id);
-        const { data: profiles } = await db.from('profiles')
-            .select('user_id, username, display_name, avatar_color, xp')
-            .in('user_id', partnerIds);
+        const { data: profiles } = await db.from('profiles').select('user_id, username, display_name, avatar_color, xp').in('user_id', partnerIds);
         const profileMap = {};
         (profiles || []).forEach(p => profileMap[p.user_id] = p);
- 
+
         list.innerHTML = conversations.map(([partnerId, lastMsg]) => {
             const p = profileMap[partnerId] || {};
             const displayName = p.display_name || p.username || 'Unknown Warrior';
@@ -1291,7 +1705,6 @@ async function loadInbox() {
             const isUnread = unreadCount > 0;
             const isMine = lastMsg.sender_id === me.id;
             const preview = (isMine ? 'Tu: ' : '') + esc(lastMsg.content).substring(0, 50) + (lastMsg.content.length > 50 ? '...' : '');
- 
             return `
                 <div class="inbox-row ${isUnread ? 'unread' : ''}" onclick="openChat('${partnerId}')">
                     <div class="inbox-avatar" style="background:${color};">${initial}</div>
@@ -1308,55 +1721,40 @@ async function loadInbox() {
                     </div>
                 </div>`;
         }).join('');
- 
     } catch(err) {
         list.innerHTML = `<div class="empty"><h3>Error 😔</h3><p>${esc(err.message)}</p></div>`;
     }
 }
- 
-// ─── OPEN CHAT ────────────────────────────────────────────────
+
 async function openChat(partnerId) {
     if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
     chatPartnerId = partnerId;
- 
     showPage('chatPage');
     document.getElementById('chatPartnerName').textContent = '...';
     document.getElementById('chatPartnerLevel').textContent = '...';
     document.getElementById('chatPartnerAvatar').textContent = '?';
     document.getElementById('chatMessages').innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';
- 
     try {
-        const { data: profile } = await db.from('profiles')
-            .select('*').eq('user_id', partnerId).single();
+        const { data: profile } = await db.from('profiles').select('*').eq('user_id', partnerId).single();
         chatPartnerProfile = profile;
- 
         const displayName = profile.display_name || profile.username || 'Unknown';
         const lvl = getLevel(profile.xp || 0);
         const color = profile.avatar_color || '#00ff88';
         const initial = displayName[0].toUpperCase();
- 
         document.getElementById('chatPartnerName').textContent = displayName;
         document.getElementById('chatPartnerLevel').textContent = `${lvl.emoji} ${lvl.name} · ${profile.xp||0} XP`;
         const avatarEl = document.getElementById('chatPartnerAvatar');
         avatarEl.textContent = initial;
         avatarEl.style.background = color;
- 
-        // Load messages
         await loadChatMessages();
- 
-        // Mark as read
-        await db.from('messages').update({ is_read: true })
-            .eq('sender_id', partnerId).eq('receiver_id', me.id).eq('is_read', false);
+        await db.from('messages').update({ is_read: true }).eq('sender_id', partnerId).eq('receiver_id', me.id).eq('is_read', false);
         checkUnread();
- 
-        // Subscribe to realtime
         subscribeToChat();
- 
     } catch(err) {
         toast('Error loading chat: ' + err.message, 'err');
     }
 }
- 
+
 async function loadChatMessages() {
     const container = document.getElementById('chatMessages');
     try {
@@ -1364,156 +1762,107 @@ async function loadChatMessages() {
             .select('*')
             .or(`and(sender_id.eq.${me.id},receiver_id.eq.${chatPartnerId}),and(sender_id.eq.${chatPartnerId},receiver_id.eq.${me.id})`)
             .order('created_at', { ascending: true });
- 
         if (error) throw error;
- 
         if (!messages || !messages.length) {
-            container.innerHTML = `<div style="text-align:center;color:var(--text2);margin-top:3rem;">
-                <p style="font-size:2rem;">👋</p>
-                <p style="margin-top:0.5rem;">Conversation start karo!</p>
-            </div>`;
+            container.innerHTML = `<div style="text-align:center;color:var(--text2);margin-top:3rem;"><p style="font-size:2rem;">👋</p><p style="margin-top:0.5rem;">Conversation start karo!</p></div>`;
             return;
         }
- 
         let lastDate = '';
         container.innerHTML = messages.map(msg => {
             const isMine = msg.sender_id === me.id;
             const msgDate = new Date(msg.created_at).toLocaleDateString('en-IN');
             let divider = '';
-            if (msgDate !== lastDate) {
-                lastDate = msgDate;
-                divider = `<div class="chat-day-divider">${msgDate}</div>`;
-            }
+            if (msgDate !== lastDate) { lastDate = msgDate; divider = `<div class="chat-day-divider">${msgDate}</div>`; }
             const timeStr = new Date(msg.created_at).toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
             const readStatus = isMine ? (msg.is_read ? '✓✓' : '✓') : '';
- 
-            return `${divider}
-                <div class="msg-bubble-wrap ${isMine ? 'mine' : 'theirs'}">
-                    <div class="msg-bubble">${esc(msg.content)}</div>
-                    <div class="msg-time">${timeStr} ${readStatus ? `<span class="msg-read-status" style="color:${msg.is_read?'var(--accent)':'var(--text2)'}">${readStatus}</span>` : ''}</div>
-                </div>`;
+            return `${divider}<div class="msg-bubble-wrap ${isMine ? 'mine' : 'theirs'}">
+                <div class="msg-bubble">${esc(msg.content)}</div>
+                <div class="msg-time">${timeStr} ${readStatus ? `<span class="msg-read-status" style="color:${msg.is_read?'var(--accent)':'var(--text2)'}">${readStatus}</span>` : ''}</div>
+            </div>`;
         }).join('');
- 
         scrollToBottom();
     } catch(err) {
         container.innerHTML = `<div class="empty"><h3>Error 😔</h3><p>${esc(err.message)}</p></div>`;
     }
 }
- 
+
 function scrollToBottom() {
     const c = document.getElementById('chatMessages');
     if (c) setTimeout(() => { c.scrollTop = c.scrollHeight; }, 50);
 }
- 
-// ─── REALTIME SUBSCRIBE ───────────────────────────────────────
+
 function subscribeToChat() {
     if (msgSubscription) { msgSubscription.unsubscribe(); }
- 
     msgSubscription = db.channel('chat-' + me.id + '-' + chatPartnerId)
-        .on('postgres_changes', {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'messages',
-            filter: `receiver_id=eq.${me.id}`
-        }, async (payload) => {
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `receiver_id=eq.${me.id}` },
+        async (payload) => {
             const msg = payload.new;
-            // Only show if from current chat partner
-            if (msg.sender_id !== chatPartnerId) {
-                checkUnread(); return;
-            }
-            // Append new message
+            if (msg.sender_id !== chatPartnerId) { checkUnread(); return; }
             appendMessage(msg, false);
-            // Mark as read
             await db.from('messages').update({ is_read: true }).eq('id', msg.id);
             checkUnread();
-        })
-        .subscribe();
+        }).subscribe();
 }
- 
+
 function appendMessage(msg, isMine) {
     const container = document.getElementById('chatMessages');
     const timeStr = new Date(msg.created_at).toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
     const div = document.createElement('div');
     div.className = `msg-bubble-wrap ${isMine ? 'mine' : 'theirs'}`;
-    div.innerHTML = `
-        <div class="msg-bubble">${esc(msg.content)}</div>
-        <div class="msg-time">${timeStr}</div>`;
-    // Remove empty state if exists
+    div.innerHTML = `<div class="msg-bubble">${esc(msg.content)}</div><div class="msg-time">${timeStr}</div>`;
     const emptyEl = container.querySelector('div[style*="text-align:center"]');
     if (emptyEl) emptyEl.remove();
     container.appendChild(div);
     scrollToBottom();
 }
- 
-// ─── SEND MESSAGE ─────────────────────────────────────────────
+
 async function sendMessage() {
     if (!me || !chatPartnerId) return;
     const input = document.getElementById('chatInput');
     const content = input.value.trim();
     if (!content) return;
- 
     const btn = document.getElementById('chatSendBtn');
     btn.disabled = true;
     input.value = '';
     input.style.height = '44px';
- 
     try {
         const { data, error } = await db.from('messages').insert({
-            sender_id: me.id,
-            receiver_id: chatPartnerId,
-            content: content,
-            is_read: false
+            sender_id: me.id, receiver_id: chatPartnerId, content: content, is_read: false
         }).select().single();
- 
         if (error) throw error;
- 
-        // Append immediately (optimistic)
         appendMessage(data, true);
- 
     } catch(err) {
         toast('Message send nahi hua: ' + err.message, 'err');
-        input.value = content; // restore
+        input.value = content;
     }
     btn.disabled = false;
     input.focus();
 }
- 
+
 function handleChatKey(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-    }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
 }
- 
+
 function autoResizeInput(el) {
     el.style.height = '44px';
     el.style.height = Math.min(el.scrollHeight, 120) + 'px';
 }
- 
-// ─── NEW MESSAGE MODAL ────────────────────────────────────────
+
 async function openNewMsgModal() {
     if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
     document.getElementById('newMsgModal').classList.add('show');
     document.getElementById('followerSearch').value = '';
     const list = document.getElementById('followersList');
     list.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';
- 
     try {
-        // Get all users except self
-        const { data: profiles } = await db.from('profiles')
-            .select('user_id, username, display_name, avatar_color, xp')
-            .neq('user_id', me.id)
-            .order('xp', { ascending: false })
-            .limit(50);
- 
+        const { data: profiles } = await db.from('profiles').select('user_id, username, display_name, avatar_color, xp').neq('user_id', me.id).order('xp', { ascending: false }).limit(50);
         allFollowersList = profiles || [];
         renderFollowersList(allFollowersList);
- 
     } catch(err) {
         list.innerHTML = `<div class="empty"><h3>Error 😔</h3><p>${esc(err.message)}</p></div>`;
     }
 }
- 
+
 function renderFollowersList(profiles) {
     const list = document.getElementById('followersList');
     if (!profiles.length) {
@@ -1524,35 +1873,25 @@ function renderFollowersList(profiles) {
         const displayName = p.display_name || p.username || 'Anonymous';
         const lvl = getLevel(p.xp || 0);
         const initial = displayName[0].toUpperCase();
-        return `
-            <div class="follower-select-row" onclick="startNewChat('${p.user_id}')">
-                <div style="width:40px;height:40px;border-radius:50%;background:${p.avatar_color||'#00ff88'};display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;flex-shrink:0;">${initial}</div>
-                <div>
-                    <div style="font-weight:700;font-size:0.95rem;">${esc(displayName)}</div>
-                    <div style="font-size:0.78rem;color:var(--text2);">${lvl.emoji} ${lvl.name} · ${p.xp||0} XP</div>
-                </div>
-            </div>`;
+        return `<div class="follower-select-row" onclick="startNewChat('${p.user_id}')">
+            <div style="width:40px;height:40px;border-radius:50%;background:${p.avatar_color||'#00ff88'};display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;flex-shrink:0;">${initial}</div>
+            <div>
+                <div style="font-weight:700;font-size:0.95rem;">${esc(displayName)}</div>
+                <div style="font-size:0.78rem;color:var(--text2);">${lvl.emoji} ${lvl.name} · ${p.xp||0} XP</div>
+            </div>
+        </div>`;
     }).join('');
 }
- 
+
 function filterFollowersList() {
     const query = document.getElementById('followerSearch').value.toLowerCase();
-    const filtered = allFollowersList.filter(p => {
-        const name = (p.display_name || p.username || '').toLowerCase();
-        return name.includes(query);
-    });
+    const filtered = allFollowersList.filter(p => (p.display_name || p.username || '').toLowerCase().includes(query));
     renderFollowersList(filtered);
 }
- 
-function startNewChat(partnerId) {
-    closeNewMsgModal();
-    openChat(partnerId);
-}
- 
-function closeNewMsgModal() {
-    document.getElementById('newMsgModal').classList.remove('show');
-}
- 
+
+function startNewChat(partnerId) { closeNewMsgModal(); openChat(partnerId); }
+function closeNewMsgModal() { document.getElementById('newMsgModal').classList.remove('show'); }
+
 // ─── UTILS ────────────────────────────────────────────────────
 function esc(s) {
     if (s==null) return '';
@@ -1575,4 +1914,4 @@ function toast(msg, type='ok') {
 }
 </script>
 </body>
-</html>
+</html>laude is AI and can make mistakes. Please double-check responses.
