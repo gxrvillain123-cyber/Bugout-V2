@@ -492,7 +492,7 @@
             <h2>💬 New Message</h2>
             <button class="close-x" onclick="closeNewMsgModal()">&times;</button>
         </div>
-        <p style="color:var(--text2);font-size:0.88rem;margin-bottom:1rem;">Sirf mutual followers ko message kar sakte ho</p>
+        <p style="color:var(--text2);font-size:0.88rem;margin-bottom:1rem;">Kisi bhi warrior ko directly message karo 😈</p>
         <input type="text" class="followers-search" id="followerSearch" placeholder="Search warriors..." oninput="filterFollowersList()">
         <div class="followers-list" id="followersList">
             <div class="loading"><div class="spinner"></div><p>Loading...</p></div>
@@ -730,12 +730,8 @@ async function goProfile(userId) {
         const color = profile.avatar_color || '#00ff88';
         const interests = profile.interests || [];
  
-        // Check if can message (mutual follow)
-        let canMsg = false;
-        if (me && !isMe) {
-            const alsoFollowsMe = await isFollowingMe(userId);
-            canMsg = following && alsoFollowsMe;
-        }
+        // Anyone can message anyone (logged in)
+        const canMsg = me && !isMe;
  
         wrap.innerHTML = `
             <button class="back-btn" onclick="goHome()">← Back</button>
@@ -1503,27 +1499,12 @@ async function openNewMsgModal() {
     list.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';
  
     try {
-        // Get mutual followers (people who follow me AND I follow them)
-        const [{ data: myFollowing }, { data: myFollowers }] = await Promise.all([
-            db.from('follows').select('following_id').eq('follower_id', me.id),
-            db.from('follows').select('follower_id').eq('following_id', me.id)
-        ]);
- 
-        const followingIds = new Set((myFollowing || []).map(f => f.following_id));
-        const followerIds = new Set((myFollowers || []).map(f => f.follower_id));
- 
-        // Mutual = intersection
-        const mutualIds = [...followingIds].filter(id => followerIds.has(id));
- 
-        if (!mutualIds.length) {
-            allFollowersList = [];
-            list.innerHTML = `<div class="empty" style="padding:2rem;"><h3>Koi mutual follower nahi! 😔</h3><p>Pehle kisi ko follow karo aur unka follow back lo.</p></div>`;
-            return;
-        }
- 
+        // Get all users except self
         const { data: profiles } = await db.from('profiles')
             .select('user_id, username, display_name, avatar_color, xp')
-            .in('user_id', mutualIds);
+            .neq('user_id', me.id)
+            .order('xp', { ascending: false })
+            .limit(50);
  
         allFollowersList = profiles || [];
         renderFollowersList(allFollowersList);
