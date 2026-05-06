@@ -25,6 +25,11 @@
         .user-pill:hover { border-color: var(--accent); }
         .xp { background: var(--accent); color: var(--bg); border-radius: 10px; padding: 2px 8px; font-size: 0.75rem; font-weight: 700; }
  
+        /* MSG BELL */
+        .msg-bell { position: relative; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; cursor: pointer; font-size: 1.1rem; transition: border 0.2s; display: none; }
+        .msg-bell:hover { border-color: var(--accent); }
+        .msg-badge { position: absolute; top: -5px; right: -5px; background: var(--error); color: #fff; border-radius: 50%; width: 18px; height: 18px; font-size: 0.65rem; font-weight: 700; display: flex; align-items: center; justify-content: center; display: none; }
+ 
         /* BUTTONS */
         .btn { background: var(--accent); color: var(--bg); border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.95rem; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
         .btn:hover { background: var(--accent2); transform: translateY(-1px); }
@@ -198,6 +203,62 @@
         .toast.err { border-color: var(--error); color: var(--error); }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
  
+        /* ═══════════════════════════════════════
+           MESSAGING SYSTEM STYLES
+        ═══════════════════════════════════════ */
+ 
+        /* INBOX PAGE */
+        .inbox-wrap { max-width: 750px; margin: 2.5rem auto; padding-bottom: 3rem; }
+        .inbox-wrap h2 { font-size: 1.8rem; font-weight: 900; margin-bottom: 0.5rem; }
+        .inbox-wrap > p { color: var(--text2); margin-bottom: 2rem; font-size: 0.95rem; }
+        .inbox-list { display: flex; flex-direction: column; gap: 0.75rem; }
+        .inbox-row { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.5rem; display: flex; align-items: center; gap: 1rem; cursor: pointer; transition: all 0.2s; }
+        .inbox-row:hover { border-color: var(--accent); transform: translateX(4px); }
+        .inbox-row.unread { border-left: 3px solid var(--accent); }
+        .inbox-avatar { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; font-weight: 900; color: #fff; flex-shrink: 0; }
+        .inbox-info { flex: 1; min-width: 0; }
+        .inbox-name { font-weight: 700; font-size: 0.95rem; margin-bottom: 3px; display: flex; align-items: center; gap: 8px; }
+        .inbox-preview { font-size: 0.85rem; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .inbox-meta { text-align: right; flex-shrink: 0; }
+        .inbox-time { font-size: 0.75rem; color: var(--text2); margin-bottom: 4px; }
+        .unread-dot { background: var(--accent); color: var(--bg); border-radius: 50%; width: 20px; height: 20px; font-size: 0.7rem; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-left: auto; }
+ 
+        /* CHAT PAGE */
+        .chat-wrap { max-width: 750px; margin: 0 auto; display: flex; flex-direction: column; height: calc(100vh - 70px); }
+        .chat-header { background: var(--card); border-bottom: 1px solid var(--border); padding: 1rem 1.5rem; display: flex; align-items: center; gap: 1rem; flex-shrink: 0; position: sticky; top: 70px; z-index: 10; }
+        .chat-header-info { flex: 1; }
+        .chat-header-name { font-weight: 900; font-size: 1.1rem; }
+        .chat-header-level { font-size: 0.78rem; color: var(--text2); margin-top: 2px; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem; scroll-behavior: smooth; }
+        .msg-bubble-wrap { display: flex; flex-direction: column; }
+        .msg-bubble-wrap.mine { align-items: flex-end; }
+        .msg-bubble-wrap.theirs { align-items: flex-start; }
+        .msg-bubble { max-width: 70%; padding: 10px 16px; border-radius: 16px; font-size: 0.92rem; line-height: 1.5; word-break: break-word; }
+        .msg-bubble-wrap.mine .msg-bubble { background: var(--accent); color: var(--bg); border-bottom-right-radius: 4px; }
+        .msg-bubble-wrap.theirs .msg-bubble { background: var(--card); border: 1px solid var(--border); color: var(--text); border-bottom-left-radius: 4px; }
+        .msg-time { font-size: 0.72rem; color: var(--text2); margin-top: 4px; padding: 0 4px; }
+        .chat-input-area { background: var(--bg2); border-top: 1px solid var(--border); padding: 1rem 1.5rem; display: flex; gap: 10px; align-items: flex-end; flex-shrink: 0; }
+        .chat-input { flex: 1; background: var(--card); border: 1.5px solid var(--border); border-radius: 12px; padding: 10px 16px; color: var(--text); font-size: 0.95rem; outline: none; resize: none; max-height: 120px; min-height: 44px; transition: border 0.2s; font-family: inherit; }
+        .chat-input:focus { border-color: var(--accent); }
+        .chat-send-btn { background: var(--accent); color: var(--bg); border: none; border-radius: 10px; padding: 10px 18px; font-size: 1.2rem; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
+        .chat-send-btn:hover { background: var(--accent2); transform: scale(1.05); }
+        .chat-send-btn:disabled { opacity: 0.5; pointer-events: none; }
+        .chat-day-divider { text-align: center; color: var(--text2); font-size: 0.75rem; margin: 0.5rem 0; position: relative; }
+        .chat-day-divider::before, .chat-day-divider::after { content:''; position:absolute; top:50%; width:30%; height:1px; background:var(--border); }
+        .chat-day-divider::before { left:0; }
+        .chat-day-divider::after { right:0; }
+        .msg-read-status { font-size: 0.7rem; color: var(--text2); margin-top: 2px; padding-right: 4px; }
+ 
+        /* NEW MESSAGE MODAL */
+        .new-msg-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1002; padding: 1rem; }
+        .new-msg-overlay.show { display: flex; }
+        .new-msg-modal { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; width: 100%; max-width: 480px; }
+        .followers-search { width: 100%; background: var(--bg2); border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--text); font-size: 0.95rem; outline: none; margin-bottom: 1rem; }
+        .followers-search:focus { border-color: var(--accent); }
+        .followers-list { max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; }
+        .follower-select-row { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.75rem; cursor: pointer; transition: all 0.2s; }
+        .follower-select-row:hover { border-color: var(--accent); background: rgba(0,255,136,0.05); }
+ 
         @media (max-width: 600px) {
             .hero h1 { font-size: 1.8rem; }
             .bugs-grid { grid-template-columns: 1fr; }
@@ -208,6 +269,8 @@
             .nav-right { gap: 8px; }
             .profile-stats { gap: 0.5rem; }
             .profile-top { flex-direction: column; align-items: flex-start; }
+            .msg-bubble { max-width: 85%; }
+            .chat-wrap { height: calc(100vh - 64px); }
         }
     </style>
 </head>
@@ -220,6 +283,11 @@
             <div class="user-pill" id="userPill" style="display:none;" onclick="goMyProfile()">
                 <span id="userName"></span>
                 <span class="xp" id="userXP">0 XP</span>
+            </div>
+            <!-- MSG BELL -->
+            <div class="msg-bell" id="msgBell" onclick="goInbox()" title="Messages">
+                💬
+                <div class="msg-badge" id="msgBadge">0</div>
             </div>
             <button class="btn btn-sm btn-ghost" onclick="goLeaderboard()" style="padding:6px 12px;">🏆</button>
             <button class="btn btn-sm" id="authBtn" onclick="handleAuth()">Sign In</button>
@@ -322,6 +390,44 @@
     <div class="page" id="detailPage">
         <div class="detail-wrap" id="detailWrap"></div>
     </div>
+ 
+    <!-- INBOX PAGE -->
+    <div class="page" id="inboxPage">
+        <div class="inbox-wrap">
+            <button class="back-btn" onclick="goHome()">← Back</button>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+                <h2>💬 Messages</h2>
+                <button class="btn btn-sm" onclick="openNewMsgModal()">+ New Message</button>
+            </div>
+            <p>Sirf followers ke saath chat karo 😈</p>
+            <div class="inbox-list" id="inboxList">
+                <div class="loading"><div class="spinner"></div><p>Loading...</p></div>
+            </div>
+        </div>
+    </div>
+ 
+    <!-- CHAT PAGE -->
+    <div class="page" id="chatPage">
+        <div class="chat-wrap">
+            <div class="chat-header">
+                <button class="back-btn" style="margin-bottom:0;" onclick="goInbox()">←</button>
+                <div id="chatPartnerAvatar" style="width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:900;color:#fff;flex-shrink:0;"></div>
+                <div class="chat-header-info">
+                    <div class="chat-header-name" id="chatPartnerName">—</div>
+                    <div class="chat-header-level" id="chatPartnerLevel">—</div>
+                </div>
+                <button class="btn btn-sm btn-ghost" onclick="goProfile(chatPartnerId)" style="flex-shrink:0;">Profile</button>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="loading"><div class="spinner"></div><p>Loading...</p></div>
+            </div>
+            <div class="chat-input-area">
+                <textarea class="chat-input" id="chatInput" placeholder="Message likho..." rows="1"
+                    onkeydown="handleChatKey(event)" oninput="autoResizeInput(this)"></textarea>
+                <button class="chat-send-btn" id="chatSendBtn" onclick="sendMessage()">➤</button>
+            </div>
+        </div>
+    </div>
 </main>
  
 <!-- AUTH MODAL -->
@@ -379,6 +485,21 @@
     </div>
 </div>
  
+<!-- NEW MESSAGE MODAL -->
+<div class="new-msg-overlay" id="newMsgModal">
+    <div class="new-msg-modal">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+            <h2>💬 New Message</h2>
+            <button class="close-x" onclick="closeNewMsgModal()">&times;</button>
+        </div>
+        <p style="color:var(--text2);font-size:0.88rem;margin-bottom:1rem;">Sirf mutual followers ko message kar sakte ho</p>
+        <input type="text" class="followers-search" id="followerSearch" placeholder="Search warriors..." oninput="filterFollowersList()">
+        <div class="followers-list" id="followersList">
+            <div class="loading"><div class="spinner"></div><p>Loading...</p></div>
+        </div>
+    </div>
+</div>
+ 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SB_URL = 'https://ufybyvufusswyswoxjra.supabase.co';
@@ -388,6 +509,12 @@ const db = window.supabase.createClient(SB_URL, SB_KEY);
 let me = null, myName = null, myXP = 0, activeBug = null, activeCategory = 'all', bugToDelete = null;
 let editSelectedColor = '#00ff88', editSelectedInterests = [];
 let currentProfileId = null;
+ 
+// ─── MESSAGING STATE ───────────────────────────────────────────
+let chatPartnerId = null, chatPartnerProfile = null;
+let msgSubscription = null;
+let allFollowersList = [];
+let unreadCheckInterval = null;
  
 const LEVELS = [
     { min: 0,   max: 24,  name: 'Rookie',   emoji: '🌱' },
@@ -413,6 +540,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('authModal').addEventListener('click', e => { if (e.target.id==='authModal') closeModal(); });
     document.getElementById('confirmDialog').addEventListener('click', e => { if (e.target.id==='confirmDialog') closeConfirm(); });
     document.getElementById('editModal').addEventListener('click', e => { if (e.target.id==='editModal') closeEditModal(); });
+    document.getElementById('newMsgModal').addEventListener('click', e => { if (e.target.id==='newMsgModal') closeNewMsgModal(); });
  
     document.getElementById('colorPicker').innerHTML = AVATAR_COLORS.map(c =>
         `<div class="color-dot ${c===editSelectedColor?'selected':''}" style="background:${c};" onclick="selectColor('${c}')"></div>`
@@ -507,10 +635,8 @@ async function isFollowing(userId) {
 async function toggleFollow(userId, btn) {
     if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
     if (userId === me.id) return;
- 
     btn.classList.add('btn-disabled');
     const following = await isFollowing(userId);
- 
     try {
         if (following) {
             await db.from('follows').delete().eq('follower_id', me.id).eq('following_id', userId);
@@ -525,12 +651,10 @@ async function toggleFollow(userId, btn) {
             btn.classList.add('btn', 'btn-sm');
             toast('Follow ho gaya! 👥', 'ok');
         }
-        // Refresh counts
         const counts = await getFollowCounts(userId);
         const followersEl = document.getElementById('profile-followers-count');
         if (followersEl) followersEl.textContent = counts.followers;
     } catch(err) { toast('Error: ' + err.message, 'err'); }
- 
     btn.classList.remove('btn-disabled');
 }
  
@@ -539,7 +663,6 @@ async function showFollowList(userId, type) {
     document.getElementById('followListTitle').textContent = type === 'followers' ? '👥 Followers' : '👣 Following';
     const content = document.getElementById('followListContent');
     content.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';
- 
     try {
         let query;
         if (type === 'followers') {
@@ -549,20 +672,16 @@ async function showFollowList(userId, type) {
         }
         const { data: follows, error } = await query;
         if (error) throw error;
- 
         if (!follows || !follows.length) {
             content.innerHTML = `<div class="empty"><h3>${type==='followers'?'Koi follower nahi abhi!':'Koi following nahi abhi!'}</h3></div>`;
             return;
         }
- 
         const userIds = follows.map(f => type==='followers' ? f.follower_id : f.following_id);
         const { data: profiles } = await db.from('profiles').select('user_id, username, display_name, avatar_color, xp').in('user_id', userIds);
- 
         if (!profiles || !profiles.length) {
             content.innerHTML = '<div class="empty"><h3>Profiles not found 😔</h3></div>';
             return;
         }
- 
         content.innerHTML = profiles.map(p => {
             const displayName = p.display_name || p.username || 'Anonymous';
             const lvl = getLevel(p.xp || 0);
@@ -611,6 +730,13 @@ async function goProfile(userId) {
         const color = profile.avatar_color || '#00ff88';
         const interests = profile.interests || [];
  
+        // Check if can message (mutual follow)
+        let canMsg = false;
+        if (me && !isMe) {
+            const alsoFollowsMe = await isFollowingMe(userId);
+            canMsg = following && alsoFollowsMe;
+        }
+ 
         wrap.innerHTML = `
             <button class="back-btn" onclick="goHome()">← Back</button>
             <div class="profile-card">
@@ -628,7 +754,6 @@ async function goProfile(userId) {
                     </div>
                 </div>
  
-                <!-- FOLLOW STATS -->
                 <div class="follow-stats">
                     <div class="follow-stat" onclick="showFollowList('${userId}', 'followers')">
                         <div class="follow-count" id="profile-followers-count">${counts.followers}</div>
@@ -640,7 +765,6 @@ async function goProfile(userId) {
                     </div>
                 </div>
  
-                <!-- ACTION BUTTONS -->
                 <div style="display:flex;gap:10px;margin-top:1rem;flex-wrap:wrap;">
                     ${isMe ? `
                         <button class="btn btn-ghost btn-sm" onclick="openEditModal()">✏️ Edit Profile</button>
@@ -649,6 +773,7 @@ async function goProfile(userId) {
                             onclick="toggleFollow('${userId}', this)">
                             ${following ? '✓ Following' : '+ Follow'}
                         </button>
+                        ${canMsg ? `<button class="btn btn-ghost btn-sm" onclick="openChat('${userId}')">💬 Message</button>` : ''}
                     ` : `
                         <button class="btn btn-ghost btn-sm" onclick="openModal()">Sign In to Follow</button>
                     `}
@@ -699,6 +824,15 @@ async function goProfile(userId) {
     } catch(err) {
         wrap.innerHTML = `<button class="back-btn" onclick="goHome()">← Back</button><div class="empty"><h3>Profile nahi mila 😔</h3><p>${esc(err.message)}</p></div>`;
     }
+}
+ 
+async function isFollowingMe(userId) {
+    if (!me) return false;
+    try {
+        const { data } = await db.from('follows')
+            .select('id').eq('follower_id', userId).eq('following_id', me.id).maybeSingle();
+        return !!data;
+    } catch(e) { return false; }
 }
  
 function goMyProfile() { if (!me) { openModal(); return; } goProfile(me.id); }
@@ -776,15 +910,22 @@ async function setUser(user) {
         else { myName = user.email.split('@')[0]; myXP = 0; }
     } catch(e) { myName = user.email.split('@')[0]; myXP = 0; }
     renderUserUI();
+    startUnreadCheck();
 }
  
-function clearUser() { me = null; myName = null; myXP = 0; renderUserUI(); }
+function clearUser() {
+    me = null; myName = null; myXP = 0;
+    if (unreadCheckInterval) { clearInterval(unreadCheckInterval); unreadCheckInterval = null; }
+    if (msgSubscription) { msgSubscription.unsubscribe(); msgSubscription = null; }
+    renderUserUI();
+}
  
 function renderUserUI() {
     const on = !!me;
     document.getElementById('authBtn').textContent = on ? 'Sign Out' : 'Sign In';
     document.getElementById('userPill').style.display = on ? 'flex' : 'none';
     document.getElementById('postBtn').style.display = on ? 'inline-flex' : 'none';
+    document.getElementById('msgBell').style.display = on ? 'flex' : 'none';
     if (on) {
         const lvl = getLevel(myXP);
         document.getElementById('userName').textContent = lvl.emoji + ' ' + myName;
@@ -869,10 +1010,19 @@ function showPage(id) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(id).classList.add('active');
     window.scrollTo(0, 0);
+    // Unsubscribe from chat when leaving chat page
+    if (id !== 'chatPage' && msgSubscription) {
+        msgSubscription.unsubscribe();
+        msgSubscription = null;
+    }
 }
 function goHome() { showPage('homePage'); loadBugs(); loadStats(); }
 function goPost() { if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; } showPage('postPage'); }
 function goLeaderboard() { showPage('leaderboardPage'); loadLeaderboard(); }
+function goInbox() {
+    if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
+    showPage('inboxPage'); loadInbox();
+}
  
 // ─── FILTER ───────────────────────────────────────────────────
 function filter(cat, btn) {
@@ -1052,6 +1202,374 @@ async function markBest(solId) {
         toast('Best solution marked! ✅', 'ok');
         openBug(activeBug.id);
     } catch(e) { toast('Error!', 'err'); }
+}
+ 
+// ═══════════════════════════════════════════════════════════════
+//  MESSAGING SYSTEM
+// ═══════════════════════════════════════════════════════════════
+ 
+// ─── UNREAD COUNT (Bell badge) ────────────────────────────────
+async function checkUnread() {
+    if (!me) return;
+    try {
+        const { count } = await db.from('messages')
+            .select('*', { count: 'exact', head: true })
+            .eq('receiver_id', me.id)
+            .eq('is_read', false);
+        const badge = document.getElementById('msgBadge');
+        if (count && count > 0) {
+            badge.textContent = count > 9 ? '9+' : count;
+            badge.style.display = 'flex';
+        } else {
+            badge.style.display = 'none';
+        }
+    } catch(e) {}
+}
+ 
+function startUnreadCheck() {
+    checkUnread();
+    if (unreadCheckInterval) clearInterval(unreadCheckInterval);
+    unreadCheckInterval = setInterval(checkUnread, 15000); // har 15 sec
+}
+ 
+// ─── INBOX ────────────────────────────────────────────────────
+async function loadInbox() {
+    const list = document.getElementById('inboxList');
+    list.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';
+    try {
+        // Get all conversations (latest message per person)
+        const { data: sent } = await db.from('messages')
+            .select('*').eq('sender_id', me.id)
+            .order('created_at', { ascending: false });
+ 
+        const { data: received } = await db.from('messages')
+            .select('*').eq('receiver_id', me.id)
+            .order('created_at', { ascending: false });
+ 
+        const allMsgs = [...(sent || []), ...(received || [])];
+ 
+        if (!allMsgs.length) {
+            list.innerHTML = `<div class="empty"><h3>Koi message nahi abhi 💬</h3><p>Kisi warrior ko message karo!</p><button class="btn btn-sm" style="margin-top:1rem;" onclick="openNewMsgModal()">+ New Message</button></div>`;
+            return;
+        }
+ 
+        // Group by conversation partner
+        const convMap = new Map();
+        allMsgs.forEach(msg => {
+            const partnerId = msg.sender_id === me.id ? msg.receiver_id : msg.sender_id;
+            if (!convMap.has(partnerId) || new Date(msg.created_at) > new Date(convMap.get(partnerId).created_at)) {
+                convMap.set(partnerId, msg);
+            }
+        });
+ 
+        // Sort by latest
+        const conversations = [...convMap.entries()].sort((a, b) =>
+            new Date(b[1].created_at) - new Date(a[1].created_at)
+        );
+ 
+        // Get unread counts per sender
+        const { data: unreadData } = await db.from('messages')
+            .select('sender_id')
+            .eq('receiver_id', me.id)
+            .eq('is_read', false);
+        const unreadMap = {};
+        (unreadData || []).forEach(m => {
+            unreadMap[m.sender_id] = (unreadMap[m.sender_id] || 0) + 1;
+        });
+ 
+        // Fetch all partner profiles
+        const partnerIds = conversations.map(([id]) => id);
+        const { data: profiles } = await db.from('profiles')
+            .select('user_id, username, display_name, avatar_color, xp')
+            .in('user_id', partnerIds);
+        const profileMap = {};
+        (profiles || []).forEach(p => profileMap[p.user_id] = p);
+ 
+        list.innerHTML = conversations.map(([partnerId, lastMsg]) => {
+            const p = profileMap[partnerId] || {};
+            const displayName = p.display_name || p.username || 'Unknown Warrior';
+            const initial = displayName[0].toUpperCase();
+            const color = p.avatar_color || '#00ff88';
+            const lvl = getLevel(p.xp || 0);
+            const unreadCount = unreadMap[partnerId] || 0;
+            const isUnread = unreadCount > 0;
+            const isMine = lastMsg.sender_id === me.id;
+            const preview = (isMine ? 'Tu: ' : '') + esc(lastMsg.content).substring(0, 50) + (lastMsg.content.length > 50 ? '...' : '');
+ 
+            return `
+                <div class="inbox-row ${isUnread ? 'unread' : ''}" onclick="openChat('${partnerId}')">
+                    <div class="inbox-avatar" style="background:${color};">${initial}</div>
+                    <div class="inbox-info">
+                        <div class="inbox-name">
+                            ${esc(displayName)}
+                            <span style="font-size:0.75rem;color:var(--text2);font-weight:400;">${lvl.emoji} ${lvl.name}</span>
+                        </div>
+                        <div class="inbox-preview">${preview}</div>
+                    </div>
+                    <div class="inbox-meta">
+                        <div class="inbox-time">${timeAgo(lastMsg.created_at)}</div>
+                        ${isUnread ? `<div class="unread-dot">${unreadCount}</div>` : ''}
+                    </div>
+                </div>`;
+        }).join('');
+ 
+    } catch(err) {
+        list.innerHTML = `<div class="empty"><h3>Error 😔</h3><p>${esc(err.message)}</p></div>`;
+    }
+}
+ 
+// ─── OPEN CHAT ────────────────────────────────────────────────
+async function openChat(partnerId) {
+    if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
+    chatPartnerId = partnerId;
+ 
+    showPage('chatPage');
+    document.getElementById('chatPartnerName').textContent = '...';
+    document.getElementById('chatPartnerLevel').textContent = '...';
+    document.getElementById('chatPartnerAvatar').textContent = '?';
+    document.getElementById('chatMessages').innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';
+ 
+    try {
+        const { data: profile } = await db.from('profiles')
+            .select('*').eq('user_id', partnerId).single();
+        chatPartnerProfile = profile;
+ 
+        const displayName = profile.display_name || profile.username || 'Unknown';
+        const lvl = getLevel(profile.xp || 0);
+        const color = profile.avatar_color || '#00ff88';
+        const initial = displayName[0].toUpperCase();
+ 
+        document.getElementById('chatPartnerName').textContent = displayName;
+        document.getElementById('chatPartnerLevel').textContent = `${lvl.emoji} ${lvl.name} · ${profile.xp||0} XP`;
+        const avatarEl = document.getElementById('chatPartnerAvatar');
+        avatarEl.textContent = initial;
+        avatarEl.style.background = color;
+ 
+        // Load messages
+        await loadChatMessages();
+ 
+        // Mark as read
+        await db.from('messages').update({ is_read: true })
+            .eq('sender_id', partnerId).eq('receiver_id', me.id).eq('is_read', false);
+        checkUnread();
+ 
+        // Subscribe to realtime
+        subscribeToChat();
+ 
+    } catch(err) {
+        toast('Error loading chat: ' + err.message, 'err');
+    }
+}
+ 
+async function loadChatMessages() {
+    const container = document.getElementById('chatMessages');
+    try {
+        const { data: messages, error } = await db.from('messages')
+            .select('*')
+            .or(`and(sender_id.eq.${me.id},receiver_id.eq.${chatPartnerId}),and(sender_id.eq.${chatPartnerId},receiver_id.eq.${me.id})`)
+            .order('created_at', { ascending: true });
+ 
+        if (error) throw error;
+ 
+        if (!messages || !messages.length) {
+            container.innerHTML = `<div style="text-align:center;color:var(--text2);margin-top:3rem;">
+                <p style="font-size:2rem;">👋</p>
+                <p style="margin-top:0.5rem;">Conversation start karo!</p>
+            </div>`;
+            return;
+        }
+ 
+        let lastDate = '';
+        container.innerHTML = messages.map(msg => {
+            const isMine = msg.sender_id === me.id;
+            const msgDate = new Date(msg.created_at).toLocaleDateString('en-IN');
+            let divider = '';
+            if (msgDate !== lastDate) {
+                lastDate = msgDate;
+                divider = `<div class="chat-day-divider">${msgDate}</div>`;
+            }
+            const timeStr = new Date(msg.created_at).toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
+            const readStatus = isMine ? (msg.is_read ? '✓✓' : '✓') : '';
+ 
+            return `${divider}
+                <div class="msg-bubble-wrap ${isMine ? 'mine' : 'theirs'}">
+                    <div class="msg-bubble">${esc(msg.content)}</div>
+                    <div class="msg-time">${timeStr} ${readStatus ? `<span class="msg-read-status" style="color:${msg.is_read?'var(--accent)':'var(--text2)'}">${readStatus}</span>` : ''}</div>
+                </div>`;
+        }).join('');
+ 
+        scrollToBottom();
+    } catch(err) {
+        container.innerHTML = `<div class="empty"><h3>Error 😔</h3><p>${esc(err.message)}</p></div>`;
+    }
+}
+ 
+function scrollToBottom() {
+    const c = document.getElementById('chatMessages');
+    if (c) setTimeout(() => { c.scrollTop = c.scrollHeight; }, 50);
+}
+ 
+// ─── REALTIME SUBSCRIBE ───────────────────────────────────────
+function subscribeToChat() {
+    if (msgSubscription) { msgSubscription.unsubscribe(); }
+ 
+    msgSubscription = db.channel('chat-' + me.id + '-' + chatPartnerId)
+        .on('postgres_changes', {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'messages',
+            filter: `receiver_id=eq.${me.id}`
+        }, async (payload) => {
+            const msg = payload.new;
+            // Only show if from current chat partner
+            if (msg.sender_id !== chatPartnerId) {
+                checkUnread(); return;
+            }
+            // Append new message
+            appendMessage(msg, false);
+            // Mark as read
+            await db.from('messages').update({ is_read: true }).eq('id', msg.id);
+            checkUnread();
+        })
+        .subscribe();
+}
+ 
+function appendMessage(msg, isMine) {
+    const container = document.getElementById('chatMessages');
+    const timeStr = new Date(msg.created_at).toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
+    const div = document.createElement('div');
+    div.className = `msg-bubble-wrap ${isMine ? 'mine' : 'theirs'}`;
+    div.innerHTML = `
+        <div class="msg-bubble">${esc(msg.content)}</div>
+        <div class="msg-time">${timeStr}</div>`;
+    // Remove empty state if exists
+    const emptyEl = container.querySelector('div[style*="text-align:center"]');
+    if (emptyEl) emptyEl.remove();
+    container.appendChild(div);
+    scrollToBottom();
+}
+ 
+// ─── SEND MESSAGE ─────────────────────────────────────────────
+async function sendMessage() {
+    if (!me || !chatPartnerId) return;
+    const input = document.getElementById('chatInput');
+    const content = input.value.trim();
+    if (!content) return;
+ 
+    const btn = document.getElementById('chatSendBtn');
+    btn.disabled = true;
+    input.value = '';
+    input.style.height = '44px';
+ 
+    try {
+        const { data, error } = await db.from('messages').insert({
+            sender_id: me.id,
+            receiver_id: chatPartnerId,
+            content: content,
+            is_read: false
+        }).select().single();
+ 
+        if (error) throw error;
+ 
+        // Append immediately (optimistic)
+        appendMessage(data, true);
+ 
+    } catch(err) {
+        toast('Message send nahi hua: ' + err.message, 'err');
+        input.value = content; // restore
+    }
+    btn.disabled = false;
+    input.focus();
+}
+ 
+function handleChatKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+}
+ 
+function autoResizeInput(el) {
+    el.style.height = '44px';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+ 
+// ─── NEW MESSAGE MODAL ────────────────────────────────────────
+async function openNewMsgModal() {
+    if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
+    document.getElementById('newMsgModal').classList.add('show');
+    document.getElementById('followerSearch').value = '';
+    const list = document.getElementById('followersList');
+    list.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';
+ 
+    try {
+        // Get mutual followers (people who follow me AND I follow them)
+        const [{ data: myFollowing }, { data: myFollowers }] = await Promise.all([
+            db.from('follows').select('following_id').eq('follower_id', me.id),
+            db.from('follows').select('follower_id').eq('following_id', me.id)
+        ]);
+ 
+        const followingIds = new Set((myFollowing || []).map(f => f.following_id));
+        const followerIds = new Set((myFollowers || []).map(f => f.follower_id));
+ 
+        // Mutual = intersection
+        const mutualIds = [...followingIds].filter(id => followerIds.has(id));
+ 
+        if (!mutualIds.length) {
+            allFollowersList = [];
+            list.innerHTML = `<div class="empty" style="padding:2rem;"><h3>Koi mutual follower nahi! 😔</h3><p>Pehle kisi ko follow karo aur unka follow back lo.</p></div>`;
+            return;
+        }
+ 
+        const { data: profiles } = await db.from('profiles')
+            .select('user_id, username, display_name, avatar_color, xp')
+            .in('user_id', mutualIds);
+ 
+        allFollowersList = profiles || [];
+        renderFollowersList(allFollowersList);
+ 
+    } catch(err) {
+        list.innerHTML = `<div class="empty"><h3>Error 😔</h3><p>${esc(err.message)}</p></div>`;
+    }
+}
+ 
+function renderFollowersList(profiles) {
+    const list = document.getElementById('followersList');
+    if (!profiles.length) {
+        list.innerHTML = '<div style="text-align:center;color:var(--text2);padding:1rem;">Koi nahi mila 🔍</div>';
+        return;
+    }
+    list.innerHTML = profiles.map(p => {
+        const displayName = p.display_name || p.username || 'Anonymous';
+        const lvl = getLevel(p.xp || 0);
+        const initial = displayName[0].toUpperCase();
+        return `
+            <div class="follower-select-row" onclick="startNewChat('${p.user_id}')">
+                <div style="width:40px;height:40px;border-radius:50%;background:${p.avatar_color||'#00ff88'};display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;flex-shrink:0;">${initial}</div>
+                <div>
+                    <div style="font-weight:700;font-size:0.95rem;">${esc(displayName)}</div>
+                    <div style="font-size:0.78rem;color:var(--text2);">${lvl.emoji} ${lvl.name} · ${p.xp||0} XP</div>
+                </div>
+            </div>`;
+    }).join('');
+}
+ 
+function filterFollowersList() {
+    const query = document.getElementById('followerSearch').value.toLowerCase();
+    const filtered = allFollowersList.filter(p => {
+        const name = (p.display_name || p.username || '').toLowerCase();
+        return name.includes(query);
+    });
+    renderFollowersList(filtered);
+}
+ 
+function startNewChat(partnerId) {
+    closeNewMsgModal();
+    openChat(partnerId);
+}
+ 
+function closeNewMsgModal() {
+    document.getElementById('newMsgModal').classList.remove('show');
 }
  
 // ─── UTILS ────────────────────────────────────────────────────
