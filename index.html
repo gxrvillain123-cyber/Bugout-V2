@@ -950,7 +950,7 @@ Keep each solution concise but helpful (2-4 sentences max). Be direct. No fluff.
                 'Authorization': `Bearer ${GROQ_API_KEY}`
             },
             body: JSON.stringify({
-                model: 'llama3-8b-8192',
+                model: 'llama-3.3-70b-versatile',
                 messages: [{ role: 'user', content: prompt }],
                 max_tokens: 600,
                 temperature: 0.7
@@ -1920,7 +1920,7 @@ Keep each 2-4 sentences. Be direct and practical.`;
         const response = await fetch(GROQ_API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_API_KEY}` },
-            body: JSON.stringify({ model: 'llama3-8b-8192', messages: [{ role: 'user', content: prompt }], max_tokens: 600, temperature: 0.7 })
+            body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: [{ role: 'user', content: prompt }], max_tokens: 600, temperature: 0.7 })
         });
         if (!response.ok) { const e = await response.json(); throw new Error(e.error?.message || 'API error'); }
         const data = await response.json();
