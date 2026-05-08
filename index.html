@@ -419,21 +419,42 @@
         .notif-row-time { font-size: 0.78rem; color: var(--text2); }
 
         @media (max-width: 600px) {
+            .container { padding: 0 16px; }
+            nav { align-items: flex-start; gap: 10px; padding: 0.75rem 0; }
+            .logo { font-size: 1.35rem; line-height: 1.1; padding-top: 5px; }
+            .logo span { display: block; margin-left: 0; margin-top: 3px; font-size: 0.72rem; }
+            .nav-right { flex: 1; justify-content: flex-end; gap: 7px; }
+            .user-pill { order: -2; max-width: 100%; padding: 6px 10px; font-size: 0.78rem; }
+            #userName { max-width: 142px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            .xp { white-space: nowrap; }
+            .notif-bell, .msg-bell, .nav-right .btn-ghost { min-width: 42px; height: 38px; justify-content: center; padding: 6px 10px !important; }
+            #authBtn { height: 38px; padding: 8px 14px; }
+            #postBtn { flex-basis: 136px; justify-content: center; }
             .hero h1 { font-size: 1.8rem; }
             .bugs-grid { grid-template-columns: 1fr; }
             .filters { justify-content: flex-start; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; }
             .stats-bar { gap: 1rem; }
             .stat-item { padding: 0.75rem 1.25rem; min-width: 90px; }
             .stat-number { font-size: 1.4rem; }
-            .nav-right { gap: 8px; }
             .profile-stats { gap: 0.5rem; }
             .profile-top { flex-direction: column; align-items: flex-start; }
             .msg-bubble { max-width: 85%; }
-            .chat-wrap, .mentor-wrap { height: calc(100vh - 64px); }
+            .chat-wrap, .mentor-wrap { height: calc(100vh - 150px); }
+            .mentor-header { align-items: flex-start; gap: 10px; }
+            .mentor-info { min-width: 0; flex: 1; }
+            .mentor-name { font-size: 1rem; }
+            .mentor-desc { line-height: 1.4; }
+            .mentor-status { margin-left: 0; }
+            .mentor-clear-btn { padding: 8px 10px; }
             .notif-panel { width: 290px; right: -10px; }
             .dash-stats-row { grid-template-columns: repeat(2, 1fr); }
             .calendar-grid { grid-template-columns: repeat(26, 1fr); }
+            .level-journey { overflow-x: auto; padding-bottom: 8px; }
+            .level-step { min-width: 86px; }
             .mentor-bubble { max-width: 85%; }
+            .detail-meta { align-items: flex-start; }
+            .comment-input-wrap { flex-direction: column; }
+            .comment-send { width: 100%; justify-content: center; }
         }
     </style>
 </head>
@@ -705,6 +726,38 @@
     </div>
 </div>
 
+<!-- EDIT BUG -->
+<div class="edit-overlay" id="editBugModal">
+    <div class="edit-modal">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;"><h2>✏️ Edit Bug</h2><button class="close-x" onclick="closeEditBugModal()">&times;</button></div>
+        <div class="field"><label>Title</label><input type="text" id="editBugTitle" placeholder="What's your problem?"></div>
+        <div class="field">
+            <label>Category</label>
+            <select id="editBugCat">
+                <option value="">Select category</option>
+                <option value="Coding">💻 Coding</option>
+                <option value="Life">🌱 Life</option>
+                <option value="Studies">📚 Studies</option>
+                <option value="Career">💼 Career</option>
+                <option value="Relationships">❤️ Relationships</option>
+                <option value="Random">🎲 Random</option>
+            </select>
+        </div>
+        <div class="field"><label>Description</label><textarea id="editBugDesc" placeholder="Describe your problem in detail..." style="min-height:120px;"></textarea></div>
+        <div class="field">
+            <label>Tags <span style="color:var(--text2);font-weight:400;text-transform:none;letter-spacing:0;">(optional, max 5)</span></label>
+            <div class="tag-input-wrap" id="editTagInputWrap" onclick="document.getElementById('editTagRawInput').focus()">
+                <input type="text" class="tag-raw-input" id="editTagRawInput" placeholder="e.g. javascript, react, css" maxlength="30" onkeydown="handleEditTagKey(event)" oninput="handleEditTagInput(this.value)">
+            </div>
+            <div class="tag-hint">Enter ya comma daba ke tag add karo</div>
+        </div>
+        <div class="form-actions" style="margin-top:1.5rem;">
+            <button class="btn" id="saveBugBtn" onclick="saveBugEdit()">Save Changes 💾</button>
+            <button class="btn btn-ghost" onclick="closeEditBugModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
 <!-- CONFIRM DELETE -->
 <div class="confirm-overlay" id="confirmDialog">
     <div class="confirm-box">
@@ -737,7 +790,7 @@ const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL = 'llama-3.3-70b-versatile';
 
 let me = null, myName = null, myXP = 0, activeBug = null, activeCategory = 'all', bugToDelete = null;
-let editSelectedColor = '#00ff88', editSelectedInterests = [];
+let editSelectedColor = '#00ff88', editSelectedInterests = [], editingBugId = null, editBugTags = [];
 let currentProfileId = null, chatPartnerId = null, chatPartnerProfile = null, msgSubscription = null;
 let allFollowersList = [], unreadCheckInterval = null, currentTags = [], searchTimeout = null;
 let notifCheckInterval = null, notifPanelOpen = false, myBookmarks = new Set(), activeStatusFilter = null;
@@ -768,6 +821,14 @@ function getLevelNum(xp) { return LEVELS.findIndex(l => xp >= l.min && xp <= l.m
 function getXPProgress(xp) { const l = getLevel(xp); if (l.max === Infinity) return 100; return Math.round(((xp - l.min) / (l.max - l.min + 1)) * 100); }
 function getXPToNext(xp) { const l = getLevel(xp); return l.max === Infinity ? 0 : l.max - xp + 1; }
 function makeAvatar(initial, color, size=80) { return `<div class="profile-avatar" style="background:${color||'#00ff88'};width:${size}px;height:${size}px;font-size:${size*0.4}px;">${initial}</div>`; }
+function parseSupabaseDate(value) {
+    if (!value) return null;
+    if (value instanceof Date) return value;
+    const s = String(value);
+    const hasTimezone = /([zZ]|[+-]\d{2}:?\d{2})$/.test(s);
+    const iso = s.includes('T') ? s : s.replace(' ', 'T');
+    return new Date(hasTimezone ? iso : iso + 'Z');
+}
 function getStatusBadge(status) {
     const map = { 'open':{ cls:'status-open', label:'🔴 Open' }, 'in_progress':{ cls:'status-in_progress', label:'🟡 In Progress' }, 'solved':{ cls:'status-solved', label:'🟢 Solved' } };
     const s = map[status] || map['open'];
@@ -779,6 +840,15 @@ async function updateBugStatus(bugId, newStatus) {
         activeBug.status = newStatus;
         toast(`Status: ${newStatus==='open'?'🔴 Open':newStatus==='in_progress'?'🟡 In Progress':'🟢 Solved'}`, 'ok');
     } catch(err) { toast('Error: ' + err.message, 'err'); }
+}
+
+async function readGroqError(response) {
+    try {
+        const data = await response.json();
+        return data.error?.message || `AI request failed (${response.status})`;
+    } catch(e) {
+        return `AI request failed (${response.status})`;
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -838,7 +908,7 @@ async function sendMentorMessage() {
             body: JSON.stringify({ model: GROQ_MODEL, messages, max_tokens: 1000, temperature: 0.75 })
         });
 
-        if (!response.ok) { const e = await response.json(); throw new Error(e.error?.message || 'API Error'); }
+        if (!response.ok) throw new Error(await readGroqError(response));
         const data = await response.json();
         const aiReply = data.choices?.[0]?.message?.content || 'Kuch error aa gaya — dobara try karo!';
 
@@ -1071,7 +1141,7 @@ async function loadDashboard() {
 function buildCalendarData(bugs, solutions) {
     const activityMap = {};
     [...bugs, ...solutions].forEach(item => {
-        const key = new Date(item.created_at).toISOString().split('T')[0];
+        const key = parseSupabaseDate(item.created_at).toISOString().split('T')[0];
         activityMap[key] = (activityMap[key] || 0) + 1;
     });
     const days = [], now = new Date();
@@ -1091,8 +1161,8 @@ function buildXPTimeline(bugs, solutions) {
         const weekStart = new Date(now); weekStart.setDate(weekStart.getDate() - w * 7 - 6);
         const weekEnd = new Date(now); weekEnd.setDate(weekEnd.getDate() - w * 7);
         const label = weekStart.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
-        const b = bugs.filter(x => new Date(x.created_at) >= weekStart && new Date(x.created_at) <= weekEnd).length;
-        const s = solutions.filter(x => new Date(x.created_at) >= weekStart && new Date(x.created_at) <= weekEnd).length;
+        const b = bugs.filter(x => parseSupabaseDate(x.created_at) >= weekStart && parseSupabaseDate(x.created_at) <= weekEnd).length;
+        const s = solutions.filter(x => parseSupabaseDate(x.created_at) >= weekStart && parseSupabaseDate(x.created_at) <= weekEnd).length;
         weeks.push({ label, xp: b * 10 + s * 5, bugs: b, sols: s });
     }
     return weeks;
@@ -1141,7 +1211,7 @@ async function getAISolutions() {
     const prompt = `You are an expert problem solver on BUGOUT.\n\nProblem:\n${problemText}\n\nGive exactly 3 practical solutions:\n\nSOLUTION_1:\n[solution]\n\nSOLUTION_2:\n[solution]\n\nSOLUTION_3:\n[solution]\n\nKeep each 2-4 sentences. Be direct.`;
     try {
         const response = await fetch(GROQ_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_KEY}` }, body: JSON.stringify({ model: GROQ_MODEL, messages: [{ role: 'user', content: prompt }], max_tokens: 600, temperature: 0.7 }) });
-        if (!response.ok) { const e = await response.json(); throw new Error(e.error?.message || 'API error'); }
+        if (!response.ok) throw new Error(await readGroqError(response));
         const data = await response.json(), rawText = data.choices?.[0]?.message?.content || '';
         const solutions = [], parts = rawText.split(/SOLUTION_[123]:/);
         for (let i = 1; i <= 3; i++) { if (parts[i]) solutions.push(parts[i].trim()); }
@@ -1169,6 +1239,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('authModal').addEventListener('click', e => { if (e.target.id === 'authModal') closeModal(); });
     document.getElementById('confirmDialog').addEventListener('click', e => { if (e.target.id === 'confirmDialog') closeConfirm(); });
     document.getElementById('editModal').addEventListener('click', e => { if (e.target.id === 'editModal') closeEditModal(); });
+    document.getElementById('editBugModal').addEventListener('click', e => { if (e.target.id === 'editBugModal') closeEditBugModal(); });
     document.getElementById('newMsgModal').addEventListener('click', e => { if (e.target.id === 'newMsgModal') closeNewMsgModal(); });
     document.addEventListener('click', e => { if (notifPanelOpen && !document.getElementById('notifBellWrap').contains(e.target)) closeNotifPanel(); });
     document.getElementById('colorPicker').innerHTML = AVATAR_COLORS.map(c => `<div class="color-dot ${c === editSelectedColor ? 'selected' : ''}" style="background:${c};" onclick="selectColor('${c}')"></div>`).join('');
@@ -1618,6 +1689,75 @@ async function submitBug() {
     btn.textContent = 'Post Bug 🚀'; btn.classList.remove('btn-disabled');
 }
 
+function openEditBugModal() {
+    if (!me || !activeBug || activeBug.user_id !== me.id) { toast('Sirf owner edit kar sakta hai!', 'err'); return; }
+    editingBugId = activeBug.id;
+    editBugTags = Array.isArray(activeBug.tags) ? [...activeBug.tags] : [];
+    document.getElementById('editBugTitle').value = activeBug.title || '';
+    document.getElementById('editBugCat').value = activeBug.category || '';
+    document.getElementById('editBugDesc').value = activeBug.description || '';
+    document.getElementById('editTagRawInput').value = '';
+    renderEditBugTags();
+    document.getElementById('editBugModal').classList.add('show');
+}
+function closeEditBugModal() {
+    document.getElementById('editBugModal').classList.remove('show');
+    editingBugId = null;
+    editBugTags = [];
+}
+function renderEditBugTags() {
+    const wrap = document.getElementById('editTagInputWrap'), input = document.getElementById('editTagRawInput');
+    if (!wrap || !input) return;
+    wrap.querySelectorAll('.tag-pill').forEach(p => p.remove());
+    editBugTags.forEach((tag, i) => {
+        const pill = document.createElement('span');
+        pill.className = 'tag-pill';
+        pill.innerHTML = `#${esc(tag)} <button class="tag-pill-remove" onclick="removeEditBugTag(${i})">×</button>`;
+        wrap.insertBefore(pill, input);
+    });
+    input.placeholder = editBugTags.length >= 5 ? 'Max 5 tags!' : (editBugTags.length ? '' : 'e.g. javascript, react, css');
+}
+function addEditBugTag(raw) {
+    const tag = raw.trim().toLowerCase().replace(/[^a-z0-9_\-]/g, '').slice(0, 20);
+    if (!tag) return;
+    if (editBugTags.length >= 5) { toast('Max 5 tags!', 'err'); return; }
+    if (editBugTags.includes(tag)) return;
+    editBugTags.push(tag);
+    document.getElementById('editTagRawInput').value = '';
+    renderEditBugTags();
+}
+function removeEditBugTag(index) { editBugTags.splice(index, 1); renderEditBugTags(); }
+function handleEditTagKey(e) {
+    const val = e.target.value;
+    if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addEditBugTag(val.replace(',', '')); }
+    else if (e.key === 'Backspace' && !val && editBugTags.length) removeEditBugTag(editBugTags.length - 1);
+}
+function handleEditTagInput(val) { if (val.endsWith(',')) addEditBugTag(val.slice(0, -1)); }
+async function saveBugEdit() {
+    if (!me || !activeBug || !editingBugId) return;
+    const title = document.getElementById('editBugTitle').value.trim();
+    const category = document.getElementById('editBugCat').value;
+    const description = document.getElementById('editBugDesc').value.trim();
+    const rawInput = document.getElementById('editTagRawInput').value.trim();
+    if (rawInput) addEditBugTag(rawInput);
+    if (!title) { toast('Title bharo!', 'err'); return; }
+    if (!category) { toast('Category choose karo!', 'err'); return; }
+    if (!description) { toast('Description bharo!', 'err'); return; }
+    const btn = document.getElementById('saveBugBtn');
+    btn.textContent = 'Saving...';
+    btn.classList.add('btn-disabled');
+    try {
+        const { error } = await db.from('bugs').update({ title, category, description, tags: editBugTags }).eq('id', editingBugId).eq('user_id', me.id);
+        if (error) throw error;
+        const id = editingBugId;
+        closeEditBugModal();
+        toast('Bug update ho gaya! ✏️', 'ok');
+        openBug(id);
+    } catch(err) { toast('Update failed: ' + err.message, 'err'); }
+    btn.textContent = 'Save Changes 💾';
+    btn.classList.remove('btn-disabled');
+}
+
 function askDelete(bugId, e) { e.stopPropagation(); bugToDelete = bugId; document.getElementById('confirmDialog').classList.add('show'); }
 function closeConfirm() { document.getElementById('confirmDialog').classList.remove('show'); bugToDelete = null; }
 async function confirmDelete() {
@@ -1655,7 +1795,7 @@ async function openBug(id) {
                 <div class="detail-meta">
                     <span>by <strong style="cursor:pointer;color:var(--accent);" onclick="goProfile('${bug.user_id}')">${esc(bug.username || 'Anonymous')}</strong></span>
                     <span>${timeAgo(bug.created_at)}</span><span>💡 ${solutions.length} solutions</span>
-                    ${isOwner ? `<button class="btn btn-danger btn-sm" onclick="askDelete('${bug.id}',event)" style="margin-left:auto;">🗑️ Delete</button>` : ''}
+                    ${isOwner ? `<span style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;"><button class="btn btn-ghost btn-sm" onclick="openEditBugModal()">✏️ Edit</button><button class="btn btn-danger btn-sm" onclick="askDelete('${bug.id}',event)">🗑️ Delete</button></span>` : ''}
                 </div>
             </div>
             <div class="solutions-header">Solutions (${solutions.length})</div>
@@ -1683,7 +1823,7 @@ async function getAISolutionsForDetail(bugId) {
     const prompt = `You are an expert problem solver on BUGOUT.\n\nProblem: ${activeBug.title}\nDetails: ${activeBug.description}\nCategory: ${activeBug.category}\n\nGive exactly 3 practical solutions:\n\nSOLUTION_1:\n[solution]\n\nSOLUTION_2:\n[solution]\n\nSOLUTION_3:\n[solution]\n\nKeep each 2-4 sentences. Direct and practical.`;
     try {
         const response = await fetch(GROQ_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_KEY}` }, body: JSON.stringify({ model: GROQ_MODEL, messages: [{ role: 'user', content: prompt }], max_tokens: 600, temperature: 0.7 }) });
-        if (!response.ok) { const e = await response.json(); throw new Error(e.error?.message || 'API error'); }
+        if (!response.ok) throw new Error(await readGroqError(response));
         const data = await response.json(), rawText = data.choices?.[0]?.message?.content || '';
         const solutions = [], parts = rawText.split(/SOLUTION_[123]:/);
         for (let i = 1; i <= 3; i++) { if (parts[i]) solutions.push(parts[i].trim()); }
@@ -1840,8 +1980,8 @@ async function loadInbox() {
         const allMsgs = [...(sent || []), ...(received || [])];
         if (!allMsgs.length) { list.innerHTML = `<div class="empty"><h3>Koi message nahi abhi 💬</h3><button class="btn btn-sm" style="margin-top:1rem;" onclick="openNewMsgModal()">+ New Message</button></div>`; return; }
         const convMap = new Map();
-        allMsgs.forEach(msg => { const partnerId = msg.sender_id === me.id ? msg.receiver_id : msg.sender_id; if (!convMap.has(partnerId) || new Date(msg.created_at) > new Date(convMap.get(partnerId).created_at)) convMap.set(partnerId, msg); });
-        const conversations = [...convMap.entries()].sort((a, b) => new Date(b[1].created_at) - new Date(a[1].created_at));
+        allMsgs.forEach(msg => { const partnerId = msg.sender_id === me.id ? msg.receiver_id : msg.sender_id; if (!convMap.has(partnerId) || parseSupabaseDate(msg.created_at) > parseSupabaseDate(convMap.get(partnerId).created_at)) convMap.set(partnerId, msg); });
+        const conversations = [...convMap.entries()].sort((a, b) => parseSupabaseDate(b[1].created_at) - parseSupabaseDate(a[1].created_at));
         const { data: unreadData } = await db.from('messages').select('sender_id').eq('receiver_id', me.id).eq('is_read', false);
         const unreadMap = {}; (unreadData || []).forEach(m => { unreadMap[m.sender_id] = (unreadMap[m.sender_id] || 0) + 1; });
         const partnerIds = conversations.map(([id]) => id);
@@ -1882,9 +2022,9 @@ async function loadChatMessages() {
         if (!messages || !messages.length) { container.innerHTML = `<div style="text-align:center;color:var(--text2);margin-top:3rem;"><p style="font-size:2rem;">👋</p><p>Conversation start karo!</p></div>`; return; }
         let lastDate = '';
         container.innerHTML = messages.map(msg => {
-            const isMine = msg.sender_id === me.id, msgDate = new Date(msg.created_at).toLocaleDateString('en-IN');
+            const isMine = msg.sender_id === me.id, msgDate = parseSupabaseDate(msg.created_at).toLocaleDateString('en-IN');
             let divider = ''; if (msgDate !== lastDate) { lastDate = msgDate; divider = `<div class="chat-day-divider">${msgDate}</div>`; }
-            const timeStr = new Date(msg.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }), readStatus = isMine ? (msg.is_read ? '✓✓' : '✓') : '';
+            const timeStr = parseSupabaseDate(msg.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }), readStatus = isMine ? (msg.is_read ? '✓✓' : '✓') : '';
             return `${divider}<div class="msg-bubble-wrap ${isMine ? 'mine' : 'theirs'}"><div class="msg-bubble">${esc(msg.content)}</div><div class="msg-time">${timeStr} ${readStatus ? `<span class="msg-read-status" style="color:${msg.is_read ? 'var(--accent)' : 'var(--text2)'}">${readStatus}</span>` : ''}</div></div>`;
         }).join('');
         scrollToBottom();
@@ -1900,7 +2040,7 @@ function subscribeToChat() {
     }).subscribe();
 }
 function appendMessage(msg, isMine) {
-    const container = document.getElementById('chatMessages'), timeStr = new Date(msg.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+    const container = document.getElementById('chatMessages'), timeStr = parseSupabaseDate(msg.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
     const div = document.createElement('div'); div.className = `msg-bubble-wrap ${isMine ? 'mine' : 'theirs'}`;
     div.innerHTML = `<div class="msg-bubble">${esc(msg.content)}</div><div class="msg-time">${timeStr}</div>`;
     const emptyEl = container.querySelector('div[style*="text-align:center"]'); if (emptyEl) emptyEl.remove();
@@ -1943,9 +2083,12 @@ function closeNewMsgModal() { document.getElementById('newMsgModal').classList.r
 function esc(s) { if (s == null) return ''; return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 function timeAgo(d) {
     if (!d) return '';
-    const diff = Date.now() - new Date(d).getTime(), m = Math.floor(diff / 60000), h = Math.floor(diff / 3600000), day = Math.floor(diff / 86400000);
+    const parsed = parseSupabaseDate(d);
+    if (!parsed || Number.isNaN(parsed.getTime())) return '';
+    const diffMs = Math.max(0, Date.now() - parsed.getTime());
+    const m = Math.floor(diffMs / 60000), h = Math.floor(diffMs / 3600000), day = Math.floor(diffMs / 86400000);
     if (m < 1) return 'just now'; if (m < 60) return m + 'm ago'; if (h < 24) return h + 'h ago'; if (day === 1) return 'yesterday'; if (day < 7) return day + 'd ago';
-    return new Date(d).toLocaleDateString('en-IN');
+    return parsed.toLocaleDateString('en-IN');
 }
 function toast(msg, type = 'ok') {
     document.querySelectorAll('.toast').forEach(t => t.remove());
