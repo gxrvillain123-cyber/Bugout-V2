@@ -972,7 +972,7 @@ async function loadDashboard() {
     const content = document.getElementById('dashboardContent');
     content.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading dashboard...</p></div>';
     try {
-        const [{ data: profile }, { data: bugs }, { data: solutions }, { data: badges }, counts] = await Promise.all([
+        const [{ data: profile }, { data: bugs }, { data: solutions }, badges, counts] = await Promise.all([
             db.from('profiles').select('*').eq('user_id', me.id).single(),
             db.from('bugs').select('id,title,created_at,solutions_count,status,category').eq('user_id', me.id).order('created_at', { ascending: true }),
             db.from('solutions').select('id,created_at,is_best_solution,upvotes,bug_id').eq('user_id', me.id).order('created_at', { ascending: true }),
