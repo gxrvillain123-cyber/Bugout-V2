@@ -417,28 +417,6 @@
         .notif-row-body { flex: 1; }
         .notif-row-text { font-size: 0.9rem; line-height: 1.4; margin-bottom: 4px; }
         .notif-row-time { font-size: 0.78rem; color: var(--text2); }
-        .sort-wrap { display: flex; justify-content: center; align-items: center; gap: 10px; margin: -0.25rem 0 1.5rem; color: var(--text2); font-size: 0.85rem; }
-        .sort-select { background: var(--card); border: 1.5px solid var(--border); border-radius: 10px; padding: 8px 12px; color: var(--text); outline: none; cursor: pointer; }
-        .sort-select:focus { border-color: var(--accent); }
-        .quest-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-top: 1rem; }
-        .quest-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; }
-        .quest-card.done { border-color: rgba(0,255,136,0.45); background: rgba(0,255,136,0.05); }
-        .quest-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; }
-        .quest-title { font-weight: 800; font-size: 0.9rem; }
-        .quest-progress { color: var(--accent); font-weight: 900; font-size: 0.85rem; white-space: nowrap; }
-        .quest-desc { color: var(--text2); font-size: 0.8rem; line-height: 1.45; }
-        .quest-bar { height: 7px; background: var(--border); border-radius: 999px; overflow: hidden; margin-top: 10px; }
-        .quest-fill { height: 100%; background: linear-gradient(90deg,var(--accent),#0077ff); border-radius: 999px; transition: width 0.4s ease; }
-        .streak-pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,153,0,0.12); border: 1px solid rgba(255,153,0,0.35); color: #ffb347; border-radius: 999px; padding: 5px 12px; font-weight: 800; font-size: 0.82rem; }
-        .share-btn { background: var(--bg2); color: var(--text2); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; cursor: pointer; font-size: 0.82rem; font-weight: 700; transition: all 0.2s; }
-        .share-btn:hover { color: var(--accent); border-color: var(--accent); }
-        .analyzer-wrap { max-width: 900px; margin: 2.5rem auto; padding-bottom: 3rem; }
-        .analyzer-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 0.9fr); gap: 1.25rem; align-items: start; }
-        .code-input { width: 100%; min-height: 360px; background: #070707; border: 1.5px solid var(--border); border-radius: 12px; color: var(--text); padding: 1rem; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 0.88rem; line-height: 1.55; resize: vertical; outline: none; }
-        .code-input:focus { border-color: var(--accent); }
-        .analyzer-output { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem; min-height: 360px; }
-        .analyzer-output pre { background: #070707; border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem; overflow-x: auto; margin: 0.75rem 0; }
-        .analyzer-output code { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
 
         @media (max-width: 600px) {
             .container { padding: 0 16px; }
@@ -473,9 +451,6 @@
             .calendar-grid { grid-template-columns: repeat(26, 1fr); }
             .level-journey { overflow-x: auto; padding-bottom: 8px; }
             .level-step { min-width: 86px; }
-            .quest-grid, .analyzer-layout { grid-template-columns: 1fr; }
-            .sort-wrap { justify-content: flex-start; }
-            .sort-select { flex: 1; }
             .mentor-bubble { max-width: 85%; }
             .detail-meta { align-items: flex-start; }
             .comment-input-wrap { flex-direction: column; }
@@ -508,10 +483,9 @@
             <div class="msg-bell" id="msgBell" onclick="goInbox()" title="Messages">💬
                 <div class="msg-badge" id="msgBadge">0</div>
             </div>
-            <button class="btn btn-sm btn-ghost" onclick="goBookmarks()" style="padding:6px 12px;display:none;" id="bookmarkNavBtn">🔖</button>
-            <button class="btn btn-sm btn-ghost" onclick="goDashboard()" style="padding:6px 12px;display:none;" id="dashboardNavBtn">📊</button>
-            <button class="btn btn-sm btn-ghost" onclick="goMentor()" style="padding:6px 12px;display:none;" id="mentorNavBtn">🧠</button>
-            <button class="btn btn-sm btn-ghost" onclick="goAnalyzer()" style="padding:6px 12px;display:none;" id="analyzerNavBtn">🧪</button>
+            <button class="btn btn-sm btn-ghost" onclick="goBookmarks()" style="padding:6px 12px;" id="bookmarkNavBtn" style="display:none;">🔖</button>
+            <button class="btn btn-sm btn-ghost" onclick="goDashboard()" style="padding:6px 12px;" id="dashboardNavBtn" style="display:none;">📊</button>
+            <button class="btn btn-sm btn-ghost" onclick="goMentor()" style="padding:6px 12px;" id="mentorNavBtn" style="display:none;">🧠</button>
             <button class="btn btn-sm btn-ghost" onclick="goLeaderboard()" style="padding:6px 12px;">🏆</button>
             <button class="btn btn-sm" id="authBtn" onclick="handleAuth()">Sign In</button>
             <button class="btn btn-sm btn-ghost" id="postBtn" onclick="goPost()" style="display:none;">+ Post Bug</button>
@@ -546,16 +520,6 @@
             <button class="filter-btn" onclick="filterByStatus('open',this)">🔴 Open</button>
             <button class="filter-btn" onclick="filterByStatus('in_progress',this)">🟡 In Progress</button>
             <button class="filter-btn" onclick="filterByStatus('solved',this)">🟢 Solved</button>
-        </div>
-        <div class="sort-wrap">
-            <span>Sort</span>
-            <select class="sort-select" id="sortSelect" onchange="changeSort(this.value)">
-                <option value="newest">Newest first</option>
-                <option value="oldest">Oldest first</option>
-                <option value="most_solutions">Most solutions</option>
-                <option value="open_first">Open first</option>
-                <option value="solved_first">Solved first</option>
-            </select>
         </div>
         <div id="searchResultsLabel" style="text-align:center;color:var(--text2);font-size:0.88rem;margin-bottom:1rem;display:none;"></div>
         <div class="bugs-grid" id="bugsGrid"><div class="loading"><div class="spinner"></div><p>Loading...</p></div></div>
@@ -600,33 +564,6 @@
                 <textarea class="mentor-input" id="mentorInput" placeholder="Kuch bhi pucho — coding, career, life... 😈" rows="1"
                     onkeydown="handleMentorKey(event)" oninput="autoResizeMentorInput(this)"></textarea>
                 <button class="mentor-send-btn" id="mentorSendBtn" onclick="sendMentorMessage()">➤</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- AI CODE ANALYZER -->
-    <div class="page" id="analyzerPage">
-        <div class="analyzer-wrap">
-            <button class="back-btn" onclick="goHome()">← Back</button>
-            <h2>🧪 AI Code Analyzer</h2>
-            <p style="color:var(--text2);margin:0.4rem 0 1.5rem;">Buggy code paste karo. AI bug explain karega, fixed code dega, aur why-it-works samjhayega.</p>
-            <div class="analyzer-layout">
-                <div>
-                    <div class="field">
-                        <label>Buggy Code</label>
-                        <textarea class="code-input" id="codeAnalyzerInput" spellcheck="false" placeholder="// Paste your buggy code here..."></textarea>
-                    </div>
-                    <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                        <button class="btn" id="analyzeCodeBtn" onclick="analyzeCode()">Analyze Code 🧪</button>
-                        <button class="btn btn-ghost" onclick="clearAnalyzer()">Clear</button>
-                    </div>
-                </div>
-                <div class="analyzer-output" id="codeAnalyzerOutput">
-                    <div class="empty" style="padding:2rem 1rem;">
-                        <h3>AI report yahin aayega</h3>
-                        <p>Explanation, fixed code, and improvement tips.</p>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -856,7 +793,7 @@ let me = null, myName = null, myXP = 0, activeBug = null, activeCategory = 'all'
 let editSelectedColor = '#00ff88', editSelectedInterests = [], editingBugId = null, editBugTags = [];
 let currentProfileId = null, chatPartnerId = null, chatPartnerProfile = null, msgSubscription = null;
 let allFollowersList = [], unreadCheckInterval = null, currentTags = [], searchTimeout = null;
-let notifCheckInterval = null, notifPanelOpen = false, myBookmarks = new Set(), activeStatusFilter = null, activeSort = 'newest';
+let notifCheckInterval = null, notifPanelOpen = false, myBookmarks = new Set(), activeStatusFilter = null;
 let mentorHistory = [];
 
 const LEVELS = [
@@ -891,35 +828,6 @@ function parseSupabaseDate(value) {
     const hasTimezone = /([zZ]|[+-]\d{2}:?\d{2})$/.test(s);
     const iso = s.includes('T') ? s : s.replace(' ', 'T');
     return new Date(hasTimezone ? iso : iso + 'Z');
-}
-function setRoute(params = {}) {
-    const url = new URL(window.location.href);
-    ['bug','profile'].forEach(k => url.searchParams.delete(k));
-    Object.entries(params).forEach(([k, v]) => { if (v) url.searchParams.set(k, v); });
-    history.pushState({}, '', url);
-}
-function clearRoute() {
-    const url = new URL(window.location.href);
-    ['bug','profile'].forEach(k => url.searchParams.delete(k));
-    history.pushState({}, '', url);
-}
-async function copyShareLink(type, id) {
-    const url = new URL(window.location.href);
-    url.search = '';
-    url.searchParams.set(type, id);
-    try {
-        await navigator.clipboard.writeText(url.toString());
-        toast('Share link copy ho gaya! 🔗', 'ok');
-    } catch(e) {
-        prompt('Copy this link:', url.toString());
-    }
-}
-async function openInitialRoute() {
-    const params = new URLSearchParams(window.location.search);
-    const bugId = params.get('bug'), profileId = params.get('profile');
-    if (bugId) { await openBug(bugId, true); return true; }
-    if (profileId) { await goProfile(profileId, true); return true; }
-    return false;
 }
 function getStatusBadge(status) {
     const map = { 'open':{ cls:'status-open', label:'🔴 Open' }, 'in_progress':{ cls:'status-in_progress', label:'🟡 In Progress' }, 'solved':{ cls:'status-solved', label:'🟢 Solved' } };
@@ -1076,134 +984,9 @@ async function clearMentorChat() {
     toast('Chat clear ho gaya! 🗑️', 'ok');
 }
 
-function goAnalyzer() {
-    if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
-    showPage('analyzerPage');
-}
-function clearAnalyzer() {
-    document.getElementById('codeAnalyzerInput').value = '';
-    document.getElementById('codeAnalyzerOutput').innerHTML = `<div class="empty" style="padding:2rem 1rem;"><h3>AI report yahin aayega</h3><p>Explanation, fixed code, and improvement tips.</p></div>`;
-}
-function formatAnalyzerReport(text) {
-    return esc(text)
-        .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\n/g, '<br>');
-}
-async function analyzeCode() {
-    if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
-    const input = document.getElementById('codeAnalyzerInput'), output = document.getElementById('codeAnalyzerOutput'), btn = document.getElementById('analyzeCodeBtn');
-    const code = input.value.trim();
-    if (!code) { toast('Code paste karo!', 'err'); input.focus(); return; }
-    if (code.length > 12000) { toast('Code thoda chhota karo: max 12000 chars', 'err'); return; }
-    btn.textContent = 'Analyzing...';
-    btn.classList.add('btn-disabled');
-    output.innerHTML = `<div class="ai-loading-wrap"><div class="spinner"></div><div class="ai-loading-text">🧠 Code analyze ho raha hai...</div></div>`;
-    const prompt = `You are BUGOUT AI Code Analyzer for beginner CSE students.\nAnalyze this code and reply in Hinglish-friendly but professional style.\n\nReturn exactly these sections:\n**Bug Summary**\n**Root Cause**\n**Fixed Code**\n**Why This Works**\n**Extra Improvements**\n\nCode:\n\`\`\`\n${code}\n\`\`\``;
-    try {
-        const response = await fetch(GROQ_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_KEY}` }, body: JSON.stringify({ model: GROQ_MODEL, messages: [{ role: 'user', content: prompt }], max_tokens: 1200, temperature: 0.45 }) });
-        if (!response.ok) throw new Error(await readGroqError(response));
-        const data = await response.json();
-        const report = data.choices?.[0]?.message?.content || 'AI response empty aaya. Retry karo.';
-        output.innerHTML = `<div class="ai-box-header"><span>🧪</span><span class="ai-box-title">Code Report</span><span class="ai-box-subtitle">Groq · LLaMA 3</span></div><div class="ai-suggestion-text">${formatAnalyzerReport(report)}</div>`;
-        toast('Code report ready! 🧪', 'ok');
-    } catch(err) {
-        output.innerHTML = `<div class="ai-error-wrap"><p>AI analyzer error</p><p style="font-size:0.78rem;margin-top:4px;opacity:0.75;">${esc(err.message)}</p><button class="btn btn-ghost btn-sm" style="margin-top:10px;" onclick="analyzeCode()">Retry</button></div>`;
-    }
-    btn.textContent = 'Analyze Code 🧪';
-    btn.classList.remove('btn-disabled');
-}
-
 // ═══════════════════════════════════════════════════════════════
 //  📊 DASHBOARD  ← BUG FIXED HERE
 // ═══════════════════════════════════════════════════════════════
-function todayKey() { return new Date().toISOString().split('T')[0]; }
-async function getTodayProgress() {
-    if (!me) return { bugs_posted: 0, solutions_posted: 0, comments_posted: 0, quest_claimed: false };
-    const date = todayKey();
-    try {
-        const { data, error } = await db.from('daily_quests').select('*').eq('user_id', me.id).eq('quest_date', date).maybeSingle();
-        if (error) throw error;
-        return data || { bugs_posted: 0, solutions_posted: 0, comments_posted: 0, quest_claimed: false, quest_date: date };
-    } catch(e) {
-        return { bugs_posted: 0, solutions_posted: 0, comments_posted: 0, quest_claimed: false, quest_date: date, missingTable: true };
-    }
-}
-async function updateDailyProgress(type) {
-    if (!me) return;
-    const date = todayKey();
-    const field = type === 'bug' ? 'bugs_posted' : type === 'solution' ? 'solutions_posted' : 'comments_posted';
-    try {
-        const current = await getTodayProgress();
-        const payload = {
-            user_id: me.id,
-            quest_date: date,
-            bugs_posted: current.bugs_posted || 0,
-            solutions_posted: current.solutions_posted || 0,
-            comments_posted: current.comments_posted || 0,
-            quest_claimed: !!current.quest_claimed
-        };
-        payload[field] = (payload[field] || 0) + 1;
-        await db.from('daily_quests').upsert(payload, { onConflict: 'user_id,quest_date' });
-        await updateStreak();
-    } catch(e) {}
-}
-async function updateStreak() {
-    if (!me) return;
-    const today = todayKey();
-    try {
-        const { data: profile } = await db.from('profiles').select('streak,last_active_date').eq('user_id', me.id).single();
-        const last = profile?.last_active_date;
-        let nextStreak = profile?.streak || 0;
-        if (last !== today) {
-            const yesterday = new Date();
-            yesterday.setDate(yesterday.getDate() - 1);
-            const yKey = yesterday.toISOString().split('T')[0];
-            nextStreak = last === yKey ? nextStreak + 1 : 1;
-            await db.from('profiles').update({ streak: nextStreak, last_active_date: today }).eq('user_id', me.id);
-        }
-    } catch(e) {}
-}
-function renderDailyQuests(progress, streak = 0) {
-    const quests = [
-        { key: 'bugs_posted', title: 'Post 1 Bug', desc: 'Aaj ek real problem share karo.', target: 1, icon: '🐛' },
-        { key: 'solutions_posted', title: 'Give 1 Solution', desc: 'Kisi warrior ki help karo.', target: 1, icon: '💡' },
-        { key: 'comments_posted', title: 'Comment Once', desc: 'Discussion ko alive rakho.', target: 1, icon: '💬' }
-    ];
-    const done = quests.every(q => (progress[q.key] || 0) >= q.target);
-    return `<div class="dash-section">
-        <div class="dash-section-title">🔥 Daily Quest <span class="streak-pill">🔥 ${streak || 0} day streak</span></div>
-        ${progress.missingTable ? `<div class="empty" style="padding:1rem;"><h3>daily_quests table missing</h3><p>Supabase SQL run karne ke baad quests live ho jayenge.</p></div>` : ''}
-        <div class="quest-grid">
-            ${quests.map(q => {
-                const val = Math.min(progress[q.key] || 0, q.target);
-                const pct = Math.round((val / q.target) * 100);
-                return `<div class="quest-card ${pct >= 100 ? 'done' : ''}">
-                    <div class="quest-top"><div class="quest-title">${q.icon} ${q.title}</div><div class="quest-progress">${val}/${q.target}</div></div>
-                    <div class="quest-desc">${q.desc}</div>
-                    <div class="quest-bar"><div class="quest-fill" style="width:${pct}%"></div></div>
-                </div>`;
-            }).join('')}
-        </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:1rem;">
-            <span style="color:var(--text2);font-size:0.85rem;">All 3 complete karo aur +15 XP bonus claim karo.</span>
-            <button class="btn btn-sm ${done && !progress.quest_claimed && !progress.missingTable ? '' : 'btn-disabled'}" onclick="claimDailyQuest()">Claim +15 XP</button>
-        </div>
-    </div>`;
-}
-async function claimDailyQuest() {
-    if (!me) return;
-    const progress = await getTodayProgress();
-    const done = (progress.bugs_posted || 0) >= 1 && (progress.solutions_posted || 0) >= 1 && (progress.comments_posted || 0) >= 1;
-    if (!done) { toast('Pehle saare daily quests complete karo!', 'err'); return; }
-    if (progress.quest_claimed) { toast('Aaj ka bonus already claimed!', 'err'); return; }
-    try {
-        await db.from('daily_quests').update({ quest_claimed: true }).eq('user_id', me.id).eq('quest_date', todayKey());
-        await addXP(15);
-        toast('Daily quest complete! +15 XP 🔥', 'ok');
-        loadDashboard();
-    } catch(e) { toast('Quest claim failed: ' + e.message, 'err'); }
-}
 async function goDashboard() {
     if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
     showPage('dashboardPage');
@@ -1250,8 +1033,6 @@ async function loadDashboard() {
         const calData = buildCalendarData(bugsArr, solsArr);
         const xpTimeline = buildXPTimeline(bugsArr, solsArr);
         const recentActivity = buildRecentActivity(bugsArr, solsArr);
-        const dailyProgress = await getTodayProgress();
-        const streak = profile?.streak || 0;
 
         // ✅ FIX 4: LEVELS[lvlNum] can be undefined at Legend level — safe check with optional chaining
         const nextLevelLabel = lvl.max === Infinity
@@ -1265,8 +1046,6 @@ async function loadDashboard() {
                 <div class="dash-stat-card"><div class="dash-stat-icon">✅</div><div class="dash-stat-num">${bestSols}</div><div class="dash-stat-label">Best Solutions</div></div>
                 <div class="dash-stat-card"><div class="dash-stat-icon">👍</div><div class="dash-stat-num">${totalUpvotes}</div><div class="dash-stat-label">Total Upvotes</div></div>
             </div>
-
-            ${renderDailyQuests(dailyProgress, streak)}
 
             <div class="dash-section">
                 <div class="dash-section-title">⚡ XP & Level Journey</div>
@@ -1470,9 +1249,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         if (event === 'SIGNED_IN' && session) await setUser(session.user);
         if (event === 'SIGNED_OUT') clearUser();
     });
-    const routed = await openInitialRoute();
-    if (!routed) loadBugs();
-    loadStats();
+    loadBugs(); loadStats();
 });
 
 async function loadStats() {
@@ -1638,8 +1415,7 @@ async function showFollowList(userId, type) {
     } catch(err) { content.innerHTML = `<div class="empty"><h3>Error 😔</h3><p>${esc(err.message)}</p></div>`; }
 }
 
-async function goProfile(userId, fromRoute = false) {
-    if (!fromRoute) setRoute({ profile: userId });
+async function goProfile(userId) {
     currentProfileId = userId; showPage('profilePage');
     const wrap = document.getElementById('profileWrap');
     wrap.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading profile...</p></div>';
@@ -1667,7 +1443,6 @@ async function goProfile(userId, fromRoute = false) {
                         <div class="username-tag">@${esc(profile.username || 'anonymous')}</div>
                         ${profile.bio ? `<div class="bio-text">${esc(profile.bio)}</div>` : ''}
                         <div class="level-badge">${lvl.emoji} Level ${lvlNum} — ${lvl.name}</div>
-                        <div style="margin-top:8px;"><span class="streak-pill">🔥 ${profile.streak || 0} day streak</span></div>
                         ${interests.length > 0 ? `<div class="interests-wrap">${interests.map(i => `<span class="interest-tag">${esc(i)}</span>`).join('')}</div>` : ''}
                     </div>
                 </div>
@@ -1677,7 +1452,7 @@ async function goProfile(userId, fromRoute = false) {
                 </div>
                 <div style="display:flex;gap:10px;margin-top:1rem;flex-wrap:wrap;">
                     ${isMe
-                        ? `<button class="btn btn-ghost btn-sm" onclick="openEditModal()">✏️ Edit Profile</button><button class="btn btn-ghost btn-sm" onclick="goDashboard()">📊 Dashboard</button><button class="btn btn-ghost btn-sm" onclick="goMentor()">🧠 AI Mentor</button><button class="btn btn-ghost btn-sm" onclick="goAnalyzer()">🧪 Code Analyzer</button><button class="share-btn" onclick="copyShareLink('profile','${userId}')">🔗 Share</button>`
+                        ? `<button class="btn btn-ghost btn-sm" onclick="openEditModal()">✏️ Edit Profile</button><button class="btn btn-ghost btn-sm" onclick="goDashboard()">📊 Dashboard</button><button class="btn btn-ghost btn-sm" onclick="goMentor()">🧠 AI Mentor</button>`
                         : me
                             ? `<button class="btn ${following ? '' : 'btn-ghost'} btn-sm" id="followBtn" onclick="toggleFollow('${userId}',this)">${following ? '✓ Following' : '+ Follow'}</button>${canMsg ? `<button class="btn btn-ghost btn-sm" onclick="openChat('${userId}')">💬 Message</button>` : ''}`
                             : `<button class="btn btn-ghost btn-sm" onclick="openModal()">Sign In to Follow</button>`
@@ -1761,7 +1536,6 @@ function renderUserUI() {
     document.getElementById('bookmarkNavBtn').style.display = on ? 'inline-flex' : 'none';
     document.getElementById('dashboardNavBtn').style.display = on ? 'inline-flex' : 'none';
     document.getElementById('mentorNavBtn').style.display = on ? 'inline-flex' : 'none';
-    document.getElementById('analyzerNavBtn').style.display = on ? 'inline-flex' : 'none';
     document.getElementById('notifBellWrap').classList.toggle('show', on);
     if (on) { const lvl = getLevel(myXP); document.getElementById('userName').textContent = lvl.emoji + ' ' + myName; document.getElementById('userXP').textContent = myXP + ' XP'; }
 }
@@ -1819,7 +1593,7 @@ function showPage(id) {
     if (id !== 'chatPage' && msgSubscription) { msgSubscription.unsubscribe(); msgSubscription = null; }
     closeNotifPanel();
 }
-function goHome() { clearRoute(); showPage('homePage'); clearSearch(); activeStatusFilter = null; loadBugs(); loadStats(); }
+function goHome() { showPage('homePage'); clearSearch(); activeStatusFilter = null; loadBugs(); loadStats(); }
 function goPost() {
     if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
     resetTagInput();
@@ -1834,16 +1608,6 @@ function goInbox() { if (!me) { toast('Pehle Sign In karo!', 'err'); openModal()
 
 function filter(cat, btn) { activeCategory = cat; activeStatusFilter = null; document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active')); if (btn) btn.classList.add('active'); const sv = document.getElementById('searchInput').value.trim(); if (sv) searchBugs(sv); else loadBugs(); }
 function filterByStatus(status, btn) { if (activeStatusFilter === status) { activeStatusFilter = null; document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active')); loadBugs(); return; } activeStatusFilter = status; document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active')); if (btn) btn.classList.add('active'); loadBugs(); }
-function changeSort(value) { activeSort = value || 'newest'; const sv = document.getElementById('searchInput').value.trim(); if (sv) searchBugs(sv); else loadBugs(); }
-function sortBugs(list) {
-    const rank = { open: 0, in_progress: 1, solved: 2 };
-    const arr = [...(list || [])];
-    if (activeSort === 'oldest') return arr.sort((a,b) => parseSupabaseDate(a.created_at) - parseSupabaseDate(b.created_at));
-    if (activeSort === 'most_solutions') return arr.sort((a,b) => (b.solutions_count || 0) - (a.solutions_count || 0) || parseSupabaseDate(b.created_at) - parseSupabaseDate(a.created_at));
-    if (activeSort === 'open_first') return arr.sort((a,b) => (rank[a.status || 'open'] ?? 9) - (rank[b.status || 'open'] ?? 9) || parseSupabaseDate(b.created_at) - parseSupabaseDate(a.created_at));
-    if (activeSort === 'solved_first') return arr.sort((a,b) => (rank[b.status || 'open'] ?? 9) - (rank[a.status || 'open'] ?? 9) || parseSupabaseDate(b.created_at) - parseSupabaseDate(a.created_at));
-    return arr.sort((a,b) => parseSupabaseDate(b.created_at) - parseSupabaseDate(a.created_at));
-}
 function handleSearch(val) { document.getElementById('searchClear').style.display = val ? 'block' : 'none'; clearTimeout(searchTimeout); if (!val.trim()) { document.getElementById('searchResultsLabel').style.display = 'none'; loadBugs(); return; } searchTimeout = setTimeout(() => searchBugs(val.trim()), 350); }
 function clearSearch() { document.getElementById('searchInput').value = ''; document.getElementById('searchClear').style.display = 'none'; document.getElementById('searchResultsLabel').style.display = 'none'; loadBugs(); }
 
@@ -1854,7 +1618,7 @@ async function searchBugs(query) {
         if (activeCategory !== 'all') q = q.eq('category', activeCategory);
         if (activeStatusFilter) q = q.eq('status', activeStatusFilter);
         const { data, error } = await q; if (error) throw error;
-        const lq = query.toLowerCase(), filtered = sortBugs((data || []).filter(b => (b.title && b.title.toLowerCase().includes(lq)) || (b.description && b.description.toLowerCase().includes(lq)) || (b.tags && b.tags.some(t => t.toLowerCase().includes(lq)))));
+        const lq = query.toLowerCase(), filtered = (data || []).filter(b => (b.title && b.title.toLowerCase().includes(lq)) || (b.description && b.description.toLowerCase().includes(lq)) || (b.tags && b.tags.some(t => t.toLowerCase().includes(lq))));
         const label = document.getElementById('searchResultsLabel'); label.style.display = 'block'; label.textContent = `${filtered.length} result${filtered.length !== 1 ? 's' : ''} for "${query}"`;
         if (!filtered.length) { grid.innerHTML = `<div class="empty"><h3>Koi bug nahi mila 🔍</h3></div>`; return; }
         grid.innerHTML = filtered.map(b => renderBugCard(b, lq)).join('');
@@ -1893,7 +1657,7 @@ async function loadBugs() {
         if (activeStatusFilter) q = q.eq('status', activeStatusFilter);
         const { data, error } = await q; if (error) throw error;
         if (!data || !data.length) { grid.innerHTML = `<div class="empty"><h3>Koi bug nahi abhi! 🐛</h3><p style="margin-bottom:1rem;">${activeCategory === 'all' ? 'Pehla bug post karo!' : activeCategory + ' mein koi bug nahi.'}</p><button class="btn btn-sm" onclick="${me ? 'goPost()' : 'openModal()'}">${me ? '+ Post a Bug' : 'Sign In to Post'}</button></div>`; return; }
-        grid.innerHTML = sortBugs(data).map(b => renderBugCard(b, null)).join('');
+        grid.innerHTML = data.map(b => renderBugCard(b, null)).join('');
     } catch(err) { grid.innerHTML = `<div class="empty"><h3>Error 😔</h3><p>${esc(err.message)}</p><button class="btn btn-sm" onclick="loadBugs()">Retry</button></div>`; }
 }
 
@@ -1918,7 +1682,7 @@ async function submitBug() {
     try {
         const { error } = await db.from('bugs').insert({ title, category: cat, description: desc, user_id: me.id, username: myName || me.email.split('@')[0], solutions_count: 0, tags: currentTags, status: 'open' });
         if (error) throw error;
-        await addXP(10); await updateDailyProgress('bug'); toast('Bug post ho gaya! +10 XP 🎉', 'ok');
+        await addXP(10); toast('Bug post ho gaya! +10 XP 🎉', 'ok');
         document.getElementById('bugTitle').value = ''; document.getElementById('bugCat').value = ''; document.getElementById('bugDesc').value = '';
         resetTagInput(); goHome();
     } catch(err) { toast(err.message, 'err'); }
@@ -2006,8 +1770,7 @@ async function confirmDelete() {
     } catch(err) { toast('Delete failed: ' + err.message, 'err'); }
 }
 
-async function openBug(id, fromRoute = false) {
-    if (!fromRoute) setRoute({ bug: id });
+async function openBug(id) {
     showPage('detailPage');
     const wrap = document.getElementById('detailWrap');
     wrap.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';
@@ -2032,7 +1795,7 @@ async function openBug(id, fromRoute = false) {
                 <div class="detail-meta">
                     <span>by <strong style="cursor:pointer;color:var(--accent);" onclick="goProfile('${bug.user_id}')">${esc(bug.username || 'Anonymous')}</strong></span>
                     <span>${timeAgo(bug.created_at)}</span><span>💡 ${solutions.length} solutions</span>
-                    <span style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;"><button class="share-btn" onclick="copyShareLink('bug','${bug.id}')">🔗 Share</button>${isOwner ? `<button class="btn btn-ghost btn-sm" onclick="openEditBugModal()">✏️ Edit</button><button class="btn btn-danger btn-sm" onclick="askDelete('${bug.id}',event)">🗑️ Delete</button>` : ''}</span>
+                    ${isOwner ? `<span style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;"><button class="btn btn-ghost btn-sm" onclick="openEditBugModal()">✏️ Edit</button><button class="btn btn-danger btn-sm" onclick="askDelete('${bug.id}',event)">🗑️ Delete</button></span>` : ''}
                 </div>
             </div>
             <div class="solutions-header">Solutions (${solutions.length})</div>
@@ -2104,7 +1867,7 @@ async function submitSolution() {
         if (error) throw error;
         await db.from('bugs').update({ solutions_count: (activeBug.solutions_count || 0) + 1 }).eq('id', activeBug.id);
         if ((activeBug.status || 'open') === 'open') { await db.from('bugs').update({ status: 'in_progress' }).eq('id', activeBug.id); activeBug.status = 'in_progress'; }
-        await addXP(5); await updateDailyProgress('solution');
+        await addXP(5);
         if (activeBug.user_id !== me.id) await createNotification(activeBug.user_id, 'solution_posted', `${myName} ne tumhare bug "${activeBug.title.slice(0, 40)}" ka solution diya! 💡`, activeBug.id);
         toast('Solution post ho gaya! +5 XP 🎉', 'ok'); openBug(activeBug.id);
     } catch(err) { toast(err.message, 'err'); btn.textContent = 'Post Solution'; btn.classList.remove('btn-disabled'); }
@@ -2146,7 +1909,7 @@ async function postComment(solId) {
     input.value = '';
     try {
         const { error } = await db.from('comments').insert({ solution_id: solId, user_id: me.id, username: myName || me.email.split('@')[0], content });
-        if (error) throw error; await updateDailyProgress('comment'); await loadComments(solId); toast('Comment post ho gaya! 💬', 'ok');
+        if (error) throw error; await loadComments(solId); toast('Comment post ho gaya! 💬', 'ok');
     } catch(err) { toast('Error: ' + err.message, 'err'); input.value = content; }
 }
 function handleCommentKey(e, solId) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); postComment(solId); } }
