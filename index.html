@@ -162,7 +162,7 @@
             <div class="arena-head">
                 <div>
                     <h2>⚔️ Coding Arena</h2>
-                    <p>Har hour 5 fresh AI coding problems. Correct solve karo, submit karo, aur har question par 25 XP loot lo.</p>
+                    <p>Har hour 5 fresh AI coding problems. Easy 15 XP, Medium 25 XP, Hard 40 XP. Batch perfect karo aur extra badge jeeto.</p>
                 </div>
                 <div class="arena-status">
                     <div class="arena-status-label">Next Batch</div>
@@ -174,7 +174,21 @@
                 <div class="arena-stat"><div class="arena-stat-num" id="arenaSolvedCount">0</div><div class="arena-stat-text">Solved by you</div></div>
                 <div class="arena-stat"><div class="arena-stat-num" id="arenaPossibleXP">125</div><div class="arena-stat-text">XP available</div></div>
             </div>
+            <div class="arena-progress-wrap">
+                <div class="arena-progress-label"><span id="arenaProgressText">0/5 solved</span><span id="arenaProgressXP">0 XP earned</span></div>
+                <div class="arena-progress"><div class="arena-progress-fill" id="arenaProgressFill"></div></div>
+            </div>
             <div class="arena-list" id="arenaList"><div class="loading"><div class="spinner"></div><p>Loading arena...</p></div></div>
+            <div class="arena-board">
+                <div class="arena-board-head">
+                    <div>
+                        <h3>Arena Leaderboard</h3>
+                        <p>Recent correct submissions ranked by Arena XP.</p>
+                    </div>
+                    <button class="btn btn-sm btn-ghost" onclick="loadArenaLeaderboard()">Refresh</button>
+                </div>
+                <div class="arena-board-list" id="arenaLeaderboard"><div class="arena-empty">Leaderboard loading...</div></div>
+            </div>
         </div>
     </div>
 
