@@ -43,6 +43,7 @@ const BADGE_DEFS = [
     { name: 'Knight',         icon: '🛡️', desc: '50 XP earn kiya!',       check: (b,s,x) => x >= 50 },
     { name: 'Champion',       icon: '🏆', desc: '75 XP earn kiya!',       check: (b,s,x) => x >= 75 },
     { name: 'Legend',         icon: '😈', desc: '100 XP earn kiya!',      check: (b,s,x) => x >= 100 },
+    { name: 'Perfect Batch',  icon: '⚔️', desc: 'Arena batch ke 5/5 problems solve kiye!', check: () => false },
 ];
 const AVATAR_COLORS = ['#00ff88','#0077ff','#ff4444','#ff9900','#aa44ff','#ff44aa','#00ccff','#ffcc00'];
 const ALL_INTERESTS = ['💻 Coding','🎮 Gaming','🎵 Music','⚽ Football','🏏 Cricket','📚 Studies','🎨 Art','🍕 Food','✈️ Travel','💰 Finance','🎬 Movies','📱 Tech','🦸 Marvel','🏋️ Fitness','🎤 Rap','📷 Photography'];
@@ -722,6 +723,16 @@ async function checkAndAwardBadges() {
     } catch(e) {}
 }
 
+async function awardBadgeOnce(name, icon) {
+    if (!me) return;
+    try {
+        const { data: existing } = await db.from('user_badges').select('badge_name').eq('user_id', me.id).eq('badge_name', name).maybeSingle();
+        if (existing) return;
+        await db.from('user_badges').insert({ user_id: me.id, badge_name: name, badge_icon: icon });
+        toast(`Badge mila: ${icon} ${name}!`, 'ok');
+    } catch(e) {}
+}
+
 async function loadUserBadges(userId) {
     try {
         const { data } = await db.from('user_badges').select('*').eq('user_id', userId).order('earned_at', { ascending: true });
@@ -1016,9 +1027,17 @@ async function loadArena() {
         } else {
             await loadArenaBatch(latestRow.batch_id);
         }
+        await loadArenaLeaderboard();
     } catch(err) {
         list.innerHTML = `<div class="arena-empty"><h3>Arena load nahi hua</h3><p>${esc(err.message)}<br>Check karo coding_problems aur problem_submissions tables Supabase mein ready hain.</p></div>`;
     }
+}
+
+function getArenaXP(problem) {
+    const difficulty = String(problem?.difficulty || '').toLowerCase();
+    if (difficulty.includes('hard')) return 40;
+    if (difficulty.includes('medium')) return 25;
+    return 15;
 }
 async function generateArenaBatch() {
     const list = document.getElementById('arenaList');
@@ -1066,18 +1085,25 @@ async function loadArenaSubmissions() {
 function renderArena() {
     const list = document.getElementById('arenaList');
     const solved = arenaProblems.filter(p => arenaSubmissions.has(p.id)).length;
+    const earnedXP = arenaProblems.reduce((sum, p) => sum + (arenaSubmissions.has(p.id) ? (arenaSubmissions.get(p.id)?.xp_awarded || getArenaXP(p)) : 0), 0);
+    const availableXP = arenaProblems.reduce((sum, p) => sum + (arenaSubmissions.has(p.id) ? 0 : getArenaXP(p)), 0);
+    const progress = arenaProblems.length ? Math.round((solved / arenaProblems.length) * 100) : 0;
     document.getElementById('arenaProblemCount').textContent = arenaProblems.length;
     document.getElementById('arenaSolvedCount').textContent = solved;
-    document.getElementById('arenaPossibleXP').textContent = (arenaProblems.length - solved) * 25;
+    document.getElementById('arenaPossibleXP').textContent = availableXP;
+    document.getElementById('arenaProgressText').textContent = `${solved}/${arenaProblems.length || 5} solved`;
+    document.getElementById('arenaProgressXP').textContent = `${earnedXP} XP earned`;
+    document.getElementById('arenaProgressFill').style.width = progress + '%';
     if (!arenaProblems.length) { list.innerHTML = '<div class="arena-empty"><h3>Koi problem nahi mila</h3><p>Refresh karke try karo.</p></div>'; return; }
     list.innerHTML = arenaProblems.map((p, index) => {
         const done = arenaSubmissions.has(p.id);
+        const xp = getArenaXP(p);
         return `<div class="arena-card ${done ? 'solved' : ''}" id="arena-card-${p.id}">
             <div class="arena-card-top">
                 <div class="arena-title">${p.problem_number || index + 1}. ${esc(p.title || 'Arena Problem')}</div>
                 <div class="arena-badges">
                     <span class="arena-badge">${esc(p.difficulty || 'Easy')}</span>
-                    <span class="arena-badge">+25 XP</span>
+                    <span class="arena-badge">+${xp} XP</span>
                     ${done ? '<span class="arena-badge done">Solved</span>' : ''}
                 </div>
             </div>
@@ -1089,6 +1115,7 @@ function renderArena() {
             <textarea class="arena-code" id="arenaCode-${p.id}" spellcheck="false" ${done ? 'disabled' : ''} placeholder="Apna solution code yahan paste karo..."></textarea>
             <div class="arena-actions">
                 <button class="btn btn-sm" id="arenaBtn-${p.id}" onclick="submitArenaSolution('${p.id}')" ${done ? 'disabled' : ''}>${done ? 'Solved' : 'Submit Solution'}</button>
+                <button class="btn btn-sm btn-ghost" onclick="getArenaHint('${p.id}')" ${done ? 'disabled' : ''}>Hint</button>
                 <button class="btn btn-sm btn-ghost" onclick="document.getElementById('arenaCode-${p.id}').value=''">Clear</button>
             </div>
             <div class="arena-feedback" id="arenaFeedback-${p.id}"></div>
@@ -1108,6 +1135,63 @@ function startArenaCountdown() {
     tick();
     arenaTimer = setInterval(tick, 1000);
 }
+
+async function getArenaHint(problemId) {
+    const problem = arenaProblems.find(p => String(p.id) === String(problemId));
+    const feedback = document.getElementById(`arenaFeedback-${problemId}`);
+    if (!problem || !feedback) return;
+    feedback.classList.add('show');
+    feedback.textContent = 'Hint generate ho raha hai...';
+    try {
+        const prompt = `Give one short helpful hint for this coding problem. Do not reveal the full solution or code.\n\nTitle: ${problem.title || ''}\nProblem: ${problem.description || ''}\nExample input: ${problem.example_input || 'None'}\nExample output: ${problem.example_output || 'None'}`;
+        const data = await callGroq([{ role: 'user', content: prompt }], { max_tokens: 180, temperature: 0.45 });
+        const hint = data.choices?.[0]?.message?.content || 'Think about edge cases and the simplest data structure.';
+        feedback.innerHTML = `<span style="color:var(--accent);font-weight:800;">Hint:</span> ${esc(hint)}`;
+    } catch(err) {
+        feedback.innerHTML = `<span style="color:var(--error);font-weight:800;">Hint error:</span> ${esc(err.message)}`;
+    }
+}
+
+async function loadArenaLeaderboard() {
+    const box = document.getElementById('arenaLeaderboard');
+    if (!box) return;
+    box.innerHTML = '<div class="arena-empty">Leaderboard loading...</div>';
+    try {
+        const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
+        const { data: submissions, error } = await db.from('problem_submissions').select('user_id,xp_awarded,created_at').eq('is_correct', true).gte('created_at', weekAgo).order('created_at', { ascending: false }).limit(250);
+        if (error) throw error;
+        if (!submissions || !submissions.length) { box.innerHTML = '<div class="arena-empty">Abhi koi Arena solve nahi hua.</div>'; return; }
+        const totals = new Map();
+        submissions.forEach(s => {
+            if (!s.user_id) return;
+            const row = totals.get(s.user_id) || { xp: 0, solves: 0, last: s.created_at };
+            row.xp += s.xp_awarded || 0;
+            row.solves += 1;
+            if (parseSupabaseDate(s.created_at) > parseSupabaseDate(row.last)) row.last = s.created_at;
+            totals.set(s.user_id, row);
+        });
+        const ranked = [...totals.entries()].sort((a,b) => b[1].xp - a[1].xp || parseSupabaseDate(b[1].last) - parseSupabaseDate(a[1].last)).slice(0, 10);
+        const ids = ranked.map(([id]) => id);
+        const { data: profiles } = await db.from('profiles').select('user_id,username,display_name,xp').in('user_id', ids);
+        const profileMap = {}; (profiles || []).forEach(p => profileMap[p.user_id] = p);
+        box.innerHTML = ranked.map(([userId, row], index) => {
+            const p = profileMap[userId] || {};
+            const name = p.display_name || p.username || 'Arena Warrior';
+            const lvl = getLevel(p.xp || 0);
+            return `<div class="arena-board-row" onclick="goProfile('${userId}')">
+                <div class="arena-board-rank">#${index + 1}</div>
+                <div>
+                    <div class="arena-board-name">${esc(name)}</div>
+                    <div class="arena-board-meta">${lvl.emoji} ${lvl.name} · ${row.solves} solves · ${timeAgo(row.last)}</div>
+                </div>
+                <div class="arena-board-xp">${row.xp} XP</div>
+            </div>`;
+        }).join('');
+    } catch(err) {
+        box.innerHTML = `<div class="arena-empty">Leaderboard load nahi hua: ${esc(err.message)}</div>`;
+    }
+}
+
 async function submitArenaSolution(problemId) {
     if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
     if (arenaSubmissions.has(problemId)) { toast('Is problem ka XP already mil chuka hai!', 'ok'); return; }
@@ -1120,18 +1204,28 @@ async function submitArenaSolution(problemId) {
     btn.textContent = 'Judging...'; btn.classList.add('btn-disabled');
     feedback.classList.add('show'); feedback.textContent = 'AI judge solution check kar raha hai...';
     try {
+        const { data: existing } = await db.from('problem_submissions').select('id,xp_awarded').eq('user_id', me.id).eq('problem_id', problemId).eq('is_correct', true).maybeSingle();
+        if (existing) {
+            arenaSubmissions.set(problemId, { problem_id: problemId, is_correct: true, xp_awarded: existing.xp_awarded || getArenaXP(problem) });
+            toast('Is problem ka XP already mil chuka hai!', 'ok');
+            renderArena();
+            return;
+        }
         const prompt = `You are a strict coding judge. Decide if the submitted solution correctly solves the problem for all reasonable edge cases. Return ONLY JSON like {"is_correct":true,"feedback":"short feedback"}.\n\nProblem:\n${problem.title || ''}\n${problem.description || ''}\n\nExample input:\n${problem.example_input || 'None'}\n\nExample output:\n${problem.example_output || 'None'}\n\nSubmitted solution:\n${solution}`;
         const data = await callGroq([{ role: 'user', content: prompt }], { max_tokens: 500, temperature: 0.15 });
         const verdict = extractJSON(data.choices?.[0]?.message?.content || '', {});
         const isCorrect = verdict.is_correct === true || verdict.correct === true;
-        const xp = isCorrect ? 25 : 0;
+        const xp = isCorrect ? getArenaXP(problem) : 0;
         await db.from('problem_submissions').insert({ user_id: me.id, problem_id: problemId, solution_code: solution, is_correct: isCorrect, xp_awarded: xp });
         if (isCorrect) {
             arenaSubmissions.set(problemId, { problem_id: problemId, is_correct: true, xp_awarded: xp });
-            await addXP(25);
-            feedback.innerHTML = `<span style="color:var(--accent);font-weight:800;">Correct!</span> ${esc(verdict.feedback || 'Great solve. +25 XP awarded.')}`;
-            toast('Arena problem solved! +25 XP', 'ok');
+            await addXP(xp);
+            feedback.innerHTML = `<span style="color:var(--accent);font-weight:800;">Correct!</span> ${esc(verdict.feedback || `Great solve. +${xp} XP awarded.`)}`;
+            toast(`Arena problem solved! +${xp} XP`, 'ok');
+            const solvedCount = arenaProblems.filter(p => arenaSubmissions.has(p.id)).length;
+            if (solvedCount === arenaProblems.length) await awardBadgeOnce('Perfect Batch', '⚔️');
             renderArena();
+            loadArenaLeaderboard();
         } else {
             feedback.innerHTML = `<span style="color:var(--error);font-weight:800;">Not accepted.</span> ${esc(verdict.feedback || 'Logic incomplete lag raha hai. Edge cases check karo.')}`;
             toast('AI judge ne reject kiya. Improve karke retry karo.', 'err');
