@@ -43,4 +43,8 @@ add column if not exists is_correct boolean default false,
 add column if not exists xp_awarded integer default 0,
 add column if not exists created_at timestamptz default now();
 
+create unique index if not exists one_correct_arena_submission_per_user
+on public.problem_submissions (user_id, problem_id)
+where is_correct = true;
+
 notify pgrst, 'reload schema';
