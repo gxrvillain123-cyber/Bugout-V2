@@ -12,7 +12,8 @@ async function callGroq(messages, options = {}) {
             model: options.model || GROQ_MODEL,
             messages,
             max_tokens: options.max_tokens || 1000,
-            temperature: typeof options.temperature === 'number' ? options.temperature : 0.7
+            temperature: typeof options.temperature === 'number' ? options.temperature : 0.7,
+            ...(options.response_format ? { response_format: options.response_format } : {})
         })
     });
     if (!response.ok) throw new Error(await readGroqError(response));
@@ -431,9 +432,18 @@ Rules:
 - If topic is too broad, choose the best beginner-to-advanced slice and say that in teacher_decision.
 - Keep JSON valid. No markdown outside JSON.`;
     try {
-        const data = await callGroq([{ role: 'user', content: prompt }], { max_tokens: 4200, temperature: 0.55 });
-        const lesson = extractJSON(data.choices?.[0]?.message?.content || '', null);
-        if (!lesson || !Array.isArray(lesson.steps) || !Array.isArray(lesson.quiz)) throw new Error('AI se valid lesson JSON nahi mila.');
+        const data = await callGroq([{ role: 'user', content: prompt }], {
+            max_tokens: 5200,
+            temperature: 0.45,
+            response_format: { type: 'json_object' }
+        });
+        const rawText = data.choices?.[0]?.message?.content || '';
+        let lesson = extractJSON(rawText, null);
+        if (!isValidTeacherLesson(lesson)) {
+            output.innerHTML = '<div class="loading"><div class="spinner"></div><p>Lesson JSON repair ho raha hai...</p></div>';
+            lesson = await repairTeacherLessonJSON(rawText, { language, level, mode, topic });
+        }
+        if (!isValidTeacherLesson(lesson)) lesson = buildTeacherFallbackLesson({ language, level, mode, topic });
         lesson.mode = mode;
         currentTeacherLesson = {
             language,
@@ -451,6 +461,68 @@ Rules:
     }
     btn.textContent = 'Start Lesson';
     btn.classList.remove('btn-disabled');
+}
+
+function isValidTeacherLesson(lesson) {
+    if (!lesson || typeof lesson !== 'object') return false;
+    const hasTeaching = Array.isArray(lesson.deep_dive) || Array.isArray(lesson.steps) || lesson.big_picture || lesson.example_code;
+    const hasQuiz = Array.isArray(lesson.quiz) && lesson.quiz.length >= 3;
+    return !!(lesson.title && hasTeaching && hasQuiz);
+}
+
+async function repairTeacherLessonJSON(rawText, ctx) {
+    if (!rawText) return null;
+    const repairPrompt = `Convert the following AI teacher response into STRICT valid JSON only. No markdown.
+Use this schema keys: title, teacher_decision, goal, prerequisites, concept_map, big_picture, mental_model, syntax_rules, deep_dive, example_code, trace_table, common_mistakes, debugging_lab, real_world_use, practice_tasks, mini_project, starter_code, interview_angle, next_lesson, quiz.
+Context: ${ctx.language}, ${ctx.level}, ${ctx.mode}, topic ${ctx.topic}.
+If anything is missing, fill it with useful Hinglish teaching content. quiz must have 5 items minimum.
+
+Response to repair:
+${rawText.slice(0, 12000)}`;
+    try {
+        const repaired = await callGroq([{ role: 'user', content: repairPrompt }], {
+            max_tokens: 3600,
+            temperature: 0.2,
+            response_format: { type: 'json_object' }
+        });
+        return extractJSON(repaired.choices?.[0]?.message?.content || '', null);
+    } catch(e) {
+        return null;
+    }
+}
+
+function buildTeacherFallbackLesson({ language, level, mode, topic }) {
+    return {
+        title: `${language} ${topic} Masterclass`,
+        teacher_decision: `${topic} ${language} ka core topic hai. Isko strong karne ke baad next topic roadmap ke according continue karna easy hoga.`,
+        goal: `${level} student ko ${topic} ka intuition, syntax, usage, mistakes, aur practice confidence dena.`,
+        prerequisites: ['Basic computer logic samajhna', `${language} file kaise run hoti hai ye idea hona`, 'Variables aur simple input/output ka basic idea helpful hoga'],
+        concept_map: ['Why this topic matters', 'Core syntax', 'Mental model', 'Dry run', 'Mistakes', 'Practice'],
+        big_picture: `${topic} ko ek tool ki tarah socho. Jab problem mein repeated pattern, data handling, ya decision making dikhe, tab is concept ka use solution ko clean banata hai.`,
+        mental_model: `Pehle problem ko chhote steps mein todo, phir dekho ${topic} kis step ko simpler banata hai. Code likhne se pehle 2 sample inputs manually dry-run karo.`,
+        syntax_rules: ['Syntax ko exact rakho; small typo bhi runtime/logic bug ban sakta hai', 'Har block ka purpose clear rakho', 'Variable names meaningful rakho'],
+        deep_dive: [
+            { heading: 'Intuition', explanation: `${topic} ka main kaam code ko predictable aur reusable banana hai. Pehle concept ko plain Hindi/Hinglish mein samjho, phir syntax yaad karo.`, code: '', dry_run: ['Problem read karo', 'Input/output identify karo', 'Concept apply karne wali line mark karo'] },
+            { heading: 'Syntax', explanation: `${language} mein syntax exact hona chahiye. Brackets, keywords, and naming carefully check karo.`, code: `// ${language} ${topic} starter\n// Apna example yahan likho`, dry_run: ['Line 1 setup', 'Line 2 logic', 'Line 3 output'] },
+            { heading: 'Problem solving', explanation: `Jab bhi question mile, pehle examples banao. Fir algorithm likho, fir code.`, code: '', dry_run: ['Example 1 manually solve', 'Pattern notice karo', 'Code mein convert karo'] },
+            { heading: 'Debugging', explanation: `Agar answer wrong aaye, variables ki value har step pe print/check karo.`, code: '', dry_run: ['Expected value', 'Actual value', 'Mismatch line'] }
+        ],
+        example_code: `// ${language} example for ${topic}\n// AI response repair fallback. Generate again for a richer version.`,
+        trace_table: ['Input choose karo', 'Har variable ki value step-wise likho', 'Final output compare karo'],
+        common_mistakes: ['Concept yaad karke use karna but dry-run na karna', 'Syntax typo ignore karna', 'Edge cases test na karna', 'Variable naming confusing rakhna', 'Output format mismatch'],
+        debugging_lab: [{ bug: 'Code works for one example but fails for edge case', why_wrong: 'Logic general nahi hai', fix: 'At least 3 test cases dry-run karo' }],
+        real_world_use: ['Interview coding questions', 'Small web/app features', 'Automation scripts', 'Data handling'],
+        practice_tasks: ['Ek tiny example khud likho', '2 test cases dry-run karo', 'Ek edge case add karo', 'Code ko function mein convert karo', 'Friend ko concept explain karo'],
+        mini_project: `${topic} use karke ek mini demo banao aur output clearly show karo.`,
+        starter_code: `// Practice ${topic} in ${language}\n`,
+        interview_angle: ['Interviewer dry-run pooch sakta hai', 'Edge cases zaroor discuss karo', 'Complexity simple words mein batao'],
+        next_lesson: decideTeacherTopic(language),
+        quiz: [
+            { question: `${topic} seekhne ka best tareeka kya hai?`, options: ['Sirf syntax ratna', 'Dry-run + examples + practice', 'Only copy paste', 'Skip basics'], answerIndex: 1, explanation: 'Concept strong tab hota hai jab dry-run aur practice dono hote hain.' },
+            { question: 'Bug milne par pehla step kya hona chahiye?', options: ['Random changes', 'Code delete', 'Expected vs actual compare', 'Ignore'], answerIndex: 2, explanation: 'Expected aur actual compare karne se bug location narrow hoti hai.' },
+            { question: 'Edge case kyun important hai?', options: ['Design ke liye', 'Logic general hai ya nahi check karne ke liye', 'Color ke liye', 'Login ke liye'], answerIndex: 1, explanation: 'Edge cases weak logic expose karte hain.' }
+        ]
+    };
 }
 
 function renderTeacherLesson(readOnly) {

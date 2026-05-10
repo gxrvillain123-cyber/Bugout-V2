@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { messages, model, max_tokens, temperature } = req.body || {};
+    const { messages, model, max_tokens, temperature, response_format } = req.body || {};
     if (!Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({ error: 'messages array is required.' });
     }
@@ -27,7 +27,8 @@ export default async function handler(req, res) {
         model: model || DEFAULT_MODEL,
         messages,
         max_tokens: max_tokens || 1000,
-        temperature: typeof temperature === 'number' ? temperature : 0.7
+        temperature: typeof temperature === 'number' ? temperature : 0.7,
+        ...(response_format ? { response_format } : {})
       })
     });
 
