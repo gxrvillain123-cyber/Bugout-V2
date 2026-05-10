@@ -501,16 +501,26 @@
         .teacher-lesson-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
         .teacher-pill { display: inline-flex; background: rgba(0,255,136,0.12); color: var(--accent); border: 1px solid rgba(0,255,136,0.25); border-radius: 999px; padding: 4px 11px; font-size: 0.74rem; font-weight: 800; margin-right: 5px; }
         .teacher-saved-score { color: var(--bg); background: var(--accent); border-radius: 8px; padding: 5px 10px; font-size: 0.78rem; font-weight: 900; }
+        .teacher-decision { background: linear-gradient(135deg, rgba(0,255,136,0.09), rgba(0,119,255,0.08)); border: 1px solid rgba(0,255,136,0.24); border-radius: 12px; padding: 0.9rem; color: var(--text); line-height: 1.55; margin-bottom: 0.9rem; }
         .teacher-goal { color: var(--text2); line-height: 1.55; margin: 0.5rem 0 1.2rem; }
         .teacher-concepts { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
         .teacher-concepts span { background: var(--bg2); border: 1px solid var(--border); color: var(--text); border-radius: 9px; padding: 0.45rem 0.65rem; font-size: 0.8rem; }
         .teacher-section { border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 1rem; }
+        .teacher-rich-text { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem; color: var(--text2); line-height: 1.65; white-space: pre-wrap; }
         .teacher-step { display: grid; grid-template-columns: 32px 1fr; gap: 0.75rem; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 0.8rem; margin-bottom: 0.65rem; }
         .teacher-step strong { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: var(--bg); display: flex; align-items: center; justify-content: center; }
         .teacher-step span { color: var(--text); line-height: 1.55; }
         .teacher-code { background: #070707; border: 1px solid var(--border); border-radius: 10px; padding: 1rem; overflow-x: auto; color: var(--text); font-size: 0.88rem; line-height: 1.55; }
+        .teacher-deep-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; margin-bottom: 0.85rem; }
+        .teacher-deep-card h4 { color: var(--accent); font-size: 0.95rem; margin-bottom: 0.55rem; }
+        .teacher-deep-card p { color: var(--text2); line-height: 1.65; white-space: pre-wrap; margin-bottom: 0.7rem; }
+        .teacher-mini-trace { display: grid; gap: 0.45rem; margin-top: 0.7rem; }
+        .teacher-mini-trace span { background: rgba(0,255,136,0.07); border: 1px solid rgba(0,255,136,0.18); color: var(--text); border-radius: 8px; padding: 0.55rem 0.7rem; font-size: 0.84rem; line-height: 1.45; }
         .teacher-practice { display: grid; gap: 0.65rem; }
         .teacher-practice div { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 0.8rem; color: var(--text2); line-height: 1.5; }
+        .teacher-debug-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 0.9rem; margin-bottom: 0.75rem; display: grid; gap: 0.55rem; color: var(--text2); line-height: 1.5; }
+        .teacher-debug-card h4 { color: var(--accent); font-size: 0.92rem; }
+        .teacher-debug-card strong { color: var(--text); }
         .teacher-project { background: linear-gradient(135deg, rgba(0,255,136,0.08), rgba(0,119,255,0.06)); border: 1px solid rgba(0,255,136,0.22); border-radius: 10px; padding: 0.9rem; color: var(--text); line-height: 1.55; }
         .teacher-code-input { width: 100%; min-height: 170px; background: #070707; border: 1.5px solid var(--border); border-radius: 10px; color: var(--text); padding: 0.9rem; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 0.88rem; line-height: 1.55; resize: vertical; outline: none; margin-bottom: 0.75rem; }
         .teacher-code-input:focus { border-color: var(--accent); }
@@ -535,6 +545,8 @@
         .teacher-answer-note.show { display: block; }
         .teacher-answer-note.ok { background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.25); color: var(--accent); }
         .teacher-answer-note.bad { background: rgba(255,68,68,0.1); border: 1px solid rgba(255,68,68,0.25); color: #ff7777; }
+        .teacher-next { background: var(--card); border: 1px solid rgba(0,255,136,0.25); border-radius: 12px; padding: 1rem; color: var(--text2); margin-top: 1rem; line-height: 1.5; }
+        .teacher-next strong { color: var(--accent); }
         .analyzer-wrap { max-width: 900px; margin: 2.5rem auto; padding-bottom: 3rem; }
         .analyzer-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 0.9fr); gap: 1.25rem; align-items: start; }
         .code-input { width: 100%; min-height: 360px; background: #070707; border: 1.5px solid var(--border); border-radius: 12px; color: var(--text); padding: 1rem; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 0.88rem; line-height: 1.55; resize: vertical; outline: none; }

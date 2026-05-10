@@ -325,6 +325,12 @@ function applyTeacherTopic(topic) {
     if (input) input.value = topic;
 }
 
+function decideTeacherTopic(language) {
+    const topics = TEACHER_ROADMAPS[language] || TEACHER_ROADMAPS.JavaScript;
+    const done = new Set(teacherProgress.filter(row => row.language === language).map(row => String(row.topic || '').toLowerCase()));
+    return topics.find(topic => !done.has(topic.toLowerCase())) || topics[0] || 'fundamentals';
+}
+
 function buildTeacherRoadmap() {
     const lang = document.getElementById('teacherLanguage')?.value || 'JavaScript';
     const level = document.getElementById('teacherLevel')?.value || 'Beginner';
@@ -371,37 +377,61 @@ async function startTeacherLesson() {
     const language = document.getElementById('teacherLanguage').value;
     const level = document.getElementById('teacherLevel').value;
     const mode = document.getElementById('teacherMode').value;
-    const topic = (document.getElementById('teacherTopic').value.trim() || 'fundamentals').slice(0, 80);
+    const rawTopic = document.getElementById('teacherTopic').value.trim();
+    const topic = (rawTopic || decideTeacherTopic(language)).slice(0, 80);
+    document.getElementById('teacherTopic').value = topic;
     const output = document.getElementById('teacherLessonOutput');
     const btn = document.getElementById('teacherStartBtn');
     btn.textContent = 'Teaching...';
     btn.classList.add('btn-disabled');
     output.innerHTML = '<div class="loading"><div class="spinner"></div><p>AI Teacher lesson bana raha hai...</p></div>';
-    const prompt = `Create a programming lesson for Indian students in friendly Hinglish.
+    const prompt = `Create an ULTIMATE programming masterclass for Indian students in friendly Hinglish.
 Language: ${language}
 Level: ${level}
 Mode: ${mode}
 Topic: ${topic}
 Student history summary: ${teacherProgress.slice(0, 5).map(row => `${row.language}/${row.topic}/${row.score}%`).join(', ') || 'No saved lessons yet'}
 
+You are not a short-answer chatbot. Act like a patient senior teacher who decides the best learning path and teaches deeply.
+Make the lesson self-contained. Assume the student may be weak in basics. Use Hinglish, examples, analogies, code, dry-runs, and correction of misconceptions.
+Do not be vague. Teach enough that a student can actually solve problems after reading.
+
 Return ONLY valid JSON with this shape:
 {
   "title": "short title",
-  "goal": "what student will learn",
-  "concept_map": ["3 to 5 key concepts in order"],
-  "steps": ["4 to 6 step-by-step Hinglish explanations"],
-  "example_code": "small runnable code example",
-  "common_mistakes": ["3 common mistakes with fixes"],
-  "practice_tasks": ["2 short practice tasks"],
+  "teacher_decision": "why this topic should be learned now and what comes after it",
+  "goal": "clear outcome",
+  "prerequisites": ["what student should know first, explain briefly"],
+  "concept_map": ["6 to 9 key concepts in order"],
+  "big_picture": "deep intuition and real-world analogy",
+  "mental_model": "how to think about this topic while coding",
+  "syntax_rules": ["important syntax/rules with short explanation"],
+  "deep_dive": [
+    {"heading":"subtopic name", "explanation":"deep Hinglish explanation", "code":"small code if useful", "dry_run":["step 1","step 2","step 3"]}
+  ],
+  "example_code": "complete runnable code example",
+  "trace_table": ["line-by-line dry run or state changes"],
+  "common_mistakes": ["5 common mistakes with fixes"],
+  "debugging_lab": [{"bug":"buggy code or situation", "why_wrong":"reason", "fix":"fixed approach"}],
+  "real_world_use": ["where this is used in real projects"],
+  "practice_tasks": ["5 practice tasks from easy to hard"],
   "mini_project": "one small project idea using this topic",
   "starter_code": "starter code student can edit",
+  "interview_angle": ["interview/exam traps and questions"],
+  "next_lesson": "what student should learn next",
   "quiz": [
     {"question":"...", "options":["A","B","C","D"], "answerIndex":0, "explanation":"short Hinglish explanation"}
   ]
 }
-Make exactly 5 quiz questions. Keep explanations simple, concrete, and beginner-friendly. If mode is interview prep, include interview traps. If project based, make examples practical.`;
+Rules:
+- Make exactly 8 quiz questions.
+- deep_dive must have 4 to 7 sections.
+- dry_run must be concrete, not generic.
+- Use ${language} code examples only.
+- If topic is too broad, choose the best beginner-to-advanced slice and say that in teacher_decision.
+- Keep JSON valid. No markdown outside JSON.`;
     try {
-        const data = await callGroq([{ role: 'user', content: prompt }], { max_tokens: 1800, temperature: 0.65 });
+        const data = await callGroq([{ role: 'user', content: prompt }], { max_tokens: 4200, temperature: 0.55 });
         const lesson = extractJSON(data.choices?.[0]?.message?.content || '', null);
         if (!lesson || !Array.isArray(lesson.steps) || !Array.isArray(lesson.quiz)) throw new Error('AI se valid lesson JSON nahi mila.');
         lesson.mode = mode;
@@ -411,7 +441,7 @@ Make exactly 5 quiz questions. Keep explanations simple, concrete, and beginner-
             mode,
             topic,
             lesson,
-            quiz: lesson.quiz.slice(0, 5),
+            quiz: lesson.quiz.slice(0, 8),
             savedScore: null
         };
         renderTeacherLesson(false);
@@ -438,24 +468,32 @@ function renderTeacherLesson(readOnly) {
             ${typeof item.savedScore === 'number' ? `<div class="teacher-saved-score">${item.savedScore}% saved</div>` : ''}
         </div>
         <h2>${esc(lesson.title || item.topic)}</h2>
+        ${lesson.teacher_decision ? `<div class="teacher-decision">${esc(lesson.teacher_decision)}</div>` : ''}
         <p class="teacher-goal">${esc(lesson.goal || 'Step by step lesson')}</p>
+        ${renderTeacherListSection('Prerequisites', lesson.prerequisites)}
         ${Array.isArray(lesson.concept_map) && lesson.concept_map.length ? `
         <div class="teacher-concepts">
             ${lesson.concept_map.map(concept => `<span>${esc(concept)}</span>`).join('')}
         </div>` : ''}
+        ${lesson.big_picture ? `<div class="teacher-section"><h3>Big picture</h3><div class="teacher-rich-text">${esc(lesson.big_picture)}</div></div>` : ''}
+        ${lesson.mental_model ? `<div class="teacher-section"><h3>Mental model</h3><div class="teacher-rich-text">${esc(lesson.mental_model)}</div></div>` : ''}
+        ${renderTeacherListSection('Syntax rules', lesson.syntax_rules)}
         <div class="teacher-section">
-            <h3>Step by step</h3>
-            ${(lesson.steps || []).map((step, i) => `<div class="teacher-step"><strong>${i + 1}</strong><span>${esc(step)}</span></div>`).join('')}
+            <h3>Deep dive</h3>
+            ${renderTeacherDeepDive(lesson)}
         </div>
         <div class="teacher-section">
             <h3>Example code</h3>
             <pre class="teacher-code"><code>${esc(lesson.example_code || '// Example not available')}</code></pre>
         </div>
+        ${renderTeacherListSection('Dry run / trace table', lesson.trace_table)}
         ${Array.isArray(lesson.common_mistakes) && lesson.common_mistakes.length ? `
         <div class="teacher-section">
             <h3>Common mistakes</h3>
             <div class="teacher-practice">${lesson.common_mistakes.map(item => `<div>${esc(item)}</div>`).join('')}</div>
         </div>` : ''}
+        ${renderTeacherDebuggingLab(lesson.debugging_lab)}
+        ${renderTeacherListSection('Real-world use', lesson.real_world_use)}
         <div class="teacher-section">
             <h3>Practice</h3>
             <div class="teacher-practice">${(lesson.practice_tasks || []).map(task => `<div>${esc(task)}</div>`).join('')}</div>
@@ -464,6 +502,7 @@ function renderTeacherLesson(readOnly) {
             <h3>Mini project</h3>
             <div class="teacher-project">${esc(lesson.mini_project || 'Is topic ka use karke ek chhota example khud build karo.')}</div>
         </div>
+        ${renderTeacherListSection('Interview and exam angle', lesson.interview_angle)}
         <div class="teacher-section">
             <h3>Practice checker</h3>
             <textarea class="teacher-code-input" id="teacherPracticeCode" spellcheck="false" placeholder="${esc(lesson.starter_code || 'Yahan apna code likho...')}"></textarea>
@@ -498,7 +537,39 @@ function renderTeacherLesson(readOnly) {
             </div>
             ${readOnly ? '<button class="btn btn-ghost" onclick="renderTeacherLesson(false)">Retake Test</button>' : '<button class="btn" onclick="submitTeacherQuiz()">Submit Test</button>'}
         </div>
+        ${lesson.next_lesson ? `<div class="teacher-next"><strong>Next lesson:</strong> ${esc(lesson.next_lesson)}</div>` : ''}
     `;
+}
+
+function renderTeacherListSection(title, items) {
+    if (!Array.isArray(items) || !items.length) return '';
+    return `<div class="teacher-section"><h3>${esc(title)}</h3><div class="teacher-practice">${items.map(item => `<div>${esc(item)}</div>`).join('')}</div></div>`;
+}
+
+function renderTeacherDeepDive(lesson) {
+    if (Array.isArray(lesson.deep_dive) && lesson.deep_dive.length) {
+        return lesson.deep_dive.map((part, i) => `
+            <div class="teacher-deep-card">
+                <h4>${i + 1}. ${esc(part.heading || 'Concept')}</h4>
+                <p>${esc(part.explanation || '')}</p>
+                ${part.code ? `<pre class="teacher-code"><code>${esc(part.code)}</code></pre>` : ''}
+                ${Array.isArray(part.dry_run) && part.dry_run.length ? `<div class="teacher-mini-trace">${part.dry_run.map(step => `<span>${esc(step)}</span>`).join('')}</div>` : ''}
+            </div>
+        `).join('');
+    }
+    return (lesson.steps || []).map((step, i) => `<div class="teacher-step"><strong>${i + 1}</strong><span>${esc(step)}</span></div>`).join('');
+}
+
+function renderTeacherDebuggingLab(items) {
+    if (!Array.isArray(items) || !items.length) return '';
+    return `<div class="teacher-section"><h3>Debugging lab</h3>${items.map((item, i) => `
+        <div class="teacher-debug-card">
+            <h4>Bug ${i + 1}</h4>
+            <div><strong>Problem:</strong> ${esc(item.bug || '')}</div>
+            <div><strong>Why wrong:</strong> ${esc(item.why_wrong || '')}</div>
+            <div><strong>Fix:</strong> ${esc(item.fix || '')}</div>
+        </div>
+    `).join('')}</div>`;
 }
 
 function formatTeacherAI(text) {
