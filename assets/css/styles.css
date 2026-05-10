@@ -479,6 +479,10 @@
         .teacher-score-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; min-width: 190px; }
         .teacher-score-num { color: var(--accent); font-size: 1.6rem; font-weight: 900; line-height: 1; }
         .teacher-score-label { color: var(--text2); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 6px; }
+        .teacher-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1rem; }
+        .teacher-metric { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; min-width: 0; }
+        .teacher-metric strong { display: block; color: var(--accent); font-size: 1.1rem; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .teacher-metric span { display: block; color: var(--text2); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 6px; }
         .teacher-grid { display: grid; grid-template-columns: 320px 1fr; gap: 1rem; align-items: flex-start; }
         .teacher-panel { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem; }
         .teacher-panel h3 { font-size: 1rem; font-weight: 900; margin-bottom: 1rem; }
@@ -488,12 +492,18 @@
         .teacher-history-row:hover { border-color: var(--accent); }
         .teacher-history-row span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .teacher-history-row strong { color: var(--accent); white-space: nowrap; }
+        .teacher-chip-row { display: flex; flex-wrap: wrap; gap: 0.45rem; margin: -0.2rem 0 1rem; }
+        .teacher-chip { background: rgba(0,255,136,0.08); color: var(--accent); border: 1px solid rgba(0,255,136,0.25); border-radius: 999px; padding: 5px 11px; cursor: pointer; font-size: 0.78rem; font-weight: 700; }
+        .teacher-chip:hover { background: rgba(0,255,136,0.16); border-color: var(--accent); }
+        .teacher-action-row { display: flex; flex-wrap: wrap; gap: 0.65rem; align-items: center; }
         .teacher-empty { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 2rem 1rem; text-align: center; color: var(--text2); line-height: 1.55; }
         .teacher-empty h3 { color: var(--text); margin-bottom: 0.4rem; }
         .teacher-lesson-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
         .teacher-pill { display: inline-flex; background: rgba(0,255,136,0.12); color: var(--accent); border: 1px solid rgba(0,255,136,0.25); border-radius: 999px; padding: 4px 11px; font-size: 0.74rem; font-weight: 800; margin-right: 5px; }
         .teacher-saved-score { color: var(--bg); background: var(--accent); border-radius: 8px; padding: 5px 10px; font-size: 0.78rem; font-weight: 900; }
         .teacher-goal { color: var(--text2); line-height: 1.55; margin: 0.5rem 0 1.2rem; }
+        .teacher-concepts { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+        .teacher-concepts span { background: var(--bg2); border: 1px solid var(--border); color: var(--text); border-radius: 9px; padding: 0.45rem 0.65rem; font-size: 0.8rem; }
         .teacher-section { border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 1rem; }
         .teacher-step { display: grid; grid-template-columns: 32px 1fr; gap: 0.75rem; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 0.8rem; margin-bottom: 0.65rem; }
         .teacher-step strong { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: var(--bg); display: flex; align-items: center; justify-content: center; }
@@ -501,6 +511,21 @@
         .teacher-code { background: #070707; border: 1px solid var(--border); border-radius: 10px; padding: 1rem; overflow-x: auto; color: var(--text); font-size: 0.88rem; line-height: 1.55; }
         .teacher-practice { display: grid; gap: 0.65rem; }
         .teacher-practice div { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 0.8rem; color: var(--text2); line-height: 1.5; }
+        .teacher-project { background: linear-gradient(135deg, rgba(0,255,136,0.08), rgba(0,119,255,0.06)); border: 1px solid rgba(0,255,136,0.22); border-radius: 10px; padding: 0.9rem; color: var(--text); line-height: 1.55; }
+        .teacher-code-input { width: 100%; min-height: 170px; background: #070707; border: 1.5px solid var(--border); border-radius: 10px; color: var(--text); padding: 0.9rem; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 0.88rem; line-height: 1.55; resize: vertical; outline: none; margin-bottom: 0.75rem; }
+        .teacher-code-input:focus { border-color: var(--accent); }
+        .teacher-doubt-row { display: grid; grid-template-columns: 1fr auto; gap: 0.65rem; }
+        .teacher-doubt-row input { width: 100%; background: var(--bg2); border: 1.5px solid var(--border); border-radius: 10px; color: var(--text); padding: 0.75rem 0.9rem; outline: none; }
+        .teacher-doubt-row input:focus { border-color: var(--accent); }
+        .teacher-ai-feedback { display: none; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem; margin-top: 0.75rem; color: var(--text2); line-height: 1.55; }
+        .teacher-ai-feedback.show { display: block; }
+        .teacher-ai-feedback pre { background: #070707; border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem; overflow-x: auto; margin: 0.75rem 0; color: var(--text); }
+        .teacher-roadmap-list { display: grid; gap: 0.7rem; margin-top: 1rem; }
+        .teacher-roadmap-item { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; color: var(--text); padding: 0.85rem; display: grid; grid-template-columns: 34px 1fr auto; gap: 0.8rem; align-items: center; cursor: pointer; text-align: left; }
+        .teacher-roadmap-item:hover { border-color: var(--accent); }
+        .teacher-roadmap-item strong { background: var(--accent); color: var(--bg); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
+        .teacher-roadmap-item span { font-weight: 800; }
+        .teacher-roadmap-item em { color: var(--accent); font-style: normal; font-size: 0.78rem; font-weight: 900; }
         .teacher-quiz { display: grid; gap: 0.9rem; margin-bottom: 1rem; }
         .teacher-question { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; }
         .teacher-question-title { font-weight: 800; line-height: 1.45; margin-bottom: 0.75rem; }
@@ -553,10 +578,14 @@
             .level-step { min-width: 86px; }
             .quest-grid, .analyzer-layout, .teacher-grid { grid-template-columns: 1fr; }
             .teacher-head h2 { font-size: 1.45rem; }
+            .teacher-metrics { grid-template-columns: 1fr; gap: 0.65rem; }
             .teacher-score-card { width: 100%; }
             .teacher-panel { padding: 1rem; }
             .teacher-step { grid-template-columns: 28px 1fr; }
             .teacher-step strong { width: 28px; height: 28px; }
+            .teacher-doubt-row { grid-template-columns: 1fr; }
+            .teacher-roadmap-item { grid-template-columns: 30px 1fr; }
+            .teacher-roadmap-item em { grid-column: 2; }
             .arena-stats, .arena-example { grid-template-columns: 1fr; }
             .arena-card-top { flex-direction: column; }
             .arena-badges { justify-content: flex-start; }

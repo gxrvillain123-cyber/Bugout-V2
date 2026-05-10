@@ -48,6 +48,15 @@ const BADGE_DEFS = [
 ];
 const AVATAR_COLORS = ['#00ff88','#0077ff','#ff4444','#ff9900','#aa44ff','#ff44aa','#00ccff','#ffcc00'];
 const ALL_INTERESTS = ['💻 Coding','🎮 Gaming','🎵 Music','⚽ Football','🏏 Cricket','📚 Studies','🎨 Art','🍕 Food','✈️ Travel','💰 Finance','🎬 Movies','📱 Tech','🦸 Marvel','🏋️ Fitness','🎤 Rap','📷 Photography'];
+const TEACHER_ROADMAPS = {
+    'JavaScript': ['variables', 'functions', 'arrays', 'objects', 'DOM basics', 'async await', 'fetch API', 'mini project'],
+    'Python': ['variables', 'conditions', 'loops', 'lists', 'dictionaries', 'functions', 'file handling', 'mini project'],
+    'C': ['variables', 'if else', 'loops', 'arrays', 'strings', 'functions', 'pointers basics', 'mini project'],
+    'C++': ['variables', 'loops', 'functions', 'arrays', 'STL vectors', 'classes', 'recursion', 'mini project'],
+    'Java': ['variables', 'conditions', 'loops', 'methods', 'classes', 'inheritance', 'collections', 'mini project'],
+    'HTML/CSS': ['semantic HTML', 'forms', 'flexbox', 'grid', 'responsive design', 'animations', 'landing page project'],
+    'SQL': ['select queries', 'where filters', 'joins', 'group by', 'subqueries', 'indexes basics', 'schema design']
+};
 
 function getLevel(xp) { return LEVELS.find(l => xp >= l.min && xp <= l.max) || LEVELS[0]; }
 function getLevelNum(xp) { return LEVELS.findIndex(l => xp >= l.min && xp <= l.max) + 1; }
@@ -242,6 +251,7 @@ async function clearMentorChat() {
 async function goTeacher() {
     if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
     showPage('teacherPage');
+    updateTeacherTopicChips();
     await loadTeacherProgress();
 }
 
@@ -263,6 +273,7 @@ function renderTeacherProgress() {
     const count = document.getElementById('teacherCompletedCount');
     const history = document.getElementById('teacherHistory');
     if (count) count.textContent = teacherProgress.length;
+    renderTeacherMetrics();
     if (!history) return;
     if (!teacherProgress.length) {
         history.innerHTML = '<div class="teacher-empty">Abhi koi lesson complete nahi hua.</div>';
@@ -276,12 +287,77 @@ function renderTeacherProgress() {
     `).join('');
 }
 
+function renderTeacherMetrics() {
+    const avgEl = document.getElementById('teacherAvgScore');
+    const bestEl = document.getElementById('teacherBestLanguage');
+    const lastEl = document.getElementById('teacherLastTopic');
+    if (!avgEl || !bestEl || !lastEl) return;
+    if (!teacherProgress.length) {
+        avgEl.textContent = '0%';
+        bestEl.textContent = '-';
+        lastEl.textContent = '-';
+        return;
+    }
+    const avg = Math.round(teacherProgress.reduce((sum, row) => sum + (row.score || 0), 0) / teacherProgress.length);
+    const byLang = {};
+    teacherProgress.forEach(row => {
+        const key = row.language || 'Unknown';
+        byLang[key] = byLang[key] || { total: 0, count: 0 };
+        byLang[key].total += row.score || 0;
+        byLang[key].count += 1;
+    });
+    const best = Object.entries(byLang).sort((a, b) => (b[1].total / b[1].count) - (a[1].total / a[1].count))[0];
+    avgEl.textContent = avg + '%';
+    bestEl.textContent = best ? best[0] : '-';
+    lastEl.textContent = teacherProgress[0]?.topic || '-';
+}
+
+function updateTeacherTopicChips() {
+    const lang = document.getElementById('teacherLanguage')?.value || 'JavaScript';
+    const wrap = document.getElementById('teacherTopicChips');
+    if (!wrap) return;
+    const topics = TEACHER_ROADMAPS[lang] || TEACHER_ROADMAPS.JavaScript;
+    wrap.innerHTML = topics.map(topic => `<button type="button" class="teacher-chip" onclick="applyTeacherTopic('${esc(topic)}')">${esc(topic)}</button>`).join('');
+}
+
+function applyTeacherTopic(topic) {
+    const input = document.getElementById('teacherTopic');
+    if (input) input.value = topic;
+}
+
+function buildTeacherRoadmap() {
+    const lang = document.getElementById('teacherLanguage')?.value || 'JavaScript';
+    const level = document.getElementById('teacherLevel')?.value || 'Beginner';
+    const topics = TEACHER_ROADMAPS[lang] || [];
+    const output = document.getElementById('teacherLessonOutput');
+    if (!output) return;
+    output.innerHTML = `
+        <div class="teacher-roadmap">
+            <div class="teacher-lesson-head">
+                <div><span class="teacher-pill">${esc(lang)}</span><span class="teacher-pill">${esc(level)}</span></div>
+            </div>
+            <h2>${esc(lang)} Roadmap</h2>
+            <p class="teacher-goal">Is order mein topics complete karo. Kisi bhi topic pe click karke direct lesson start kar sakte ho.</p>
+            <div class="teacher-roadmap-list">
+                ${topics.map((topic, i) => `
+                    <button class="teacher-roadmap-item" onclick="applyTeacherTopic('${esc(topic)}');startTeacherLesson();">
+                        <strong>${i + 1}</strong>
+                        <span>${esc(topic)}</span>
+                        <em>${teacherProgress.some(row => row.language === lang && row.topic === topic) ? 'Done' : 'Start'}</em>
+                    </button>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
 function loadTeacherProgressLesson(id) {
     const row = teacherProgress.find(item => item.id === id);
     if (!row) return;
     currentTeacherLesson = {
         language: row.language,
         level: row.level,
+        mode: row.mode || row.lesson_json?.mode || 'Saved lesson',
         topic: row.topic,
         lesson: row.lesson_json,
         quiz: row.quiz_json || [],
@@ -294,6 +370,7 @@ async function startTeacherLesson() {
     if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
     const language = document.getElementById('teacherLanguage').value;
     const level = document.getElementById('teacherLevel').value;
+    const mode = document.getElementById('teacherMode').value;
     const topic = (document.getElementById('teacherTopic').value.trim() || 'fundamentals').slice(0, 80);
     const output = document.getElementById('teacherLessonOutput');
     const btn = document.getElementById('teacherStartBtn');
@@ -303,27 +380,35 @@ async function startTeacherLesson() {
     const prompt = `Create a programming lesson for Indian students in friendly Hinglish.
 Language: ${language}
 Level: ${level}
+Mode: ${mode}
 Topic: ${topic}
+Student history summary: ${teacherProgress.slice(0, 5).map(row => `${row.language}/${row.topic}/${row.score}%`).join(', ') || 'No saved lessons yet'}
 
 Return ONLY valid JSON with this shape:
 {
   "title": "short title",
   "goal": "what student will learn",
+  "concept_map": ["3 to 5 key concepts in order"],
   "steps": ["4 to 6 step-by-step Hinglish explanations"],
   "example_code": "small runnable code example",
+  "common_mistakes": ["3 common mistakes with fixes"],
   "practice_tasks": ["2 short practice tasks"],
+  "mini_project": "one small project idea using this topic",
+  "starter_code": "starter code student can edit",
   "quiz": [
     {"question":"...", "options":["A","B","C","D"], "answerIndex":0, "explanation":"short Hinglish explanation"}
   ]
 }
-Make exactly 5 quiz questions. Keep explanations simple, concrete, and beginner-friendly.`;
+Make exactly 5 quiz questions. Keep explanations simple, concrete, and beginner-friendly. If mode is interview prep, include interview traps. If project based, make examples practical.`;
     try {
         const data = await callGroq([{ role: 'user', content: prompt }], { max_tokens: 1800, temperature: 0.65 });
         const lesson = extractJSON(data.choices?.[0]?.message?.content || '', null);
         if (!lesson || !Array.isArray(lesson.steps) || !Array.isArray(lesson.quiz)) throw new Error('AI se valid lesson JSON nahi mila.');
+        lesson.mode = mode;
         currentTeacherLesson = {
             language,
             level,
+            mode,
             topic,
             lesson,
             quiz: lesson.quiz.slice(0, 5),
@@ -354,6 +439,10 @@ function renderTeacherLesson(readOnly) {
         </div>
         <h2>${esc(lesson.title || item.topic)}</h2>
         <p class="teacher-goal">${esc(lesson.goal || 'Step by step lesson')}</p>
+        ${Array.isArray(lesson.concept_map) && lesson.concept_map.length ? `
+        <div class="teacher-concepts">
+            ${lesson.concept_map.map(concept => `<span>${esc(concept)}</span>`).join('')}
+        </div>` : ''}
         <div class="teacher-section">
             <h3>Step by step</h3>
             ${(lesson.steps || []).map((step, i) => `<div class="teacher-step"><strong>${i + 1}</strong><span>${esc(step)}</span></div>`).join('')}
@@ -362,9 +451,34 @@ function renderTeacherLesson(readOnly) {
             <h3>Example code</h3>
             <pre class="teacher-code"><code>${esc(lesson.example_code || '// Example not available')}</code></pre>
         </div>
+        ${Array.isArray(lesson.common_mistakes) && lesson.common_mistakes.length ? `
+        <div class="teacher-section">
+            <h3>Common mistakes</h3>
+            <div class="teacher-practice">${lesson.common_mistakes.map(item => `<div>${esc(item)}</div>`).join('')}</div>
+        </div>` : ''}
         <div class="teacher-section">
             <h3>Practice</h3>
             <div class="teacher-practice">${(lesson.practice_tasks || []).map(task => `<div>${esc(task)}</div>`).join('')}</div>
+        </div>
+        <div class="teacher-section">
+            <h3>Mini project</h3>
+            <div class="teacher-project">${esc(lesson.mini_project || 'Is topic ka use karke ek chhota example khud build karo.')}</div>
+        </div>
+        <div class="teacher-section">
+            <h3>Practice checker</h3>
+            <textarea class="teacher-code-input" id="teacherPracticeCode" spellcheck="false" placeholder="${esc(lesson.starter_code || 'Yahan apna code likho...')}"></textarea>
+            <div class="teacher-action-row">
+                <button class="btn btn-ghost" onclick="checkTeacherCode()">Check My Code</button>
+            </div>
+            <div class="teacher-ai-feedback" id="teacherCodeFeedback"></div>
+        </div>
+        <div class="teacher-section">
+            <h3>Ask doubt</h3>
+            <div class="teacher-doubt-row">
+                <input type="text" id="teacherDoubtInput" placeholder="Is lesson se related doubt pucho...">
+                <button class="btn btn-ghost" onclick="askTeacherDoubt()">Ask</button>
+            </div>
+            <div class="teacher-ai-feedback" id="teacherDoubtOutput"></div>
         </div>
         <div class="teacher-section">
             <h3>Test</h3>
@@ -385,6 +499,71 @@ function renderTeacherLesson(readOnly) {
             ${readOnly ? '<button class="btn btn-ghost" onclick="renderTeacherLesson(false)">Retake Test</button>' : '<button class="btn" onclick="submitTeacherQuiz()">Submit Test</button>'}
         </div>
     `;
+}
+
+function formatTeacherAI(text) {
+    return esc(text || '')
+        .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n/g, '<br>');
+}
+
+async function askTeacherDoubt() {
+    if (!currentTeacherLesson) return;
+    const input = document.getElementById('teacherDoubtInput');
+    const output = document.getElementById('teacherDoubtOutput');
+    const doubt = input?.value.trim();
+    if (!doubt) { toast('Doubt likho pehle.', 'err'); return; }
+    output.classList.add('show');
+    output.innerHTML = '<div class="spinner"></div><p>Teacher answer soch raha hai...</p>';
+    const lesson = currentTeacherLesson.lesson || {};
+    const prompt = `You are BUGOUT AI Teacher. Answer this student doubt in Hinglish, step by step, with one tiny example.
+Language: ${currentTeacherLesson.language}
+Level: ${currentTeacherLesson.level}
+Topic: ${currentTeacherLesson.topic}
+Lesson goal: ${lesson.goal || ''}
+Student doubt: ${doubt}
+Keep it focused and encouraging.`;
+    try {
+        const data = await callGroq([{ role: 'user', content: prompt }], { max_tokens: 700, temperature: 0.55 });
+        output.innerHTML = formatTeacherAI(data.choices?.[0]?.message?.content || 'Answer empty aaya.');
+    } catch(err) {
+        output.innerHTML = `<span style="color:var(--error);">Doubt answer failed: ${esc(err.message)}</span>`;
+    }
+}
+
+async function checkTeacherCode() {
+    if (!currentTeacherLesson) return;
+    const input = document.getElementById('teacherPracticeCode');
+    const output = document.getElementById('teacherCodeFeedback');
+    const code = input?.value.trim();
+    if (!code) { toast('Code likho ya paste karo.', 'err'); return; }
+    if (code.length > 9000) { toast('Code thoda chhota karo.', 'err'); return; }
+    output.classList.add('show');
+    output.innerHTML = '<div class="spinner"></div><p>Code review ho raha hai...</p>';
+    const lesson = currentTeacherLesson.lesson || {};
+    const prompt = `You are BUGOUT AI Teacher. Review this student practice code in Hinglish.
+Language: ${currentTeacherLesson.language}
+Topic: ${currentTeacherLesson.topic}
+Practice context: ${(lesson.practice_tasks || []).join(' | ')}
+
+Student code:
+\`\`\`
+${code}
+\`\`\`
+
+Return:
+1. Correctness score out of 10
+2. Bugs or mistakes
+3. Improved code if needed
+4. One next challenge
+Be direct but friendly.`;
+    try {
+        const data = await callGroq([{ role: 'user', content: prompt }], { max_tokens: 1000, temperature: 0.45 });
+        output.innerHTML = formatTeacherAI(data.choices?.[0]?.message?.content || 'Review empty aaya.');
+    } catch(err) {
+        output.innerHTML = `<span style="color:var(--error);">Code check failed: ${esc(err.message)}</span>`;
+    }
 }
 
 function normalizeTeacherAnswerIndex(value) {
@@ -419,6 +598,7 @@ async function submitTeacherQuiz() {
         user_id: me.id,
         language: currentTeacherLesson.language,
         level: currentTeacherLesson.level,
+        mode: currentTeacherLesson.mode || currentTeacherLesson.lesson?.mode || 'Teach me from zero',
         topic: currentTeacherLesson.topic,
         score,
         lesson_json: currentTeacherLesson.lesson,

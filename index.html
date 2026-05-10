@@ -135,20 +135,25 @@
             <button class="back-btn" onclick="goHome()">← Back</button>
             <div class="teacher-head">
                 <div>
-                    <h2>AI Teacher</h2>
-                    <p>Programming languages Hinglish mein step by step seekho, test do, aur progress save rakho.</p>
+                    <h2>AI Teacher Pro</h2>
+                    <p>Roadmap, lessons, practice checker, doubt solving, tests, aur saved progress ek jagah.</p>
                 </div>
                 <div class="teacher-score-card">
                     <div class="teacher-score-num" id="teacherCompletedCount">0</div>
                     <div class="teacher-score-label">Lessons completed</div>
                 </div>
             </div>
+            <div class="teacher-metrics">
+                <div class="teacher-metric"><strong id="teacherAvgScore">0%</strong><span>Avg score</span></div>
+                <div class="teacher-metric"><strong id="teacherBestLanguage">-</strong><span>Strongest language</span></div>
+                <div class="teacher-metric"><strong id="teacherLastTopic">-</strong><span>Last topic</span></div>
+            </div>
             <div class="teacher-grid">
                 <section class="teacher-panel">
-                    <h3>Choose lesson</h3>
+                    <h3>Learning setup</h3>
                     <div class="field">
                         <label>Language</label>
-                        <select id="teacherLanguage">
+                        <select id="teacherLanguage" onchange="updateTeacherTopicChips()">
                             <option value="JavaScript">JavaScript</option>
                             <option value="Python">Python</option>
                             <option value="C">C</option>
@@ -156,6 +161,16 @@
                             <option value="Java">Java</option>
                             <option value="HTML/CSS">HTML/CSS</option>
                             <option value="SQL">SQL</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Lesson Mode</label>
+                        <select id="teacherMode">
+                            <option value="Teach me from zero">Teach me from zero</option>
+                            <option value="Interview prep">Interview prep</option>
+                            <option value="DSA focused">DSA focused</option>
+                            <option value="Project based">Project based</option>
+                            <option value="Exam revision">Exam revision</option>
                         </select>
                     </div>
                     <div class="field">
@@ -170,7 +185,11 @@
                         <label>Topic</label>
                         <input type="text" id="teacherTopic" placeholder="loops, arrays, functions, OOP...">
                     </div>
-                    <button class="btn" id="teacherStartBtn" onclick="startTeacherLesson()">Start Lesson</button>
+                    <div class="teacher-chip-row" id="teacherTopicChips"></div>
+                    <div class="teacher-action-row">
+                        <button class="btn" id="teacherStartBtn" onclick="startTeacherLesson()">Start Lesson</button>
+                        <button class="btn btn-ghost" onclick="buildTeacherRoadmap()">Roadmap</button>
+                    </div>
                     <div class="teacher-history" id="teacherHistory"><div class="teacher-empty">Progress loading...</div></div>
                 </section>
                 <section class="teacher-panel teacher-main">
