@@ -9,6 +9,7 @@ Required files/folders:
 - `assets/js/app.js`
 - `api/groq.js`
 - `supabase-arena-schema.sql` is not deployed by Vercel, but keep it in the repo as setup documentation.
+- `supabase-teacher-schema.sql` is not deployed by Vercel, but run it once for AI Teacher progress.
 
 ## Vercel Environment Variable
 
@@ -25,3 +26,7 @@ The browser no longer contains the Groq secret key. All AI calls go through `/ap
 ## Supabase Arena SQL
 
 Run `supabase-arena-schema.sql` once in Supabase SQL Editor if Coding Arena tables/columns are missing.
+
+## Supabase AI Teacher SQL
+
+Run `supabase-teacher-schema.sql` once in Supabase SQL Editor so AI Teacher can save lesson scores and progress.

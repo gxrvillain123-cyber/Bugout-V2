@@ -472,6 +472,44 @@
         .streak-pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,153,0,0.12); border: 1px solid rgba(255,153,0,0.35); color: #ffb347; border-radius: 999px; padding: 5px 12px; font-weight: 800; font-size: 0.82rem; }
         .share-btn { background: var(--bg2); color: var(--text2); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; cursor: pointer; font-size: 0.82rem; font-weight: 700; transition: all 0.2s; }
         .share-btn:hover { color: var(--accent); border-color: var(--accent); }
+        .teacher-wrap { max-width: 1040px; margin: 2.5rem auto; padding-bottom: 3rem; }
+        .teacher-head { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; flex-wrap: wrap; margin-bottom: 1.3rem; }
+        .teacher-head h2 { font-size: 1.8rem; font-weight: 900; margin-bottom: 0.45rem; }
+        .teacher-head p { color: var(--text2); font-size: 0.95rem; line-height: 1.5; max-width: 660px; }
+        .teacher-score-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; min-width: 190px; }
+        .teacher-score-num { color: var(--accent); font-size: 1.6rem; font-weight: 900; line-height: 1; }
+        .teacher-score-label { color: var(--text2); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 6px; }
+        .teacher-grid { display: grid; grid-template-columns: 320px 1fr; gap: 1rem; align-items: flex-start; }
+        .teacher-panel { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem; }
+        .teacher-panel h3 { font-size: 1rem; font-weight: 900; margin-bottom: 1rem; }
+        .teacher-main { min-height: 520px; }
+        .teacher-history { display: flex; flex-direction: column; gap: 0.55rem; margin-top: 1rem; }
+        .teacher-history-row { width: 100%; background: var(--bg2); border: 1px solid var(--border); color: var(--text); border-radius: 10px; padding: 0.75rem; display: flex; justify-content: space-between; gap: 0.75rem; text-align: left; cursor: pointer; transition: border 0.2s; }
+        .teacher-history-row:hover { border-color: var(--accent); }
+        .teacher-history-row span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .teacher-history-row strong { color: var(--accent); white-space: nowrap; }
+        .teacher-empty { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 2rem 1rem; text-align: center; color: var(--text2); line-height: 1.55; }
+        .teacher-empty h3 { color: var(--text); margin-bottom: 0.4rem; }
+        .teacher-lesson-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+        .teacher-pill { display: inline-flex; background: rgba(0,255,136,0.12); color: var(--accent); border: 1px solid rgba(0,255,136,0.25); border-radius: 999px; padding: 4px 11px; font-size: 0.74rem; font-weight: 800; margin-right: 5px; }
+        .teacher-saved-score { color: var(--bg); background: var(--accent); border-radius: 8px; padding: 5px 10px; font-size: 0.78rem; font-weight: 900; }
+        .teacher-goal { color: var(--text2); line-height: 1.55; margin: 0.5rem 0 1.2rem; }
+        .teacher-section { border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 1rem; }
+        .teacher-step { display: grid; grid-template-columns: 32px 1fr; gap: 0.75rem; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 0.8rem; margin-bottom: 0.65rem; }
+        .teacher-step strong { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: var(--bg); display: flex; align-items: center; justify-content: center; }
+        .teacher-step span { color: var(--text); line-height: 1.55; }
+        .teacher-code { background: #070707; border: 1px solid var(--border); border-radius: 10px; padding: 1rem; overflow-x: auto; color: var(--text); font-size: 0.88rem; line-height: 1.55; }
+        .teacher-practice { display: grid; gap: 0.65rem; }
+        .teacher-practice div { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 0.8rem; color: var(--text2); line-height: 1.5; }
+        .teacher-quiz { display: grid; gap: 0.9rem; margin-bottom: 1rem; }
+        .teacher-question { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; }
+        .teacher-question-title { font-weight: 800; line-height: 1.45; margin-bottom: 0.75rem; }
+        .teacher-option { display: flex; align-items: flex-start; gap: 9px; color: var(--text2); padding: 0.45rem 0; cursor: pointer; line-height: 1.45; }
+        .teacher-option input { margin-top: 3px; accent-color: var(--accent); }
+        .teacher-answer-note { display: none; border-radius: 8px; padding: 0.65rem; margin-top: 0.65rem; font-size: 0.84rem; line-height: 1.45; }
+        .teacher-answer-note.show { display: block; }
+        .teacher-answer-note.ok { background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.25); color: var(--accent); }
+        .teacher-answer-note.bad { background: rgba(255,68,68,0.1); border: 1px solid rgba(255,68,68,0.25); color: #ff7777; }
         .analyzer-wrap { max-width: 900px; margin: 2.5rem auto; padding-bottom: 3rem; }
         .analyzer-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 0.9fr); gap: 1.25rem; align-items: start; }
         .code-input { width: 100%; min-height: 360px; background: #070707; border: 1.5px solid var(--border); border-radius: 12px; color: var(--text); padding: 1rem; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 0.88rem; line-height: 1.55; resize: vertical; outline: none; }
@@ -513,7 +551,12 @@
             .calendar-grid { grid-template-columns: repeat(26, 1fr); }
             .level-journey { overflow-x: auto; padding-bottom: 8px; }
             .level-step { min-width: 86px; }
-            .quest-grid, .analyzer-layout { grid-template-columns: 1fr; }
+            .quest-grid, .analyzer-layout, .teacher-grid { grid-template-columns: 1fr; }
+            .teacher-head h2 { font-size: 1.45rem; }
+            .teacher-score-card { width: 100%; }
+            .teacher-panel { padding: 1rem; }
+            .teacher-step { grid-template-columns: 28px 1fr; }
+            .teacher-step strong { width: 28px; height: 28px; }
             .arena-stats, .arena-example { grid-template-columns: 1fr; }
             .arena-card-top { flex-direction: column; }
             .arena-badges { justify-content: flex-start; }

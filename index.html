@@ -35,6 +35,7 @@
             <button class="btn btn-sm btn-ghost" onclick="goDashboard()" style="padding:6px 12px;display:none;" id="dashboardNavBtn">📊</button>
             <button class="btn btn-sm btn-ghost" onclick="goArena()" style="padding:6px 12px;display:none;" id="arenaNavBtn">⚔️</button>
             <button class="btn btn-sm btn-ghost" onclick="goMentor()" style="padding:6px 12px;display:none;" id="mentorNavBtn">🧠</button>
+            <button class="btn btn-sm btn-ghost" onclick="goTeacher()" style="padding:6px 12px;display:none;" id="teacherNavBtn">AI Teacher</button>
             <button class="btn btn-sm btn-ghost" onclick="goAnalyzer()" style="padding:6px 12px;display:none;" id="analyzerNavBtn">🧪</button>
             <button class="btn btn-sm btn-ghost" onclick="goLeaderboard()" style="padding:6px 12px;">🏆</button>
             <button class="btn btn-sm" id="authBtn" onclick="handleAuth()">Sign In</button>
@@ -124,6 +125,62 @@
                 <textarea class="mentor-input" id="mentorInput" placeholder="Kuch bhi pucho — coding, career, life... 😈" rows="1"
                     onkeydown="handleMentorKey(event)" oninput="autoResizeMentorInput(this)"></textarea>
                 <button class="mentor-send-btn" id="mentorSendBtn" onclick="sendMentorMessage()">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI TEACHER PAGE -->
+    <div class="page" id="teacherPage">
+        <div class="teacher-wrap">
+            <button class="back-btn" onclick="goHome()">← Back</button>
+            <div class="teacher-head">
+                <div>
+                    <h2>AI Teacher</h2>
+                    <p>Programming languages Hinglish mein step by step seekho, test do, aur progress save rakho.</p>
+                </div>
+                <div class="teacher-score-card">
+                    <div class="teacher-score-num" id="teacherCompletedCount">0</div>
+                    <div class="teacher-score-label">Lessons completed</div>
+                </div>
+            </div>
+            <div class="teacher-grid">
+                <section class="teacher-panel">
+                    <h3>Choose lesson</h3>
+                    <div class="field">
+                        <label>Language</label>
+                        <select id="teacherLanguage">
+                            <option value="JavaScript">JavaScript</option>
+                            <option value="Python">Python</option>
+                            <option value="C">C</option>
+                            <option value="C++">C++</option>
+                            <option value="Java">Java</option>
+                            <option value="HTML/CSS">HTML/CSS</option>
+                            <option value="SQL">SQL</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Level</label>
+                        <select id="teacherLevel">
+                            <option value="Beginner">Beginner</option>
+                            <option value="Intermediate">Intermediate</option>
+                            <option value="Advanced">Advanced</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Topic</label>
+                        <input type="text" id="teacherTopic" placeholder="loops, arrays, functions, OOP...">
+                    </div>
+                    <button class="btn" id="teacherStartBtn" onclick="startTeacherLesson()">Start Lesson</button>
+                    <div class="teacher-history" id="teacherHistory"><div class="teacher-empty">Progress loading...</div></div>
+                </section>
+                <section class="teacher-panel teacher-main">
+                    <div id="teacherLessonOutput">
+                        <div class="teacher-empty">
+                            <h3>Lesson yahin aayega</h3>
+                            <p>Language aur topic choose karo. AI teacher Hinglish explanation, examples, practice tasks aur quiz generate karega.</p>
+                        </div>
+                    </div>
+                </section>
             </div>
         </div>
     </div>

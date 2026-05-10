@@ -25,6 +25,7 @@ let currentProfileId = null, chatPartnerId = null, chatPartnerProfile = null, ms
 let allFollowersList = [], unreadCheckInterval = null, currentTags = [], searchTimeout = null;
 let notifCheckInterval = null, notifPanelOpen = false, myBookmarks = new Set(), activeStatusFilter = null, activeSort = 'newest';
 let mentorHistory = [];
+let teacherProgress = [], currentTeacherLesson = null;
 let arenaProblems = [], arenaSubmissions = new Map(), arenaBatchGeneratedAt = null, arenaTimer = null;
 
 const LEVELS = [
@@ -236,6 +237,204 @@ async function clearMentorChat() {
             </div>
         </div>`;
     toast('Chat clear ho gaya! 🗑️', 'ok');
+}
+
+async function goTeacher() {
+    if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
+    showPage('teacherPage');
+    await loadTeacherProgress();
+}
+
+async function loadTeacherProgress() {
+    const history = document.getElementById('teacherHistory');
+    if (!history || !me) return;
+    history.innerHTML = '<div class="teacher-empty">Progress loading...</div>';
+    try {
+        const { data, error } = await db.from('teacher_progress').select('*').eq('user_id', me.id).order('updated_at', { ascending: false }).limit(20);
+        if (error) throw error;
+        teacherProgress = data || [];
+        renderTeacherProgress();
+    } catch(err) {
+        history.innerHTML = `<div class="teacher-empty"><strong>Teacher progress table missing.</strong><br>Run supabase-teacher-schema.sql once in Supabase.</div>`;
+    }
+}
+
+function renderTeacherProgress() {
+    const count = document.getElementById('teacherCompletedCount');
+    const history = document.getElementById('teacherHistory');
+    if (count) count.textContent = teacherProgress.length;
+    if (!history) return;
+    if (!teacherProgress.length) {
+        history.innerHTML = '<div class="teacher-empty">Abhi koi lesson complete nahi hua.</div>';
+        return;
+    }
+    history.innerHTML = teacherProgress.map(row => `
+        <button class="teacher-history-row" onclick="loadTeacherProgressLesson('${row.id}')">
+            <span>${esc(row.language)} · ${esc(row.topic)}</span>
+            <strong>${row.score || 0}%</strong>
+        </button>
+    `).join('');
+}
+
+function loadTeacherProgressLesson(id) {
+    const row = teacherProgress.find(item => item.id === id);
+    if (!row) return;
+    currentTeacherLesson = {
+        language: row.language,
+        level: row.level,
+        topic: row.topic,
+        lesson: row.lesson_json,
+        quiz: row.quiz_json || [],
+        savedScore: row.score || 0
+    };
+    renderTeacherLesson(true);
+}
+
+async function startTeacherLesson() {
+    if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
+    const language = document.getElementById('teacherLanguage').value;
+    const level = document.getElementById('teacherLevel').value;
+    const topic = (document.getElementById('teacherTopic').value.trim() || 'fundamentals').slice(0, 80);
+    const output = document.getElementById('teacherLessonOutput');
+    const btn = document.getElementById('teacherStartBtn');
+    btn.textContent = 'Teaching...';
+    btn.classList.add('btn-disabled');
+    output.innerHTML = '<div class="loading"><div class="spinner"></div><p>AI Teacher lesson bana raha hai...</p></div>';
+    const prompt = `Create a programming lesson for Indian students in friendly Hinglish.
+Language: ${language}
+Level: ${level}
+Topic: ${topic}
+
+Return ONLY valid JSON with this shape:
+{
+  "title": "short title",
+  "goal": "what student will learn",
+  "steps": ["4 to 6 step-by-step Hinglish explanations"],
+  "example_code": "small runnable code example",
+  "practice_tasks": ["2 short practice tasks"],
+  "quiz": [
+    {"question":"...", "options":["A","B","C","D"], "answerIndex":0, "explanation":"short Hinglish explanation"}
+  ]
+}
+Make exactly 5 quiz questions. Keep explanations simple, concrete, and beginner-friendly.`;
+    try {
+        const data = await callGroq([{ role: 'user', content: prompt }], { max_tokens: 1800, temperature: 0.65 });
+        const lesson = extractJSON(data.choices?.[0]?.message?.content || '', null);
+        if (!lesson || !Array.isArray(lesson.steps) || !Array.isArray(lesson.quiz)) throw new Error('AI se valid lesson JSON nahi mila.');
+        currentTeacherLesson = {
+            language,
+            level,
+            topic,
+            lesson,
+            quiz: lesson.quiz.slice(0, 5),
+            savedScore: null
+        };
+        renderTeacherLesson(false);
+        toast('AI Teacher lesson ready!', 'ok');
+    } catch(err) {
+        output.innerHTML = `<div class="teacher-empty"><h3>Lesson generate nahi hua</h3><p>${esc(err.message)}</p><button class="btn btn-ghost btn-sm" onclick="startTeacherLesson()">Retry</button></div>`;
+    }
+    btn.textContent = 'Start Lesson';
+    btn.classList.remove('btn-disabled');
+}
+
+function renderTeacherLesson(readOnly) {
+    const output = document.getElementById('teacherLessonOutput');
+    const item = currentTeacherLesson;
+    if (!output || !item) return;
+    const lesson = item.lesson || {};
+    const quiz = item.quiz || [];
+    output.innerHTML = `
+        <div class="teacher-lesson-head">
+            <div>
+                <span class="teacher-pill">${esc(item.language)}</span>
+                <span class="teacher-pill">${esc(item.level)}</span>
+            </div>
+            ${typeof item.savedScore === 'number' ? `<div class="teacher-saved-score">${item.savedScore}% saved</div>` : ''}
+        </div>
+        <h2>${esc(lesson.title || item.topic)}</h2>
+        <p class="teacher-goal">${esc(lesson.goal || 'Step by step lesson')}</p>
+        <div class="teacher-section">
+            <h3>Step by step</h3>
+            ${(lesson.steps || []).map((step, i) => `<div class="teacher-step"><strong>${i + 1}</strong><span>${esc(step)}</span></div>`).join('')}
+        </div>
+        <div class="teacher-section">
+            <h3>Example code</h3>
+            <pre class="teacher-code"><code>${esc(lesson.example_code || '// Example not available')}</code></pre>
+        </div>
+        <div class="teacher-section">
+            <h3>Practice</h3>
+            <div class="teacher-practice">${(lesson.practice_tasks || []).map(task => `<div>${esc(task)}</div>`).join('')}</div>
+        </div>
+        <div class="teacher-section">
+            <h3>Test</h3>
+            <div class="teacher-quiz">
+                ${quiz.map((q, qi) => `
+                    <div class="teacher-question">
+                        <div class="teacher-question-title">${qi + 1}. ${esc(q.question || '')}</div>
+                        ${(q.options || []).map((opt, oi) => `
+                            <label class="teacher-option">
+                                <input type="radio" name="teacher-q-${qi}" value="${oi}" ${readOnly ? 'disabled' : ''}>
+                                <span>${esc(opt)}</span>
+                            </label>
+                        `).join('')}
+                        <div class="teacher-answer-note" id="teacher-note-${qi}"></div>
+                    </div>
+                `).join('')}
+            </div>
+            ${readOnly ? '<button class="btn btn-ghost" onclick="renderTeacherLesson(false)">Retake Test</button>' : '<button class="btn" onclick="submitTeacherQuiz()">Submit Test</button>'}
+        </div>
+    `;
+}
+
+function normalizeTeacherAnswerIndex(value) {
+    if (typeof value === 'number') return value;
+    const text = String(value || '').trim().toUpperCase();
+    if (/^[A-D]$/.test(text)) return text.charCodeAt(0) - 65;
+    const number = Number(text);
+    return Number.isFinite(number) ? number : -1;
+}
+
+async function submitTeacherQuiz() {
+    if (!currentTeacherLesson || !me) return;
+    const quiz = currentTeacherLesson.quiz || [];
+    if (!quiz.length) { toast('Quiz missing hai.', 'err'); return; }
+    let correct = 0, answered = 0;
+    quiz.forEach((q, i) => {
+        const picked = document.querySelector(`input[name="teacher-q-${i}"]:checked`);
+        const note = document.getElementById(`teacher-note-${i}`);
+        if (picked) answered += 1;
+        const value = picked ? Number(picked.value) : -1;
+        const ok = value === normalizeTeacherAnswerIndex(q.answerIndex);
+        if (ok) correct += 1;
+        if (note) {
+            note.className = `teacher-answer-note show ${ok ? 'ok' : 'bad'}`;
+            note.textContent = `${ok ? 'Correct' : 'Wrong'} - ${q.explanation || 'Answer review karo.'}`;
+        }
+    });
+    if (answered < quiz.length) { toast('Saare questions answer karo.', 'err'); return; }
+    const score = Math.round((correct / quiz.length) * 100);
+    const earnedXP = score >= 80 ? 20 : score >= 60 ? 10 : 5;
+    const row = {
+        user_id: me.id,
+        language: currentTeacherLesson.language,
+        level: currentTeacherLesson.level,
+        topic: currentTeacherLesson.topic,
+        score,
+        lesson_json: currentTeacherLesson.lesson,
+        quiz_json: quiz,
+        updated_at: new Date().toISOString()
+    };
+    try {
+        const { error } = await db.from('teacher_progress').upsert(row, { onConflict: 'user_id,language,topic' });
+        if (error) throw error;
+        currentTeacherLesson.savedScore = score;
+        await addXP(earnedXP);
+        toast(`Test saved! Score ${score}% · +${earnedXP} XP`, 'ok');
+        await loadTeacherProgress();
+    } catch(err) {
+        toast('Progress save failed: ' + err.message, 'err');
+    }
 }
 
 function goAnalyzer() {
@@ -846,7 +1045,7 @@ async function goProfile(userId, fromRoute = false) {
                 </div>
                 <div style="display:flex;gap:10px;margin-top:1rem;flex-wrap:wrap;">
                     ${isMe
-                        ? `<button class="btn btn-ghost btn-sm" onclick="openEditModal()">✏️ Edit Profile</button><button class="btn btn-ghost btn-sm" onclick="goDashboard()">📊 Dashboard</button><button class="btn btn-ghost btn-sm" onclick="goMentor()">🧠 AI Mentor</button><button class="btn btn-ghost btn-sm" onclick="goAnalyzer()">🧪 Code Analyzer</button><button class="share-btn" onclick="copyShareLink('profile','${userId}')">🔗 Share</button>`
+                        ? `<button class="btn btn-ghost btn-sm" onclick="openEditModal()">✏️ Edit Profile</button><button class="btn btn-ghost btn-sm" onclick="goDashboard()">📊 Dashboard</button><button class="btn btn-ghost btn-sm" onclick="goMentor()">🧠 AI Mentor</button><button class="btn btn-ghost btn-sm" onclick="goTeacher()">AI Teacher</button><button class="btn btn-ghost btn-sm" onclick="goAnalyzer()">🧪 Code Analyzer</button><button class="share-btn" onclick="copyShareLink('profile','${userId}')">🔗 Share</button>`
                         : me
                             ? `<button class="btn ${following ? '' : 'btn-ghost'} btn-sm" id="followBtn" onclick="toggleFollow('${userId}',this)">${following ? '✓ Following' : '+ Follow'}</button>${canMsg ? `<button class="btn btn-ghost btn-sm" onclick="openChat('${userId}')">💬 Message</button>` : ''}`
                             : `<button class="btn btn-ghost btn-sm" onclick="openModal()">Sign In to Follow</button>`
@@ -914,7 +1113,7 @@ async function setUser(user) {
 }
 
 function clearUser() {
-    me = null; myName = null; myXP = 0; myBookmarks = new Set(); mentorHistory = [];
+    me = null; myName = null; myXP = 0; myBookmarks = new Set(); mentorHistory = []; teacherProgress = []; currentTeacherLesson = null;
     if (unreadCheckInterval) { clearInterval(unreadCheckInterval); unreadCheckInterval = null; }
     if (notifCheckInterval) { clearInterval(notifCheckInterval); notifCheckInterval = null; }
     if (msgSubscription) { msgSubscription.unsubscribe(); msgSubscription = null; }
@@ -931,6 +1130,7 @@ function renderUserUI() {
     document.getElementById('dashboardNavBtn').style.display = on ? 'inline-flex' : 'none';
     document.getElementById('arenaNavBtn').style.display = on ? 'inline-flex' : 'none';
     document.getElementById('mentorNavBtn').style.display = on ? 'inline-flex' : 'none';
+    document.getElementById('teacherNavBtn').style.display = on ? 'inline-flex' : 'none';
     document.getElementById('analyzerNavBtn').style.display = on ? 'inline-flex' : 'none';
     document.getElementById('notifBellWrap').classList.toggle('show', on);
     if (on) { const lvl = getLevel(myXP); document.getElementById('userName').textContent = lvl.emoji + ' ' + myName; document.getElementById('userXP').textContent = myXP + ' XP'; }
