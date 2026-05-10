@@ -358,6 +358,199 @@ function buildTeacherRoadmap() {
     `;
 }
 
+function getTeacherSettings() {
+    const language = document.getElementById('teacherLanguage')?.value || 'JavaScript';
+    return {
+        language,
+        level: document.getElementById('teacherLevel')?.value || 'Beginner',
+        mode: document.getElementById('teacherMode')?.value || 'Ultimate masterclass',
+        goal: document.getElementById('teacherGoal')?.value || 'College replacement full coding foundation',
+        dailyTime: document.getElementById('teacherDailyTime')?.value || '45 minutes/day',
+        intensity: document.getElementById('teacherIntensity')?.value || 'Normal pace',
+        topic: (document.getElementById('teacherTopic')?.value.trim() || decideTeacherTopic(language)).slice(0, 80)
+    };
+}
+
+function continueTeacherPath() {
+    const settings = getTeacherSettings();
+    const next = currentTeacherLesson?.lesson?.next_lesson || decideTeacherTopic(settings.language);
+    applyTeacherTopic(next);
+    startTeacherLesson();
+}
+
+async function generateCollegePlan() {
+    if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
+    const settings = getTeacherSettings();
+    const output = document.getElementById('teacherLessonOutput');
+    output.innerHTML = '<div class="loading"><div class="spinner"></div><p>Full course plan ban raha hai...</p></div>';
+    const prompt = `Create a college-replacement coding course plan in Hinglish.
+Language: ${settings.language}
+Level: ${settings.level}
+Goal: ${settings.goal}
+Daily time: ${settings.dailyTime}
+Intensity: ${settings.intensity}
+Student progress: ${teacherProgress.map(row => `${row.language}/${row.topic}/${row.score}%`).slice(0, 12).join(', ') || 'No saved progress'}
+
+Return ONLY strict JSON:
+{
+  "title": "course name",
+  "promise": "what student can do after this",
+  "diagnosis": "what to focus on based on progress",
+  "phases": [
+    {"name":"phase name","duration":"time","outcome":"outcome","topics":["topic1","topic2"],"project":"project","assessment":"assessment"}
+  ],
+  "weekly_schedule": ["week/day plan items"],
+  "rules": ["study rules"],
+  "capstone": "final project",
+  "grading_rubric": ["how mastery will be judged"],
+  "start_topic": "exact topic to start next"
+}
+Make it practical enough to replace a weak college coding course.`;
+    try {
+        const data = await callGroq([{ role: 'user', content: prompt }], {
+            max_tokens: 3200,
+            temperature: 0.35,
+            response_format: { type: 'json_object' }
+        });
+        const plan = extractJSON(data.choices?.[0]?.message?.content || '', null);
+        renderCollegePlan(plan, settings);
+    } catch(err) {
+        output.innerHTML = `<div class="teacher-empty"><h3>Course plan nahi bana</h3><p>${esc(err.message)}</p><button class="btn btn-ghost btn-sm" onclick="generateCollegePlan()">Retry</button></div>`;
+    }
+}
+
+function renderCollegePlan(plan, settings) {
+    const output = document.getElementById('teacherLessonOutput');
+    if (!plan || !Array.isArray(plan.phases)) {
+        output.innerHTML = `<div class="teacher-empty"><h3>Plan parse nahi hua</h3><p>Retry karo, ya direct Start Lesson dabao.</p></div>`;
+        return;
+    }
+    output.innerHTML = `
+        <div class="teacher-lesson-head"><div><span class="teacher-pill">${esc(settings.language)}</span><span class="teacher-pill">${esc(settings.goal)}</span></div></div>
+        <h2>${esc(plan.title || settings.language + ' Full Course')}</h2>
+        <div class="teacher-decision">${esc(plan.promise || '')}</div>
+        <div class="teacher-section"><h3>Diagnosis</h3><div class="teacher-rich-text">${esc(plan.diagnosis || 'Start from fundamentals and build projects.')}</div></div>
+        <div class="teacher-section"><h3>Course phases</h3>
+            <div class="teacher-course-phases">
+                ${plan.phases.map((phase, i) => `
+                    <div class="teacher-phase-card">
+                        <div class="teacher-phase-num">${i + 1}</div>
+                        <div>
+                            <h4>${esc(phase.name || 'Phase')}</h4>
+                            <p>${esc(phase.duration || '')} · ${esc(phase.outcome || '')}</p>
+                            <div class="teacher-concepts">${(phase.topics || []).map(t => `<span>${esc(t)}</span>`).join('')}</div>
+                            <div class="teacher-project">${esc(phase.project || '')}</div>
+                            <small>${esc(phase.assessment || '')}</small>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+        ${renderTeacherListSection('Weekly schedule', plan.weekly_schedule)}
+        ${renderTeacherListSection('Study rules', plan.rules)}
+        <div class="teacher-section"><h3>Capstone</h3><div class="teacher-project">${esc(plan.capstone || '')}</div></div>
+        ${renderTeacherListSection('Mastery grading rubric', plan.grading_rubric)}
+        <div class="teacher-action-row teacher-sticky-actions">
+            <button class="btn" onclick="applyTeacherTopic('${esc(plan.start_topic || settings.topic)}');startTeacherLesson()">Start: ${esc(plan.start_topic || settings.topic)}</button>
+            <button class="btn btn-ghost" onclick="startPlacementTest()">Take Placement Test</button>
+        </div>
+    `;
+}
+
+async function startPlacementTest() {
+    if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
+    const settings = getTeacherSettings();
+    const output = document.getElementById('teacherLessonOutput');
+    output.innerHTML = '<div class="loading"><div class="spinner"></div><p>Placement test ban raha hai...</p></div>';
+    const prompt = `Create a diagnostic placement test for ${settings.language} in Hinglish.
+Goal: ${settings.goal}
+Level selected by student: ${settings.level}
+Return ONLY JSON:
+{
+  "title":"diagnostic test title",
+  "instructions":"short instructions",
+  "questions":[
+    {"question":"...","options":["A","B","C","D"],"answerIndex":0,"skill":"skill name","explanation":"why"}
+  ],
+  "score_bands":[
+    {"min":0,"max":40,"level":"Beginner","advice":"...","start_topic":"..."},
+    {"min":41,"max":75,"level":"Intermediate","advice":"...","start_topic":"..."},
+    {"min":76,"max":100,"level":"Advanced","advice":"...","start_topic":"..."}
+  ]
+}
+Make 12 questions covering fundamentals, debugging, dry-run, and problem solving.`;
+    try {
+        const data = await callGroq([{ role: 'user', content: prompt }], {
+            max_tokens: 2800,
+            temperature: 0.3,
+            response_format: { type: 'json_object' }
+        });
+        const test = extractJSON(data.choices?.[0]?.message?.content || '', null);
+        renderPlacementTest(test, settings);
+    } catch(err) {
+        output.innerHTML = `<div class="teacher-empty"><h3>Placement test nahi bana</h3><p>${esc(err.message)}</p><button class="btn btn-ghost btn-sm" onclick="startPlacementTest()">Retry</button></div>`;
+    }
+}
+
+function renderPlacementTest(test, settings) {
+    const output = document.getElementById('teacherLessonOutput');
+    if (!test || !Array.isArray(test.questions)) {
+        output.innerHTML = '<div class="teacher-empty"><h3>Test parse nahi hua</h3><p>Retry karo.</p></div>';
+        return;
+    }
+    window._teacherPlacementTest = test;
+    output.innerHTML = `
+        <div class="teacher-lesson-head"><div><span class="teacher-pill">${esc(settings.language)}</span><span class="teacher-pill">Placement Test</span></div></div>
+        <h2>${esc(test.title || 'Placement Test')}</h2>
+        <p class="teacher-goal">${esc(test.instructions || 'Answer honestly. Result ke basis pe AI start topic suggest karega.')}</p>
+        <div class="teacher-quiz">
+            ${test.questions.map((q, qi) => `
+                <div class="teacher-question">
+                    <div class="teacher-question-title">${qi + 1}. ${esc(q.question || '')}</div>
+                    <div class="teacher-skill-tag">${esc(q.skill || 'Concept')}</div>
+                    ${(q.options || []).map((opt, oi) => `
+                        <label class="teacher-option">
+                            <input type="radio" name="placement-q-${qi}" value="${oi}">
+                            <span>${esc(opt)}</span>
+                        </label>
+                    `).join('')}
+                    <div class="teacher-answer-note" id="placement-note-${qi}"></div>
+                </div>
+            `).join('')}
+        </div>
+        <button class="btn" onclick="submitPlacementTest()">Submit Placement Test</button>
+    `;
+}
+
+function submitPlacementTest() {
+    const test = window._teacherPlacementTest;
+    if (!test) return;
+    let correct = 0, answered = 0;
+    test.questions.forEach((q, i) => {
+        const picked = document.querySelector(`input[name="placement-q-${i}"]:checked`);
+        const note = document.getElementById(`placement-note-${i}`);
+        const value = picked ? Number(picked.value) : -1;
+        const ok = value === normalizeTeacherAnswerIndex(q.answerIndex);
+        if (picked) answered += 1;
+        if (ok) correct += 1;
+        if (note) {
+            note.className = `teacher-answer-note show ${ok ? 'ok' : 'bad'}`;
+            note.textContent = `${ok ? 'Correct' : 'Wrong'} - ${q.explanation || ''}`;
+        }
+    });
+    if (answered < test.questions.length) { toast('Saare diagnostic questions answer karo.', 'err'); return; }
+    const score = Math.round((correct / test.questions.length) * 100);
+    const band = (test.score_bands || []).find(b => score >= Number(b.min) && score <= Number(b.max)) || {};
+    const output = document.getElementById('teacherLessonOutput');
+    output.insertAdjacentHTML('beforeend', `
+        <div class="teacher-result-card">
+            <h3>Result: ${score}% · ${esc(band.level || 'Level detected')}</h3>
+            <p>${esc(band.advice || 'Start with fundamentals and keep practicing.')}</p>
+            <button class="btn" onclick="applyTeacherTopic('${esc(band.start_topic || decideTeacherTopic(getTeacherSettings().language))}');startTeacherLesson()">Start Recommended Lesson</button>
+        </div>
+    `);
+}
+
 function loadTeacherProgressLesson(id) {
     const row = teacherProgress.find(item => item.id === id);
     if (!row) return;
@@ -378,6 +571,9 @@ async function startTeacherLesson() {
     const language = document.getElementById('teacherLanguage').value;
     const level = document.getElementById('teacherLevel').value;
     const mode = document.getElementById('teacherMode').value;
+    const goal = document.getElementById('teacherGoal').value;
+    const dailyTime = document.getElementById('teacherDailyTime').value;
+    const intensity = document.getElementById('teacherIntensity').value;
     const rawTopic = document.getElementById('teacherTopic').value.trim();
     const topic = (rawTopic || decideTeacherTopic(language)).slice(0, 80);
     document.getElementById('teacherTopic').value = topic;
@@ -390,6 +586,9 @@ async function startTeacherLesson() {
 Language: ${language}
 Level: ${level}
 Mode: ${mode}
+Goal: ${goal}
+Daily study time: ${dailyTime}
+Intensity: ${intensity}
 Topic: ${topic}
 Student history summary: ${teacherProgress.slice(0, 5).map(row => `${row.language}/${row.topic}/${row.score}%`).join(', ') || 'No saved lessons yet'}
 
@@ -406,6 +605,7 @@ Return ONLY valid JSON with this shape:
   "concept_map": ["6 to 9 key concepts in order"],
   "big_picture": "deep intuition and real-world analogy",
   "mental_model": "how to think about this topic while coding",
+  "lecture_notes": ["detailed college-style notes, Hinglish, each item substantial"],
   "syntax_rules": ["important syntax/rules with short explanation"],
   "deep_dive": [
     {"heading":"subtopic name", "explanation":"deep Hinglish explanation", "code":"small code if useful", "dry_run":["step 1","step 2","step 3"]}
@@ -416,8 +616,11 @@ Return ONLY valid JSON with this shape:
   "debugging_lab": [{"bug":"buggy code or situation", "why_wrong":"reason", "fix":"fixed approach"}],
   "real_world_use": ["where this is used in real projects"],
   "practice_tasks": ["5 practice tasks from easy to hard"],
+  "homework_set": [{"title":"task title","difficulty":"Easy/Medium/Hard","requirement":"exact requirement","hint":"hint"}],
   "mini_project": "one small project idea using this topic",
   "starter_code": "starter code student can edit",
+  "mastery_rubric": ["what student must be able to do to claim mastery"],
+  "revision_plan": ["spaced revision steps"],
   "interview_angle": ["interview/exam traps and questions"],
   "next_lesson": "what student should learn next",
   "quiz": [
@@ -427,6 +630,9 @@ Return ONLY valid JSON with this shape:
 Rules:
 - Make exactly 8 quiz questions.
 - deep_dive must have 4 to 7 sections.
+- lecture_notes must teach like a strong college professor, not short bullets.
+- homework_set must have 6 tasks, including 2 hard tasks.
+- mastery_rubric must be strict and measurable.
 - dry_run must be concrete, not generic.
 - Use ${language} code examples only.
 - If topic is too broad, choose the best beginner-to-advanced slice and say that in teacher_decision.
@@ -473,7 +679,7 @@ function isValidTeacherLesson(lesson) {
 async function repairTeacherLessonJSON(rawText, ctx) {
     if (!rawText) return null;
     const repairPrompt = `Convert the following AI teacher response into STRICT valid JSON only. No markdown.
-Use this schema keys: title, teacher_decision, goal, prerequisites, concept_map, big_picture, mental_model, syntax_rules, deep_dive, example_code, trace_table, common_mistakes, debugging_lab, real_world_use, practice_tasks, mini_project, starter_code, interview_angle, next_lesson, quiz.
+Use this schema keys: title, teacher_decision, goal, prerequisites, concept_map, big_picture, mental_model, lecture_notes, syntax_rules, deep_dive, example_code, trace_table, common_mistakes, debugging_lab, real_world_use, practice_tasks, homework_set, mini_project, starter_code, mastery_rubric, revision_plan, interview_angle, next_lesson, quiz.
 Context: ${ctx.language}, ${ctx.level}, ${ctx.mode}, topic ${ctx.topic}.
 If anything is missing, fill it with useful Hinglish teaching content. quiz must have 5 items minimum.
 
@@ -500,6 +706,7 @@ function buildTeacherFallbackLesson({ language, level, mode, topic }) {
         concept_map: ['Why this topic matters', 'Core syntax', 'Mental model', 'Dry run', 'Mistakes', 'Practice'],
         big_picture: `${topic} ko ek tool ki tarah socho. Jab problem mein repeated pattern, data handling, ya decision making dikhe, tab is concept ka use solution ko clean banata hai.`,
         mental_model: `Pehle problem ko chhote steps mein todo, phir dekho ${topic} kis step ko simpler banata hai. Code likhne se pehle 2 sample inputs manually dry-run karo.`,
+        lecture_notes: [`${topic} ko master karne ke liye intuition, syntax, dry-run aur repeated practice sab zaroori hain. Sirf code dekhne se learning complete nahi hoti; tumhe khud examples bana ke run karne honge.`],
         syntax_rules: ['Syntax ko exact rakho; small typo bhi runtime/logic bug ban sakta hai', 'Har block ka purpose clear rakho', 'Variable names meaningful rakho'],
         deep_dive: [
             { heading: 'Intuition', explanation: `${topic} ka main kaam code ko predictable aur reusable banana hai. Pehle concept ko plain Hindi/Hinglish mein samjho, phir syntax yaad karo.`, code: '', dry_run: ['Problem read karo', 'Input/output identify karo', 'Concept apply karne wali line mark karo'] },
@@ -513,8 +720,14 @@ function buildTeacherFallbackLesson({ language, level, mode, topic }) {
         debugging_lab: [{ bug: 'Code works for one example but fails for edge case', why_wrong: 'Logic general nahi hai', fix: 'At least 3 test cases dry-run karo' }],
         real_world_use: ['Interview coding questions', 'Small web/app features', 'Automation scripts', 'Data handling'],
         practice_tasks: ['Ek tiny example khud likho', '2 test cases dry-run karo', 'Ek edge case add karo', 'Code ko function mein convert karo', 'Friend ko concept explain karo'],
+        homework_set: [
+            { title: 'Core drill', difficulty: 'Easy', requirement: `${topic} ka ek basic example banao.`, hint: 'Small input se start karo.' },
+            { title: 'Edge case drill', difficulty: 'Medium', requirement: '3 edge cases ke saath code test karo.', hint: 'Empty, minimum, maximum input socho.' }
+        ],
         mini_project: `${topic} use karke ek mini demo banao aur output clearly show karo.`,
         starter_code: `// Practice ${topic} in ${language}\n`,
+        mastery_rubric: ['Concept apne words mein explain kar sakta hai', 'Code bina copy-paste likh sakta hai', 'Dry-run table bana sakta hai', 'Edge cases handle kar sakta hai'],
+        revision_plan: ['Aaj same topic ka 1 problem solve karo', 'Kal bina notes ke code likho', '3 din baad ek harder variant solve karo'],
         interview_angle: ['Interviewer dry-run pooch sakta hai', 'Edge cases zaroor discuss karo', 'Complexity simple words mein batao'],
         next_lesson: decideTeacherTopic(language),
         quiz: [
@@ -549,6 +762,7 @@ function renderTeacherLesson(readOnly) {
         </div>` : ''}
         ${lesson.big_picture ? `<div class="teacher-section"><h3>Big picture</h3><div class="teacher-rich-text">${esc(lesson.big_picture)}</div></div>` : ''}
         ${lesson.mental_model ? `<div class="teacher-section"><h3>Mental model</h3><div class="teacher-rich-text">${esc(lesson.mental_model)}</div></div>` : ''}
+        ${renderTeacherListSection('College-style lecture notes', lesson.lecture_notes)}
         ${renderTeacherListSection('Syntax rules', lesson.syntax_rules)}
         <div class="teacher-section">
             <h3>Deep dive</h3>
@@ -570,10 +784,13 @@ function renderTeacherLesson(readOnly) {
             <h3>Practice</h3>
             <div class="teacher-practice">${(lesson.practice_tasks || []).map(task => `<div>${esc(task)}</div>`).join('')}</div>
         </div>
+        ${renderTeacherHomework(lesson.homework_set)}
         <div class="teacher-section">
             <h3>Mini project</h3>
             <div class="teacher-project">${esc(lesson.mini_project || 'Is topic ka use karke ek chhota example khud build karo.')}</div>
         </div>
+        ${renderTeacherListSection('Mastery rubric', lesson.mastery_rubric)}
+        ${renderTeacherListSection('Revision plan', lesson.revision_plan)}
         ${renderTeacherListSection('Interview and exam angle', lesson.interview_angle)}
         <div class="teacher-section">
             <h3>Practice checker</h3>

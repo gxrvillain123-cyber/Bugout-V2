@@ -183,6 +183,35 @@
                         </select>
                     </div>
                     <div class="field">
+                        <label>Goal</label>
+                        <select id="teacherGoal">
+                            <option value="College replacement full coding foundation">College replacement foundation</option>
+                            <option value="Placement and interview ready">Placement ready</option>
+                            <option value="Build real projects">Build real projects</option>
+                            <option value="DSA and problem solving">DSA problem solving</option>
+                            <option value="Exam and semester mastery">Semester mastery</option>
+                        </select>
+                    </div>
+                    <div class="teacher-mini-grid">
+                        <div class="field">
+                            <label>Daily Time</label>
+                            <select id="teacherDailyTime">
+                                <option value="45 minutes/day">45 min/day</option>
+                                <option value="90 minutes/day">90 min/day</option>
+                                <option value="2 hours/day">2 hr/day</option>
+                                <option value="4 hours/day">4 hr/day</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>Intensity</label>
+                            <select id="teacherIntensity">
+                                <option value="Normal pace">Normal</option>
+                                <option value="Strict college mode">Strict</option>
+                                <option value="Fast track">Fast track</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="field">
                         <label>Topic</label>
                         <input type="text" id="teacherTopic" placeholder="Blank chhodo to AI next best topic decide karega">
                     </div>
@@ -190,6 +219,9 @@
                     <div class="teacher-action-row">
                         <button class="btn" id="teacherStartBtn" onclick="startTeacherLesson()">Start Lesson</button>
                         <button class="btn btn-ghost" onclick="buildTeacherRoadmap()">Roadmap</button>
+                        <button class="btn btn-ghost" onclick="startPlacementTest()">Placement Test</button>
+                        <button class="btn btn-ghost" onclick="generateCollegePlan()">Full Course</button>
+                        <button class="btn btn-ghost" onclick="continueTeacherPath()">Next Lesson</button>
                     </div>
                     <div class="teacher-history" id="teacherHistory"><div class="teacher-empty">Progress loading...</div></div>
                 </section>
