@@ -457,6 +457,26 @@ function renderCollegePlan(plan, settings) {
     `;
 }
 
+function renderTeacherHomework(items) {
+    if (!Array.isArray(items) || !items.length) return '';
+
+    return `
+        <div class="teacher-section">
+            <h3>Homework</h3>
+            <div class="teacher-practice">
+                ${items.map(task => `
+                    <div>
+                        <strong>${esc(task.title || 'Homework task')}</strong>
+                        ${task.difficulty ? `<br><span>${esc(task.difficulty)}</span>` : ''}
+                        <p>${esc(task.requirement || task.task || '')}</p>
+                        ${task.hint ? `<em>Hint: ${esc(task.hint)}</em>` : ''}
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
 async function startPlacementTest() {
     if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
     const settings = getTeacherSettings();
