@@ -27,6 +27,7 @@ let allFollowersList = [], unreadCheckInterval = null, currentTags = [], searchT
 let notifCheckInterval = null, notifPanelOpen = false, myBookmarks = new Set(), activeStatusFilter = null, activeSort = 'newest';
 let mentorHistory = [];
 let teacherProgress = [], currentTeacherLesson = null;
+let lastTriageSuggestion = null;
 let arenaProblems = [], arenaSubmissions = new Map(), arenaBatchGeneratedAt = null, arenaTimer = null;
 
 const LEVELS = [
@@ -453,26 +454,6 @@ function renderCollegePlan(plan, settings) {
         <div class="teacher-action-row teacher-sticky-actions">
             <button class="btn" onclick="applyTeacherTopic('${esc(plan.start_topic || settings.topic)}');startTeacherLesson()">Start: ${esc(plan.start_topic || settings.topic)}</button>
             <button class="btn btn-ghost" onclick="startPlacementTest()">Take Placement Test</button>
-        </div>
-    `;
-}
-
-function renderTeacherHomework(items) {
-    if (!Array.isArray(items) || !items.length) return '';
-
-    return `
-        <div class="teacher-section">
-            <h3>Homework</h3>
-            <div class="teacher-practice">
-                ${items.map(task => `
-                    <div>
-                        <strong>${esc(task.title || 'Homework task')}</strong>
-                        ${task.difficulty ? `<br><span>${esc(task.difficulty)}</span>` : ''}
-                        <p>${esc(task.requirement || task.task || '')}</p>
-                        ${task.hint ? `<em>Hint: ${esc(task.hint)}</em>` : ''}
-                    </div>
-                `).join('')}
-            </div>
         </div>
     `;
 }
@@ -1374,6 +1355,328 @@ function useAISolution(index) {
 }
 
 // ─── INIT ─────────────────────────────────────────────────────
+function getPostDraft() {
+    const rawTagInput = document.getElementById('tagRawInput')?.value.trim() || '';
+    const draftTags = rawTagInput ? [...currentTags, rawTagInput] : [...currentTags];
+    return {
+        title: document.getElementById('bugTitle')?.value.trim() || '',
+        description: document.getElementById('bugDesc')?.value.trim() || '',
+        category: document.getElementById('bugCat')?.value || '',
+        tags: sanitizeAITags(draftTags)
+    };
+}
+
+function normalizeCategory(value) {
+    const allowed = ['Coding', 'Life', 'Studies', 'Career', 'Relationships', 'Random'];
+    const found = allowed.find(cat => cat.toLowerCase() === String(value || '').trim().toLowerCase());
+    return found || '';
+}
+
+function normalizeList(value) {
+    if (Array.isArray(value)) return value.map(item => String(item || '').trim()).filter(Boolean);
+    if (!value) return [];
+    return String(value).split(/\n|;/).map(item => item.replace(/^[-*\d.)\s]+/, '').trim()).filter(Boolean);
+}
+
+function sanitizeAITags(tags) {
+    const unique = [];
+    (Array.isArray(tags) ? tags : []).forEach(tag => {
+        const clean = String(tag || '').toLowerCase().replace(/^#/, '').replace(/[^a-z0-9_\-]/g, '').slice(0, 20);
+        if (clean && !unique.includes(clean)) unique.push(clean);
+    });
+    return unique.slice(0, 5);
+}
+
+function normalizeTriageReport(report, draft) {
+    const safe = report && typeof report === 'object' ? report : {};
+    return {
+        title: String(safe.title || safe.improved_title || draft.title || '').trim().slice(0, 90),
+        category: normalizeCategory(safe.category) || draft.category || 'Coding',
+        severity: String(safe.severity || safe.priority || 'Medium').trim().slice(0, 24),
+        summary: String(safe.summary || safe.problem_summary || draft.description || '').trim(),
+        repro_steps: normalizeList(safe.repro_steps || safe.steps_to_reproduce),
+        expected_result: String(safe.expected_result || safe.expected || '').trim(),
+        actual_result: String(safe.actual_result || safe.actual || '').trim(),
+        clarifying_questions: normalizeList(safe.clarifying_questions || safe.questions),
+        tags: sanitizeAITags(safe.tags || draft.tags)
+    };
+}
+
+async function runAITriage() {
+    const draft = getPostDraft();
+    if (!draft.title && !draft.description) { toast('Pehle title ya description likho!', 'err'); return; }
+    const btn = document.getElementById('aiTriageBtn');
+    const box = document.getElementById('triageBox');
+    const content = document.getElementById('triageContent');
+    if (!btn || !box || !content) return;
+    btn.disabled = true;
+    btn.textContent = 'Triaging...';
+    box.classList.add('show');
+    content.innerHTML = '<div class="ai-loading-wrap"><div class="spinner"></div><div class="ai-loading-text">AI post ko polish kar raha hai...</div></div>';
+    const prompt = `You are BUGOUT's AI triage assistant. Improve a community bug/problem post without inventing facts.
+
+Draft:
+Title: ${draft.title || 'Missing'}
+Category: ${draft.category || 'Missing'}
+Tags: ${draft.tags.join(', ') || 'None'}
+Description:
+${draft.description || 'Missing'}
+
+Return ONLY JSON:
+{
+  "title": "clear searchable title under 90 characters",
+  "category": "Coding/Life/Studies/Career/Relationships/Random",
+  "severity": "Low/Medium/High/Urgent",
+  "summary": "clean problem summary in Hinglish",
+  "repro_steps": ["step 1", "step 2"],
+  "expected_result": "what should happen",
+  "actual_result": "what is happening",
+  "clarifying_questions": ["question the community should answer"],
+  "tags": ["up to 5 lowercase tags"]
+}
+If details are missing, ask questions instead of making them up.`;
+    try {
+        const data = await callGroq([{ role: 'user', content: prompt }], {
+            max_tokens: 1100,
+            temperature: 0.25,
+            response_format: { type: 'json_object' }
+        });
+        const report = normalizeTriageReport(extractJSON(data.choices?.[0]?.message?.content || '', {}), draft);
+        lastTriageSuggestion = report;
+        renderTriageReport(report);
+        toast('AI triage ready!', 'ok');
+    } catch(err) {
+        content.innerHTML = `<div class="ai-error-wrap"><p>Triage failed: ${esc(err.message)}</p><button class="btn btn-ghost btn-sm" style="margin-top:8px;" onclick="runAITriage()">Retry</button></div>`;
+        toast('Triage error: ' + err.message, 'err');
+    }
+    btn.disabled = false;
+    btn.textContent = 'AI Triage & Polish';
+}
+
+function renderTriageReport(report) {
+    const content = document.getElementById('triageContent');
+    if (!content) return;
+    const steps = report.repro_steps.length ? report.repro_steps : ['Details missing - community ko exact steps batao.'];
+    const questions = report.clarifying_questions.length ? report.clarifying_questions : ['Kya exact error/output aa raha hai?', 'Expected result kya tha?'];
+    content.innerHTML = `
+        <div class="triage-report">
+            <div class="triage-topline">
+                <span class="triage-pill">${esc(report.severity)}</span>
+                <span class="triage-pill">${esc(report.category)}</span>
+                ${report.tags.map(tag => `<span class="triage-pill">#${esc(tag)}</span>`).join('')}
+            </div>
+            <h3>${esc(report.title || 'Polished bug title')}</h3>
+            <p>${esc(report.summary || 'Summary missing.')}</p>
+            <div class="triage-grid">
+                <div><strong>Expected</strong><span>${esc(report.expected_result || 'Add expected result.')}</span></div>
+                <div><strong>Actual</strong><span>${esc(report.actual_result || 'Add actual result.')}</span></div>
+            </div>
+            <div class="triage-mini-list"><strong>Repro steps</strong>${steps.map((step, i) => `<span>${i + 1}. ${esc(step)}</span>`).join('')}</div>
+            <div class="triage-mini-list"><strong>Questions to add</strong>${questions.map(q => `<span>${esc(q)}</span>`).join('')}</div>
+            <div class="triage-actions">
+                <button class="btn btn-sm" onclick="applyTriageSuggestion()">Apply Triage</button>
+                <button class="btn btn-sm btn-ghost" onclick="scanSimilarBugsFromPost()">Check Similar Bugs</button>
+            </div>
+        </div>
+    `;
+}
+
+function applyTriageSuggestion() {
+    const report = lastTriageSuggestion;
+    if (!report) { toast('Pehle AI triage run karo.', 'err'); return; }
+    const titleEl = document.getElementById('bugTitle');
+    const catEl = document.getElementById('bugCat');
+    const descEl = document.getElementById('bugDesc');
+    if (titleEl && report.title) titleEl.value = report.title;
+    if (catEl && normalizeCategory(report.category)) catEl.value = normalizeCategory(report.category);
+    if (descEl) {
+        const lines = [];
+        if (report.summary) lines.push(report.summary);
+        if (report.repro_steps.length) lines.push('', 'Steps to reproduce:', ...report.repro_steps.map((step, i) => `${i + 1}. ${step}`));
+        if (report.expected_result) lines.push('', 'Expected:', report.expected_result);
+        if (report.actual_result) lines.push('', 'Actual:', report.actual_result);
+        if (report.clarifying_questions.length) lines.push('', 'Extra context needed:', ...report.clarifying_questions.map(q => `- ${q}`));
+        descEl.value = lines.join('\n').trim() || descEl.value;
+    }
+    currentTags = sanitizeAITags(report.tags);
+    renderTagPills();
+    toast('Triage apply ho gaya!', 'ok');
+}
+
+const SIMILARITY_STOP_WORDS = new Set(['the','and','for','with','this','that','from','have','has','are','was','were','your','you','but','not','can','how','why','what','when','where','kya','hai','hain','mera','meri','mere','nahi','error','issue','problem']);
+
+function tokenizeForSimilarity(value) {
+    return String(value || '').toLowerCase()
+        .replace(/[^a-z0-9+#.\-\s]/g, ' ')
+        .split(/\s+/)
+        .map(token => token.trim())
+        .filter(token => token.length > 1 && !SIMILARITY_STOP_WORDS.has(token));
+}
+
+function scoreSimilarBug(bug, context, excludeId) {
+    if (!bug || (excludeId && String(bug.id) === String(excludeId))) return 0;
+    const queryTokens = new Set(tokenizeForSimilarity(`${context.title || ''} ${context.description || ''} ${(context.tags || []).join(' ')} ${context.category || ''}`));
+    if (!queryTokens.size) return 0;
+    const titleTokens = new Set(tokenizeForSimilarity(bug.title));
+    const descTokens = new Set(tokenizeForSimilarity(bug.description));
+    const bugTags = sanitizeAITags(bug.tags || []);
+    const tagTokens = new Set(bugTags);
+    let score = 0;
+    queryTokens.forEach(token => {
+        if (titleTokens.has(token)) score += 7;
+        if (tagTokens.has(token)) score += 10;
+        if (descTokens.has(token)) score += 3;
+    });
+    const contextTags = sanitizeAITags(context.tags || []);
+    contextTags.forEach(tag => { if (bugTags.includes(tag)) score += 12; });
+    if (context.category && bug.category === context.category) score += 5;
+    return score;
+}
+
+async function findSimilarBugs(context, excludeId = null) {
+    const { data, error } = await db.from('bugs')
+        .select('id,title,description,category,tags,solutions_count,status,created_at,username')
+        .order('created_at', { ascending: false })
+        .limit(120);
+    if (error) throw error;
+    return (data || [])
+        .map(bug => ({ ...bug, similarityScore: scoreSimilarBug(bug, context, excludeId) }))
+        .filter(bug => bug.similarityScore >= 10)
+        .sort((a, b) => b.similarityScore - a.similarityScore || parseSupabaseDate(b.created_at) - parseSupabaseDate(a.created_at))
+        .slice(0, 4);
+}
+
+function renderSimilarBugCards(matches, emptyText) {
+    if (!matches.length) return `<div class="related-empty">${esc(emptyText)}</div>`;
+    return `<div class="related-bug-list">${matches.map(bug => `
+        <button type="button" class="related-bug-card" onclick="openBug('${bug.id}')">
+            <span>${esc(bug.title || 'Untitled bug')}</span>
+            <small>${esc(bug.category || 'General')} - ${esc(bug.status || 'open')} - ${bug.solutions_count || 0} solutions - ${timeAgo(bug.created_at)}</small>
+            <em>${Math.min(99, bug.similarityScore)} match</em>
+        </button>
+    `).join('')}</div>`;
+}
+
+async function renderSimilarBugs(boxId, contentId, context, options = {}) {
+    const box = document.getElementById(boxId);
+    const content = document.getElementById(contentId);
+    if (!box || !content) return;
+    box.classList.add('show');
+    content.innerHTML = '<div class="ai-loading-wrap"><div class="spinner"></div><div class="ai-loading-text">Similar bugs scan ho rahe hain...</div></div>';
+    try {
+        const matches = await findSimilarBugs(context, options.excludeId || null);
+        content.innerHTML = renderSimilarBugCards(matches, options.emptyText || 'Close duplicate nahi mila. Post fresh lag raha hai.');
+    } catch(err) {
+        content.innerHTML = `<div class="ai-error-wrap">Similar scan failed: ${esc(err.message)}</div>`;
+    }
+}
+
+async function scanSimilarBugsFromPost() {
+    const context = getPostDraft();
+    if (!context.title && !context.description && !context.tags.length) { toast('Pehle title, description ya tags do.', 'err'); return; }
+    const btn = document.getElementById('similarBugBtn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Scanning...'; }
+    await renderSimilarBugs('postSimilarBox', 'postSimilarContent', context);
+    if (btn) { btn.disabled = false; btn.textContent = 'Find Similar Bugs'; }
+}
+
+function loadRelatedBugsForActive() {
+    if (!activeBug) return;
+    renderSimilarBugs('relatedBugBox', 'relatedBugContent', {
+        title: activeBug.title,
+        description: activeBug.description,
+        category: activeBug.category,
+        tags: activeBug.tags || []
+    }, {
+        excludeId: activeBug.id,
+        emptyText: 'Is bug ke close related posts abhi nahi mile.'
+    });
+}
+
+async function reviewSolutionWithAI() {
+    if (!activeBug) return;
+    const input = document.getElementById('solText');
+    const box = document.getElementById('solutionCoachBox');
+    const content = document.getElementById('solutionCoachContent');
+    const solution = input?.value.trim() || '';
+    if (!solution) { toast('Pehle solution likho.', 'err'); return; }
+    if (solution.length > 9000) { toast('Solution thoda chhota karo.', 'err'); return; }
+    if (!box || !content) return;
+    box.classList.add('show');
+    content.innerHTML = '<div class="ai-loading-wrap"><div class="spinner"></div><div class="ai-loading-text">Solution quality check ho raha hai...</div></div>';
+    const prompt = `You are BUGOUT's strict but friendly solution quality coach. Review the draft before it is posted.
+
+Bug:
+Title: ${activeBug.title}
+Category: ${activeBug.category}
+Description:
+${activeBug.description}
+
+Draft solution:
+${solution}
+
+Return ONLY JSON:
+{
+  "score": 0,
+  "verdict": "short Hinglish verdict",
+  "strengths": ["what is good"],
+  "risks": ["bugs, missing proof, unclear steps"],
+  "missing_details": ["details user should add"],
+  "improved_solution": "a clearer post-ready version, preserving the user's idea",
+  "post_checklist": ["quick checks before posting"]
+}`;
+    try {
+        const data = await callGroq([{ role: 'user', content: prompt }], {
+            max_tokens: 1600,
+            temperature: 0.25,
+            response_format: { type: 'json_object' }
+        });
+        const review = extractJSON(data.choices?.[0]?.message?.content || '', {});
+        renderSolutionCoach(review);
+        toast('Solution review ready!', 'ok');
+    } catch(err) {
+        content.innerHTML = `<div class="ai-error-wrap"><p>Review failed: ${esc(err.message)}</p><button class="btn btn-ghost btn-sm" style="margin-top:8px;" onclick="reviewSolutionWithAI()">Retry</button></div>`;
+    }
+}
+
+function renderSolutionCoach(review) {
+    const content = document.getElementById('solutionCoachContent');
+    if (!content) return;
+    const score = Math.max(0, Math.min(100, Number(review?.score) || 0));
+    const strengths = normalizeList(review?.strengths);
+    const risks = normalizeList(review?.risks);
+    const missing = normalizeList(review?.missing_details);
+    const checklist = normalizeList(review?.post_checklist);
+    window._solutionCoachImproved = String(review?.improved_solution || '').trim();
+    content.innerHTML = `
+        <div class="solution-coach-card">
+            <div class="solution-score-ring">
+                <strong>${score}</strong>
+                <span>/100</span>
+            </div>
+            <div class="solution-coach-body">
+                <h3>${esc(review?.verdict || 'Review complete')}</h3>
+                <div class="coach-columns">
+                    <div><strong>Strengths</strong>${(strengths.length ? strengths : ['Idea useful hai.']).map(x => `<span>${esc(x)}</span>`).join('')}</div>
+                    <div><strong>Risks</strong>${(risks.length ? risks : ['Edge cases aur clarity ek baar check karo.']).map(x => `<span>${esc(x)}</span>`).join('')}</div>
+                </div>
+                ${missing.length ? `<div class="triage-mini-list"><strong>Missing details</strong>${missing.map(x => `<span>${esc(x)}</span>`).join('')}</div>` : ''}
+                ${checklist.length ? `<div class="triage-mini-list"><strong>Post checklist</strong>${checklist.map(x => `<span>${esc(x)}</span>`).join('')}</div>` : ''}
+                ${window._solutionCoachImproved ? `<div class="triage-mini-list"><strong>Improved version</strong><span>${esc(window._solutionCoachImproved)}</span></div><button class="btn btn-sm" onclick="useImprovedSolution()">Use Improved Version</button>` : ''}
+            </div>
+        </div>
+    `;
+}
+
+function useImprovedSolution() {
+    const improved = window._solutionCoachImproved;
+    const input = document.getElementById('solText');
+    if (!improved || !input) return;
+    input.value = improved;
+    input.focus();
+    toast('Improved solution apply ho gaya!', 'ok');
+}
+
 window.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('authModal').addEventListener('click', e => { if (e.target.id === 'authModal') closeModal(); });
     document.getElementById('confirmDialog').addEventListener('click', e => { if (e.target.id === 'confirmDialog') closeConfirm(); });
@@ -1389,10 +1692,8 @@ window.addEventListener('DOMContentLoaded', async () => {
         if (event === 'SIGNED_OUT') clearUser();
     });
     const routed = await openInitialRoute();
-    if (!routed) { showSkeletonBugs(); loadBugs(); }
+    if (!routed) loadBugs();
     loadStats();
-    loadTrending();
-    if (me) loadDailyChallenge();
 });
 
 async function loadStats() {
@@ -1402,9 +1703,9 @@ async function loadStats() {
             db.from('solutions').select('*', { count: 'exact', head: true }),
             db.from('profiles').select('*', { count: 'exact', head: true })
         ]);
-        animateCounter(document.getElementById('statBugs'), b || 0);
-        animateCounter(document.getElementById('statSolutions'), s || 0);
-        animateCounter(document.getElementById('statWarriors'), u || 0);
+        document.getElementById('statBugs').textContent = b || 0;
+        document.getElementById('statSolutions').textContent = s || 0;
+        document.getElementById('statWarriors').textContent = u || 0;
     } catch(e) {}
 }
 
@@ -1672,7 +1973,6 @@ async function setUser(user) {
         else { myName = user.email.split('@')[0]; myXP = 0; }
     } catch(e) { myName = user.email.split('@')[0]; myXP = 0; }
     renderUserUI(); startUnreadCheck(); startNotifCheck(); await loadMyBookmarks();
-    loadDailyChallenge();
 }
 
 function clearUser() {
@@ -1707,7 +2007,7 @@ async function addXP(amount) {
         const newLvl = getLevelNum(myXP), lvl = getLevel(myXP);
         document.getElementById('userXP').textContent = myXP + ' XP';
         document.getElementById('userName').textContent = lvl.emoji + ' ' + myName;
-        if (newLvl > oldLvl) showAchievement(lvl.emoji, 'Level Up!', `Tu ab ${lvl.name} hai! Keep going warrior! 😈`);
+        if (newLvl > oldLvl) toast(`🎉 Level Up! Tu ab ${lvl.emoji} ${lvl.name} hai!`, 'ok');
         await checkAndAwardBadges();
     } catch(e) {}
 }
@@ -1757,9 +2057,16 @@ function goPost() {
     if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
     resetTagInput();
     document.getElementById('aiBox').classList.remove('show');
+    document.getElementById('triageBox').classList.remove('show');
+    document.getElementById('postSimilarBox').classList.remove('show');
     document.getElementById('aiSolveBtn').disabled = false;
     document.getElementById('aiSolveBtn').innerHTML = '🤖 Get AI Solutions First (Optional)';
+    const triageBtn = document.getElementById('aiTriageBtn');
+    const similarBtn = document.getElementById('similarBugBtn');
+    if (triageBtn) { triageBtn.disabled = false; triageBtn.textContent = 'AI Triage & Polish'; }
+    if (similarBtn) { similarBtn.disabled = false; similarBtn.textContent = 'Find Similar Bugs'; }
     window._aiSolutions = [];
+    lastTriageSuggestion = null;
     showPage('postPage');
 }
 async function goArena() {
@@ -2207,11 +2514,20 @@ async function openBug(id, fromRoute = false) {
                     <span style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;"><button class="share-btn" onclick="copyShareLink('bug','${bug.id}')">🔗 Share</button>${isOwner ? `<button class="btn btn-ghost btn-sm" onclick="openEditBugModal()">✏️ Edit</button><button class="btn btn-danger btn-sm" onclick="askDelete('${bug.id}',event)">🗑️ Delete</button>` : ''}</span>
                 </div>
             </div>
+            <div class="ai-box show related-bug-box" id="relatedBugBox">
+                <div class="ai-box-header"><span>Radar</span><span class="ai-box-title">Related Bug Radar</span><span class="ai-box-subtitle">Same context</span></div>
+                <div id="relatedBugContent"><div class="ai-loading-wrap"><div class="spinner"></div><div class="ai-loading-text">Related bugs scan ho rahe hain...</div></div></div>
+            </div>
             <div class="solutions-header">Solutions (${solutions.length})</div>
             ${me ? `<div class="solution-input-box"><h4>Post your solution 💡</h4><div class="field"><textarea id="solText" placeholder="Share your solution..." rows="4"></textarea></div>
                 <div style="display:flex;gap:8px;flex-wrap:wrap;">
                     <button class="btn btn-sm" id="solBtn" onclick="submitSolution()">Post Solution</button>
+                    <button class="btn btn-sm btn-ghost" onclick="reviewSolutionWithAI()">Review Solution</button>
                     <button class="ai-solver-btn" style="width:auto;padding:6px 14px;font-size:0.82rem;" onclick="getAISolutionsForDetail('${bug.id}')">🤖 Ask AI</button>
+                </div>
+                <div class="ai-box" id="solutionCoachBox" style="margin-top:0.75rem;">
+                    <div class="ai-box-header"><span>Coach</span><span class="ai-box-title">Solution Quality Coach</span><span class="ai-box-subtitle">Before posting</span></div>
+                    <div id="solutionCoachContent"></div>
                 </div>
                 <div class="ai-box" id="aiBoxDetail" style="margin-top:0.75rem;">
                     <div class="ai-box-header"><span>🤖</span><span class="ai-box-title">AI Suggestions</span><span class="ai-box-subtitle">Groq · LLaMA 3</span></div>
@@ -2220,6 +2536,7 @@ async function openBug(id, fromRoute = false) {
                 </div>
             </div>` : `<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;text-align:center;"><p style="color:var(--text2);margin-bottom:1rem;">Solution post karne ke liye Sign In karo</p><button class="btn btn-sm" onclick="openModal()">Sign In</button></div>`}
             <div class="solutions-list">${solutions.length === 0 ? '<div class="empty" style="grid-column:unset;"><p>Koi solution nahi abhi 💪<br>Pehle warrior bano!</p></div>' : solutions.map(s => renderSolutionCard(s, isOwner, bug.id)).join('')}</div>`;
+        loadRelatedBugsForActive();
     } catch(err) { wrap.innerHTML = `<button class="back-btn" onclick="goHome()">← Back</button><div class="empty"><h3>Error 😔</h3><p>${esc(err.message)}</p></div>`; }
 }
 
@@ -2502,182 +2819,4 @@ function toast(msg, type = 'ok') {
     document.querySelectorAll('.toast').forEach(t => t.remove());
     const t = document.createElement('div'); t.className = 'toast ' + type; t.textContent = msg; document.body.appendChild(t);
     setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(() => t.remove(), 300); }, 3000);
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  🔥 TRENDING BUGS
-// ═══════════════════════════════════════════════════════════════
-async function loadTrending() {
-    try {
-        const { data: bugs } = await db.from('bugs').select('id,title,category,solutions_count,created_at,status')
-            .order('solutions_count', { ascending: false })
-            .limit(8);
-        if (!bugs || bugs.length < 2) return;
-        const section = document.getElementById('trendingSection');
-        const scroll = document.getElementById('trendingScroll');
-        if (!section || !scroll) return;
-        scroll.innerHTML = bugs.map(b => `
-            <div class="trending-card" onclick="openBug('${b.id}')">
-                <span class="trending-fire">🔥</span>
-                <span class="bug-tag">${esc(b.category || 'General')}</span>
-                <h4>${esc(b.title)}</h4>
-                <div class="trending-stats">
-                    <span>💡 ${b.solutions_count || 0} solutions</span>
-                    <span>${getStatusBadge(b.status || 'open')}</span>
-                    <span>🕐 ${timeAgo(b.created_at)}</span>
-                </div>
-            </div>
-        `).join('');
-        section.style.display = 'block';
-    } catch(e) { /* silent */ }
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  🎯 DAILY CHALLENGE
-// ═══════════════════════════════════════════════════════════════
-let dailyChallengeData = null;
-let dailyTimerInterval = null;
-
-function getDailyKey() {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
-
-async function loadDailyChallenge() {
-    if (!me) return;
-    const wrap = document.getElementById('dailyChallengeWrap');
-    if (!wrap) return;
-    const todayKey = getDailyKey();
-    const stored = localStorage.getItem('bugout_daily_' + me.id);
-    if (stored) {
-        try {
-            const parsed = JSON.parse(stored);
-            if (parsed.date === todayKey) {
-                if (parsed.solved) { wrap.style.display = 'none'; return; }
-                dailyChallengeData = parsed;
-                renderDailyChallenge(parsed);
-                wrap.style.display = 'block';
-                startDailyTimer();
-                return;
-            }
-        } catch(e) {}
-    }
-    try {
-        const data = await callGroq([{ role: 'user', content: `Generate a daily coding challenge for BUGOUT community. Return ONLY JSON: {"title":"short title","description":"2-3 line problem description in Hinglish","difficulty":"Easy/Medium/Hard","xp":20,"hint":"optional hint","category":"Coding"}. Make it interesting and unique for date ${todayKey}.` }], {
-            max_tokens: 400, temperature: 0.6, response_format: { type: 'json_object' }
-        });
-        const challenge = extractJSON(data.choices?.[0]?.message?.content || '', null);
-        if (!challenge || !challenge.title) return;
-        challenge.date = todayKey;
-        challenge.solved = false;
-        challenge.xp = challenge.xp || 30;
-        dailyChallengeData = challenge;
-        localStorage.setItem('bugout_daily_' + me.id, JSON.stringify(challenge));
-        renderDailyChallenge(challenge);
-        wrap.style.display = 'block';
-        startDailyTimer();
-    } catch(e) { /* silent */ }
-}
-
-function renderDailyChallenge(ch) {
-    document.getElementById('dailyChallengeTitle').textContent = ch.title || 'Daily Challenge';
-    document.getElementById('dailyChallengeDesc').textContent = ch.description || 'Solve this challenge to earn bonus XP!';
-    document.getElementById('dailyChallengeXP').textContent = `+${ch.xp || 30} XP`;
-    document.getElementById('dailyChallengeDiff').textContent = ch.difficulty || 'Medium';
-    const streak = parseInt(localStorage.getItem('bugout_daily_streak_' + me.id) || '0');
-    document.getElementById('dailyStreakBadge').textContent = `🔥 ${streak} day streak`;
-}
-
-function startDailyTimer() {
-    if (dailyTimerInterval) clearInterval(dailyTimerInterval);
-    const el = document.getElementById('dailyTimer');
-    if (!el) return;
-    function update() {
-        const now = new Date();
-        const tomorrow = new Date(now); tomorrow.setHours(24, 0, 0, 0);
-        const diff = tomorrow - now;
-        const h = Math.floor(diff / 3600000), m = Math.floor((diff % 3600000) / 60000), s = Math.floor((diff % 60000) / 1000);
-        el.textContent = `⏰ Resets in ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-    }
-    update();
-    dailyTimerInterval = setInterval(update, 1000);
-}
-
-function solveDailyChallenge() {
-    if (!me || !dailyChallengeData) return;
-    dailyChallengeData.solved = true;
-    localStorage.setItem('bugout_daily_' + me.id, JSON.stringify(dailyChallengeData));
-    const streakKey = 'bugout_daily_streak_' + me.id;
-    const lastKey = 'bugout_daily_last_' + me.id;
-    const last = localStorage.getItem(lastKey);
-    const todayKey = getDailyKey();
-    const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
-    const yKey = `${yesterday.getFullYear()}-${String(yesterday.getMonth()+1).padStart(2,'0')}-${String(yesterday.getDate()).padStart(2,'0')}`;
-    let streak = parseInt(localStorage.getItem(streakKey) || '0');
-    if (last === yKey) { streak += 1; } else if (last !== todayKey) { streak = 1; }
-    localStorage.setItem(streakKey, streak);
-    localStorage.setItem(lastKey, todayKey);
-    const xp = dailyChallengeData.xp || 30;
-    addXP(xp);
-    document.getElementById('dailyChallengeWrap').style.display = 'none';
-    showAchievement('🎯', 'Daily Challenge Complete!', `+${xp} XP earned! Streak: ${streak} days 🔥`);
-}
-
-function skipDailyChallenge() {
-    document.getElementById('dailyChallengeWrap').style.display = 'none';
-    toast('Challenge skipped. Kal try karna! 💪', 'ok');
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  📊 ANIMATED COUNTERS
-// ═══════════════════════════════════════════════════════════════
-function animateCounter(el, target, duration = 1200) {
-    if (!el) return;
-    const start = 0;
-    const startTime = performance.now();
-    function update(currentTime) {
-        const elapsed = currentTime - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 3);
-        el.textContent = Math.floor(start + (target - start) * eased);
-        if (progress < 1) requestAnimationFrame(update);
-    }
-    requestAnimationFrame(update);
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  🏅 ACHIEVEMENT POPUP
-// ═══════════════════════════════════════════════════════════════
-function showAchievement(icon, title, desc) {
-    document.getElementById('achIcon').textContent = icon;
-    document.getElementById('achTitle').textContent = title;
-    document.getElementById('achDesc').textContent = desc;
-    document.getElementById('achOverlay').classList.add('show');
-    document.getElementById('achPopup').classList.add('show');
-    setTimeout(() => closeAchievement(), 4000);
-}
-
-function closeAchievement() {
-    document.getElementById('achOverlay').classList.remove('show');
-    document.getElementById('achPopup').classList.remove('show');
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  💀 SKELETON LOADERS
-// ═══════════════════════════════════════════════════════════════
-function showSkeletonBugs() {
-    const grid = document.getElementById('bugsGrid');
-    if (!grid) return;
-    grid.innerHTML = Array(6).fill('').map(() => `
-        <div class="bug-card" style="pointer-events:none;">
-            <div class="skeleton skeleton-text short" style="height:20px;width:80px;margin-bottom:12px;"></div>
-            <div class="skeleton skeleton-text" style="height:18px;margin-bottom:10px;"></div>
-            <div class="skeleton skeleton-text medium" style="height:14px;margin-bottom:6px;"></div>
-            <div class="skeleton skeleton-text short" style="height:14px;margin-bottom:16px;"></div>
-            <div style="display:flex;justify-content:space-between;">
-                <div class="skeleton skeleton-text" style="width:60px;height:12px;"></div>
-                <div class="skeleton skeleton-text" style="width:80px;height:12px;"></div>
-            </div>
-        </div>
-    `).join('');
 }
