@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BUGOUT by MindForgers - Post your problem. World solves it.</title>
     <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="stylesheet" href="assets/css/collaboration.css">
 </head>
 <body>
 
@@ -37,6 +38,7 @@
             <button class="btn btn-sm btn-ghost" onclick="goMentor()" style="padding:6px 12px;display:none;" id="mentorNavBtn">🧠</button>
             <button class="btn btn-sm btn-ghost" onclick="goTeacher()" style="padding:6px 12px;display:none;" id="teacherNavBtn">AI Teacher</button>
             <button class="btn btn-sm btn-ghost" onclick="goAnalyzer()" style="padding:6px 12px;display:none;" id="analyzerNavBtn">🧪</button>
+            <button class="btn btn-sm btn-ghost" onclick="goCollaboration()" style="padding:6px 12px;display:none;" id="collabNavBtn">🤝</button>
             <button class="btn btn-sm btn-ghost" onclick="goLeaderboard()" style="padding:6px 12px;">🏆</button>
             <button class="btn btn-sm" id="authBtn" onclick="handleAuth()">Sign In</button>
             <button class="btn btn-sm btn-ghost" id="postBtn" onclick="goPost()" style="display:none;">+ Post Bug</button>
@@ -422,15 +424,123 @@
         </div>
     </div>
 
-    <!-- NOTIFICATIONS PAGE -->
-    <div class="page" id="notifsPage">
-        <div class="notifs-wrap">
+    <!-- COLLABORATION PAGE -->
+    <div class="page" id="collabPage">
+        <div class="collab-wrap">
             <button class="back-btn" onclick="goHome()">← Back</button>
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-                <h2>🔔 Notifications</h2>
-                <button class="btn btn-sm btn-ghost" onclick="markAllNotifsRead()">Mark all read</button>
+            <div class="collab-head">
+                <div>
+                    <h2>🤝 Live Collaboration Rooms</h2>
+                    <p>Real-time coding, whiteboard, and chat with fellow warriors!</p>
+                </div>
+                <button class="btn" onclick="openCreateRoomModal()">+ Create Room</button>
             </div>
-            <div class="notifs-list" id="notifsList"><div class="loading"><div class="spinner"></div><p>Loading...</p></div></div>
+            
+            <!-- Room List -->
+            <div class="collab-rooms-section" id="collabRoomsSection">
+                <h3>Active Rooms</h3>
+                <div class="collab-rooms-grid" id="collabRoomsGrid">
+                    <div class="loading"><div class="spinner"></div><p>Loading rooms...</p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- COLLABORATION ROOM PAGE -->
+    <div class="page" id="collabRoomPage">
+        <div class="collab-room-wrap">
+            <div class="collab-room-header">
+                <button class="back-btn" onclick="goCollaboration()">← Back</button>
+                <div class="collab-room-info">
+                    <h2 id="collabRoomTitle">Room Name</h2>
+                    <div class="collab-room-users" id="collabRoomUsers">
+                        <div class="collab-user-count">0 users</div>
+                    </div>
+                </div>
+                <button class="btn btn-sm btn-danger" onclick="leaveCollabRoom()">Leave Room</button>
+            </div>
+            
+            <div class="collab-room-layout">
+                <!-- Left Panel - Chat & Users -->
+                <div class="collab-sidebar">
+                    <!-- Users Panel -->
+                    <div class="collab-users-panel">
+                        <h4>Active Users</h4>
+                        <div class="collab-users-list" id="collabUsersList">
+                            <div class="collab-empty">No users yet</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Chat Panel -->
+                    <div class="collab-chat-panel">
+                        <h4>Chat</h4>
+                        <div class="collab-chat-messages" id="collabChatMessages">
+                            <div class="collab-empty">Start a conversation...</div>
+                        </div>
+                        <div class="collab-chat-input-area">
+                            <textarea class="collab-chat-input" id="collabChatInput" placeholder="Type a message..." rows="1" onkeydown="handleCollabChatKey(event)" oninput="autoResizeCollabInput(this)"></textarea>
+                            <button class="collab-chat-send-btn" id="collabChatSendBtn" onclick="sendCollabMessage()">➤</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Main Content Area -->
+                <div class="collab-main">
+                    <!-- Tab Navigation -->
+                    <div class="collab-tabs">
+                        <button class="collab-tab active" id="codeTab" onclick="switchCollabTab('code')">💻 Code Editor</button>
+                        <button class="collab-tab" id="whiteboardTab" onclick="switchCollabTab('whiteboard')">🎨 Whiteboard</button>
+                    </div>
+                    
+                    <!-- Code Editor Panel -->
+                    <div class="collab-panel active" id="codePanel">
+                        <div class="collab-code-toolbar">
+                            <select class="collab-lang-select" id="collabLangSelect">
+                                <option value="javascript">JavaScript</option>
+                                <option value="python">Python</option>
+                                <option value="html">HTML</option>
+                                <option value="css">CSS</option>
+                                <option value="sql">SQL</option>
+                                <option value="json">JSON</option>
+                            </select>
+                            <button class="btn btn-sm btn-ghost" onclick="clearCollabCode()">Clear</button>
+                            <button class="btn btn-sm btn-ghost" onclick="copyCollabCode()">Copy</button>
+                        </div>
+                        <div class="collab-code-editor">
+                            <textarea class="collab-code-input" id="collabCodeInput" placeholder="// Start coding together..." spellcheck="false"></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Whiteboard Panel -->
+                    <div class="collab-panel" id="whiteboardPanel">
+                        <div class="collab-whiteboard-toolbar">
+                            <div class="collab-wb-tools">
+                                <button class="collab-wb-tool active" data-tool="pen" onclick="selectWBTool('pen')">✏️ Pen</button>
+                                <button class="collab-wb-tool" data-tool="eraser" onclick="selectWBTool('eraser')">🧹 Eraser</button>
+                                <button class="collab-wb-tool" data-tool="text" onclick="selectWBTool('text')">📝 Text</button>
+                                <button class="collab-wb-tool" data-tool="line" onclick="selectWBTool('line')">📏 Line</button>
+                                <button class="collab-wb-tool" data-tool="rect" onclick="selectWBTool('rect')">▭ Rectangle</button>
+                                <button class="collab-wb-tool" data-tool="circle" onclick="selectWBTool('circle')">⭕ Circle</button>
+                            </div>
+                            <div class="collab-wb-colors">
+                                <button class="collab-wb-color active" data-color="#000000" style="background:#000000" onclick="selectWBColor('#000000')"></button>
+                                <button class="collab-wb-color" data-color="#ff4444" style="background:#ff4444" onclick="selectWBColor('#ff4444')"></button>
+                                <button class="collab-wb-color" data-color="#00ff88" style="background:#00ff88" onclick="selectWBColor('#00ff88')"></button>
+                                <button class="collab-wb-color" data-color="#0077ff" style="background:#0077ff" onclick="selectWBColor('#0077ff')"></button>
+                                <button class="collab-wb-color" data-color="#ff9900" style="background:#ff9900" onclick="selectWBColor('#ff9900')"></button>
+                                <button class="collab-wb-color" data-color="#aa44ff" style="background:#aa44ff" onclick="selectWBColor('#aa44ff')"></button>
+                            </div>
+                            <div class="collab-wb-actions">
+                                <button class="btn btn-sm btn-ghost" onclick="clearWhiteboard()">Clear</button>
+                                <button class="btn btn-sm btn-ghost" onclick="downloadWhiteboard()">Download</button>
+                            </div>
+                        </div>
+                        <div class="collab-whiteboard-container">
+                            <canvas class="collab-whiteboard" id="collabWhiteboard"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </main>
@@ -526,7 +636,44 @@
     </div>
 </div>
 
+<!-- CREATE ROOM -->
+<div class="new-msg-overlay" id="createRoomModal">
+    <div class="new-msg-modal">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;"><h2>🤝 Create Collaboration Room</h2><button class="close-x" onclick="closeCreateRoomModal()">&times;</button></div>
+        <p style="color:var(--text2);font-size:0.88rem;margin-bottom:1rem;">Start a real-time coding session with fellow warriors!</p>
+        <div class="field">
+            <label>Room Name</label>
+            <input type="text" id="roomNameInput" placeholder="e.g. React Hooks Discussion, Python Practice...">
+        </div>
+        <div class="field">
+            <label>Description</label>
+            <textarea id="roomDescInput" placeholder="What's this room about?" style="min-height:80px;"></textarea>
+        </div>
+        <div class="field">
+            <label>Max Users</label>
+            <select id="roomMaxUsers">
+                <option value="4">4 users</option>
+                <option value="6">6 users</option>
+                <option value="8" selected>8 users</option>
+                <option value="10">10 users</option>
+            </select>
+        </div>
+        <div class="field">
+            <label>Room Type</label>
+            <select id="roomType">
+                <option value="public">🌍 Public - Anyone can join</option>
+                <option value="private">🔒 Private - Invite only</option>
+            </select>
+        </div>
+        <div class="form-actions" style="margin-top:1.5rem;">
+            <button class="btn" id="createRoomBtn" onclick="createCollabRoom()">Create Room 🚀</button>
+            <button class="btn btn-ghost" onclick="closeCreateRoomModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/js/app.js"></script>
+<script src="assets/js/collaboration.js"></script>
 </body>
 </html>

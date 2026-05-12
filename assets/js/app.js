@@ -2820,3 +2820,79 @@ function toast(msg, type = 'ok') {
     const t = document.createElement('div'); t.className = 'toast ' + type; t.textContent = msg; document.body.appendChild(t);
     setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(() => t.remove(), 300); }, 3000);
 }
+
+// Collaboration integration
+function updateAuthUI() {
+    const authBtn = document.getElementById('authBtn');
+    const postBtn = document.getElementById('postBtn');
+    const dashboardNavBtn = document.getElementById('dashboardNavBtn');
+    const arenaNavBtn = document.getElementById('arenaNavBtn');
+    const mentorNavBtn = document.getElementById('mentorNavBtn');
+    const teacherNavBtn = document.getElementById('teacherNavBtn');
+    const analyzerNavBtn = document.getElementById('analyzerNavBtn');
+    const collabNavBtn = document.getElementById('collabNavBtn');
+    const bookmarkNavBtn = document.getElementById('bookmarkNavBtn');
+    const userPill = document.getElementById('userPill');
+    const notifBell = document.getElementById('notifBell');
+    const msgBell = document.getElementById('msgBell');
+
+    if (me) {
+        authBtn.textContent = 'Sign Out';
+        authBtn.onclick = handleSignOut;
+        postBtn.style.display = 'inline-flex';
+        if (dashboardNavBtn) dashboardNavBtn.style.display = 'inline-flex';
+        if (arenaNavBtn) arenaNavBtn.style.display = 'inline-flex';
+        if (mentorNavBtn) mentorNavBtn.style.display = 'inline-flex';
+        if (teacherNavBtn) teacherNavBtn.style.display = 'inline-flex';
+        if (analyzerNavBtn) analyzerNavBtn.style.display = 'inline-flex';
+        if (collabNavBtn) collabNavBtn.style.display = 'inline-flex';
+        if (bookmarkNavBtn) bookmarkNavBtn.style.display = 'inline-flex';
+        if (userPill) userPill.style.display = 'inline-flex';
+        if (notifBell) notifBell.style.display = 'inline-flex';
+        if (msgBell) msgBell.style.display = 'inline-flex';
+        
+        userPill.querySelector('#userName').textContent = me.display_name || me.username || 'Anonymous';
+        userPill.querySelector('#userXP').textContent = (me.xp || 0) + ' XP';
+        
+        // Initialize collaboration
+        if (typeof initCollaboration === 'function') {
+            initCollaboration();
+        }
+    } else {
+        authBtn.textContent = 'Sign In';
+        authBtn.onclick = handleAuth;
+        postBtn.style.display = 'none';
+        if (dashboardNavBtn) dashboardNavBtn.style.display = 'none';
+        if (arenaNavBtn) arenaNavBtn.style.display = 'none';
+        if (mentorNavBtn) mentorNavBtn.style.display = 'none';
+        if (teacherNavBtn) teacherNavBtn.style.display = 'none';
+        if (analyzerNavBtn) analyzerNavBtn.style.display = 'none';
+        if (collabNavBtn) collabNavBtn.style.display = 'none';
+        if (bookmarkNavBtn) bookmarkNavBtn.style.display = 'none';
+        if (userPill) userPill.style.display = 'none';
+        if (notifBell) notifBell.style.display = 'none';
+        if (msgBell) msgBell.style.display = 'none';
+    }
+}
+
+// Enhanced handleSignOut to include collaboration cleanup
+async function handleSignOut() {
+    // Leave collaboration room if in one
+    if (typeof leaveCollabRoom === 'function' && currentRoomId) {
+        leaveCollabRoom();
+    }
+    
+    await db.auth.signOut();
+    me = null; myName = null; myXP = 0;
+    updateAuthUI();
+    goHome();
+    clearRoute();
+}
+
+// Add collaboration to initial auth check
+document.addEventListener('DOMContentLoaded', () => {
+    // Existing initialization code...
+    
+    // Update auth UI after a short delay to ensure DOM is ready
+    setTimeout(updateAuthUI, 100);
+});
