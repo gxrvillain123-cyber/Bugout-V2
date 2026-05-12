@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="BUGOUT by MindForgers — Post your coding problems, life questions, or career doubts. The community solves them. AI-powered mentoring, coding arena, and gamified learning.">
+    <meta name="theme-color" content="#00ff88">
     <title>BUGOUT by MindForgers - Post your problem. World solves it.</title>
     <link rel="stylesheet" href="assets/css/styles.css">
 </head>
@@ -59,6 +61,35 @@
         <div class="search-wrap">
             <input type="text" class="search-input" id="searchInput" placeholder="🔍  Search bugs by title, description or tag..." oninput="handleSearch(this.value)">
             <button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
+        </div>
+        <!-- DAILY CHALLENGE -->
+        <div class="daily-challenge" id="dailyChallengeWrap" style="display:none;">
+            <div class="daily-challenge-header">
+                <h3>🎯 Daily Challenge</h3>
+                <div class="streak-badge" id="dailyStreakBadge">🔥 0 day streak</div>
+            </div>
+            <div class="daily-challenge-content" id="dailyChallengeContent">
+                <div class="daily-text">
+                    <h4 id="dailyChallengeTitle">Loading...</h4>
+                    <p id="dailyChallengeDesc">Fetching today's challenge...</p>
+                </div>
+                <div class="daily-meta">
+                    <div class="daily-xp-badge" id="dailyChallengeXP">+30 XP</div>
+                    <div class="daily-difficulty" id="dailyChallengeDiff">Medium</div>
+                </div>
+            </div>
+            <div class="daily-timer" id="dailyTimer">⏰ Resets in --:--:--</div>
+            <div class="daily-btn-row">
+                <button class="btn btn-sm" id="dailySolveBtn" onclick="solveDailyChallenge()">Solve Challenge ⚡</button>
+                <button class="btn btn-ghost btn-sm" onclick="skipDailyChallenge()">Skip</button>
+            </div>
+        </div>
+        <!-- TRENDING SECTION -->
+        <div class="trending-section" id="trendingSection" style="display:none;">
+            <div class="trending-header">
+                <h2><span class="fire-icon">🔥</span> Trending Now</h2>
+            </div>
+            <div class="trending-scroll" id="trendingScroll"></div>
         </div>
         <div class="filters" id="filtersRow">
             <button class="filter-btn active" onclick="filter('all',this)">All</button>
@@ -515,5 +546,14 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/js/app.js"></script>
+
+<!-- ACHIEVEMENT POPUP -->
+<div class="achievement-overlay" id="achOverlay" onclick="closeAchievement()"></div>
+<div class="achievement-popup" id="achPopup">
+    <div class="ach-icon" id="achIcon">🏆</div>
+    <h3 id="achTitle">Achievement Unlocked!</h3>
+    <p id="achDesc">You did something awesome.</p>
+    <button class="btn btn-sm" style="margin-top:1rem;" onclick="closeAchievement()">Nice! 🎉</button>
+</div>
 </body>
 </html>
