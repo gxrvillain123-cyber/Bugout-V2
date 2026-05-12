@@ -229,7 +229,7 @@ const LEVELS = [
     { min: 100, max: Infinity, name: 'Legend' }
 ];
 const ADMIN_USERS = [
-    'shash@mindforgers.com', // Your admin email
+    'shreyanshshekhar353@gmail.com', // Your admin email
     'admin@bugout.com',
     'founder@mindforgers.com'
 ];
