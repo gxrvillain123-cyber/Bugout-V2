@@ -898,36 +898,66 @@ class AdminSystem {
 // Initialize admin system
 let adminSystem;
 
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('Initializing admin system...');
-    adminSystem = new AdminSystem();
-    window.adminSystem = adminSystem; // Make it globally accessible
+// Multiple initialization methods to ensure it works
+function initializeAdminSystem() {
+    console.log('🚀 Initializing admin system...');
     
-    // Add keyboard shortcut for admin panel (Ctrl+Shift+A)
-    document.addEventListener('keydown', (e) => {
-        if (e.ctrlKey && e.shiftKey && e.key === 'A') {
-            e.preventDefault();
-            if (adminSystem.isAdmin) {
-                adminSystem.togglePanel();
+    try {
+        adminSystem = new AdminSystem();
+        window.adminSystem = adminSystem; // Make it globally accessible
+        console.log('✅ Admin system initialized successfully');
+        
+        // Check for immediate admin status (in case user is already logged in)
+        setTimeout(() => {
+            if (window.me && window.me.email) {
+                console.log('Checking admin status for already logged in user:', window.me.email);
+                adminSystem.checkAdminStatus();
+            }
+        }, 500);
+        
+        return true;
+    } catch (error) {
+        console.error('❌ Error initializing admin system:', error);
+        return false;
+    }
+}
+
+// Try multiple initialization methods
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeAdminSystem);
+} else {
+    // DOM already loaded
+    initializeAdminSystem();
+}
+
+// Fallback initialization after a delay
+setTimeout(() => {
+    if (!window.adminSystem) {
+        console.log('⚠️ Admin system not initialized, trying fallback...');
+        initializeAdminSystem();
+    }
+}, 2000);
+
+// Add keyboard shortcut for admin panel (Ctrl+Shift+A)
+document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+        e.preventDefault();
+        if (window.adminSystem) {
+            if (window.adminSystem.isAdmin) {
+                window.adminSystem.togglePanel();
             } else {
                 console.log('Admin panel requires admin privileges');
             }
+        } else {
+            console.log('Admin system not initialized');
         }
-    });
-    
-    // Add development admin override
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        console.log('%c👑 DEV MODE: Type localStorage.setItem("bugout_dev_admin", "true") and refresh to enable admin mode', 'color: #ff0066; font-size: 12px;');
     }
-    
-    // Check for immediate admin status (in case user is already logged in)
-    setTimeout(() => {
-        if (window.me && window.me.email) {
-            console.log('Checking admin status for already logged in user:', window.me.email);
-            adminSystem.checkAdminStatus();
-        }
-    }, 1000);
 });
+
+// Add development admin override
+if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    console.log('%c👑 DEV MODE: Type localStorage.setItem("bugout_dev_admin", "true") and refresh to enable admin mode', 'color: #ff0066; font-size: 12px;');
+}
 
 // Global admin functions
 window.enableAdminMode = () => {
@@ -959,4 +989,20 @@ window.forceAdmin = () => {
         window.adminSystem.enableAdminMode();
         console.log('Admin mode forced enabled');
     }
+};
+
+// Manual admin system initialization
+window.initAdminSystem = () => {
+    console.log('🔧 Manually initializing admin system...');
+    return initializeAdminSystem();
+};
+
+// Check admin system status
+window.checkAdminSystem = () => {
+    console.log('Admin system status:', {
+        exists: !!window.adminSystem,
+        isAdmin: window.adminSystem?.isAdmin,
+        currentUser: window.me?.email,
+        adminUsers: window.adminSystem?.adminUsers
+    });
 };
