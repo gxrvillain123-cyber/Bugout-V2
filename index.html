@@ -12,15 +12,25 @@
 <header>
     <nav class="container">
         <div class="logo" onclick="goHome()">BUGOUT <span>by MindForgers</span></div>
+        <div class="nav-center">
+            <button class="nav-btn" id="homeNavBtn" onclick="goHome()">🏠 Home</button>
+            <button class="nav-btn" id="dashboardNavBtn" onclick="goDashboard()" style="display:none;">📊 Dashboard</button>
+            <button class="nav-btn" id="arenaNavBtn" onclick="goArena()" style="display:none;">⚔️ Arena</button>
+            <button class="nav-btn" id="mentorNavBtn" onclick="goMentor()" style="display:none;">👨‍🏫 Mentor</button>
+            <button class="nav-btn" id="teacherNavBtn" onclick="goTeacher()" style="display:none;">🎓 Teacher</button>
+            <button class="nav-btn" id="analyzerNavBtn" onclick="goAnalyzer()" style="display:none;">🔍 Analyzer</button>
+            <button class="nav-btn" id="collabNavBtn" onclick="goCollaboration()" style="display:none;">🤝 Collab</button>
+            <button class="nav-btn" id="bookmarkNavBtn" onclick="goBookmarks()" style="display:none;">🔖 Bookmarks</button>
+        </div>
         <div class="nav-right">
             <div class="user-pill" id="userPill" style="display:none;" onclick="goMyProfile()">
                 <span id="userName"></span>
                 <span class="xp" id="userXP">0 XP</span>
             </div>
-            <div class="notif-bell-wrap" id="notifBellWrap">
-                <div class="notif-bell" id="notifBell" onclick="toggleNotifPanel()" title="Notifications">🔔
-                    <div class="notif-badge" id="notifBadge">0</div>
-                </div>
+            <div class="notif-bell-wrap" id="notifBellWrap" style="display:none;">
+                <button class="notif-bell" id="notifBell" onclick="toggleNotifPanel()" title="Notifications">🔔
+                    <span class="notif-badge" id="notifBadge">0</span>
+                </button>
                 <div class="notif-panel" id="notifPanel">
                     <div class="notif-panel-head">
                         <h3>🔔 Notifications</h3>
@@ -29,19 +39,12 @@
                     <div class="notif-list" id="notifPanelList"><div class="notif-empty">Loading...</div></div>
                 </div>
             </div>
-            <div class="msg-bell" id="msgBell" onclick="goInbox()" title="Messages">💬
-                <div class="msg-badge" id="msgBadge">0</div>
-            </div>
-            <button class="btn btn-sm btn-ghost" onclick="goBookmarks()" style="padding:6px 12px;display:none;" id="bookmarkNavBtn">🔖</button>
-            <button class="btn btn-sm btn-ghost" onclick="goDashboard()" style="padding:6px 12px;display:none;" id="dashboardNavBtn">📊</button>
-            <button class="btn btn-sm btn-ghost" onclick="goArena()" style="padding:6px 12px;display:none;" id="arenaNavBtn">⚔️</button>
-            <button class="btn btn-sm btn-ghost" onclick="goMentor()" style="padding:6px 12px;display:none;" id="mentorNavBtn">🧠</button>
-            <button class="btn btn-sm btn-ghost" onclick="goTeacher()" style="padding:6px 12px;display:none;" id="teacherNavBtn">AI Teacher</button>
-            <button class="btn btn-sm btn-ghost" onclick="goAnalyzer()" style="padding:6px 12px;display:none;" id="analyzerNavBtn">🧪</button>
-            <button class="btn btn-sm btn-ghost" onclick="goCollaboration()" style="padding:6px 12px;display:none;" id="collabNavBtn">🤝</button>
-            <button class="btn btn-sm btn-ghost" onclick="goLeaderboard()" style="padding:6px 12px;">🏆</button>
+            <button class="msg-bell" id="msgBell" onclick="goInbox()" title="Messages" style="display:none;">�
+                <span class="msg-badge" id="msgBadge">0</span>
+            </button>
+            <button class="btn btn-sm btn-ghost" onclick="goLeaderboard()">🏆</button>
             <button class="btn btn-sm" id="authBtn" onclick="handleAuth()">Sign In</button>
-            <button class="btn btn-sm btn-ghost" id="postBtn" onclick="goPost()" style="display:none;">+ Post Bug</button>
+            <button class="btn btn-sm" id="postBtn" onclick="showPostModal()" style="display:none;">Post Bug 🐛</button>
         </div>
     </nav>
 </header>
