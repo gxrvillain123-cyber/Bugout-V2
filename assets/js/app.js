@@ -30,6 +30,197 @@ let teacherProgress = [], currentTeacherLesson = null;
 let lastTriageSuggestion = null;
 let arenaProblems = [], arenaSubmissions = new Map(), arenaBatchGeneratedAt = null, arenaTimer = null;
 
+const TEACHER_ROADMAPS = {
+    'JavaScript': [
+        'Variables and Data Types',
+        'Operators and Expressions',
+        'Control Flow (if/else, switch)',
+        'Loops (for, while, do-while)',
+        'Functions and Scope',
+        'Arrays and Array Methods',
+        'Objects and Object Methods',
+        'ES6 Features (let, const, arrow functions)',
+        'DOM Manipulation',
+        'Events and Event Handling',
+        'Async JavaScript (callbacks, promises, async/await)',
+        'Error Handling',
+        'Modules and Imports',
+        'Classes and OOP',
+        'Local Storage and Session Storage',
+        'Fetch API and AJAX',
+        'JSON Handling',
+        'Regular Expressions',
+        'Date and Time',
+        'Math Functions',
+        'String Methods',
+        'Number Methods'
+    ],
+    'Python': [
+        'Variables and Data Types',
+        'Operators and Expressions',
+        'Control Flow (if/else, elif)',
+        'Loops (for, while)',
+        'Functions and Parameters',
+        'Lists and List Methods',
+        'Tuples and Sets',
+        'Dictionaries and Dict Methods',
+        'Strings and String Methods',
+        'File I/O',
+        'Exception Handling',
+        'Modules and Imports',
+        'Classes and OOP',
+        'Inheritance',
+        'Polymorphism',
+        'Decorators',
+        'Generators',
+        'List Comprehensions',
+        'Lambda Functions',
+        'Virtual Environments',
+        'NumPy Basics',
+        'Pandas Basics',
+        'Web Frameworks (Flask/Django basics)'
+    ],
+    'C': [
+        'Variables and Data Types',
+        'Operators and Expressions',
+        'Control Flow (if/else, switch)',
+        'Loops (for, while, do-while)',
+        'Functions and Parameters',
+        'Arrays and Pointers',
+        'Pointers and Memory',
+        'Strings and String Functions',
+        'Structures',
+        'Unions',
+        'File I/O',
+        'Dynamic Memory Allocation',
+        'Linked Lists',
+        'Stacks and Queues',
+        'Trees (Binary Trees)',
+        'Sorting Algorithms',
+        'Searching Algorithms',
+        'Recursion',
+        'Preprocessor Directives',
+        'Header Files',
+        'Makefile Basics'
+    ],
+    'C++': [
+        'Variables and Data Types',
+        'Operators and Expressions',
+        'Control Flow (if/else, switch)',
+        'Loops (for, while, do-while)',
+        'Functions and Parameters',
+        'Arrays and Vectors',
+        'Pointers and References',
+        'Strings and String Classes',
+        'Classes and Objects',
+        'Constructors and Destructors',
+        'Inheritance',
+        'Polymorphism',
+        'Virtual Functions',
+        'Templates',
+        'STL Containers',
+        'STL Algorithms',
+        'Exception Handling',
+        'File I/O',
+        'Memory Management',
+        'Smart Pointers',
+        'Lambda Expressions',
+        'Multithreading Basics'
+    ],
+    'Java': [
+        'Variables and Data Types',
+        'Operators and Expressions',
+        'Control Flow (if/else, switch)',
+        'Loops (for, while, do-while)',
+        'Methods and Parameters',
+        'Arrays and ArrayList',
+        'Strings and StringBuilder',
+        'Classes and Objects',
+        'Constructors',
+        'Inheritance',
+        'Polymorphism',
+        'Abstract Classes',
+        'Interfaces',
+        'Packages and Imports',
+        'Exception Handling',
+        'Collections Framework',
+        'Generics',
+        'File I/O',
+        'Multithreading',
+        'Lambda Expressions',
+        'Streams API',
+        'Design Patterns Basics'
+    ],
+    'HTML/CSS': [
+        'HTML Basic Structure',
+        'HTML Tags and Elements',
+        'HTML Forms and Inputs',
+        'HTML Semantic Elements',
+        'CSS Selectors',
+        'CSS Box Model',
+        'CSS Layout (Flexbox, Grid)',
+        'CSS Positioning',
+        'CSS Responsive Design',
+        'CSS Animations',
+        'CSS Transitions',
+        'CSS Variables',
+        'JavaScript Integration',
+        'Media Queries',
+        'CSS Frameworks Basics',
+        'Accessibility Basics',
+        'SEO Basics',
+        'Performance Optimization'
+    ],
+    'SQL': [
+        'Database Basics',
+        'SQL Syntax',
+        'SELECT Statements',
+        'WHERE Clause',
+        'ORDER BY and LIMIT',
+        'GROUP BY and HAVING',
+        'JOIN Operations',
+        'Subqueries',
+        'INSERT, UPDATE, DELETE',
+        'Aggregate Functions',
+        'Indexes',
+        'Constraints',
+        'Transactions',
+        'Views',
+        'Stored Procedures',
+        'Normalization',
+        'Database Design',
+        'Performance Tuning',
+        'Security Basics'
+    ]
+};
+
+function getTeacherSettings() {
+    return {
+        language: document.getElementById('teacherLanguage')?.value || 'JavaScript',
+        level: document.getElementById('teacherLevel')?.value || 'Beginner',
+        mode: document.getElementById('teacherMode')?.value || 'Ultimate masterclass',
+        goal: document.getElementById('teacherGoal')?.value || 'College replacement foundation',
+        dailyTime: document.getElementById('teacherDailyTime')?.value || '45 minutes/day',
+        intensity: document.getElementById('teacherIntensity')?.value || 'Normal pace',
+        topic: document.getElementById('teacherTopic')?.value.trim() || ''
+    };
+}
+
+function extractJSON(text, fallback = null) {
+    try {
+        const start = text.indexOf('{');
+        const end = text.lastIndexOf('}');
+        if (start !== -1 && end !== -1 && end > start) {
+            return JSON.parse(text.substring(start, end + 1));
+        }
+    } catch (e) {}
+    return fallback;
+}
+
+function normalizeTeacherAnswerIndex(index) {
+    return typeof index === 'number' ? index : 0;
+}
+
 const LEVELS = [
     { min: 0,   max: 24,  name: 'Rookie',   emoji: '🌱' },
     { min: 25,  max: 49,  name: 'Warrior',  emoji: '⚔️' },
@@ -50,15 +241,6 @@ const BADGE_DEFS = [
 ];
 const AVATAR_COLORS = ['#00ff88','#0077ff','#ff4444','#ff9900','#aa44ff','#ff44aa','#00ccff','#ffcc00'];
 const ALL_INTERESTS = ['💻 Coding','🎮 Gaming','🎵 Music','⚽ Football','🏏 Cricket','📚 Studies','🎨 Art','🍕 Food','✈️ Travel','💰 Finance','🎬 Movies','📱 Tech','🦸 Marvel','🏋️ Fitness','🎤 Rap','📷 Photography'];
-const TEACHER_ROADMAPS = {
-    'JavaScript': ['variables', 'functions', 'arrays', 'objects', 'DOM basics', 'async await', 'fetch API', 'mini project'],
-    'Python': ['variables', 'conditions', 'loops', 'lists', 'dictionaries', 'functions', 'file handling', 'mini project'],
-    'C': ['variables', 'if else', 'loops', 'arrays', 'strings', 'functions', 'pointers basics', 'mini project'],
-    'C++': ['variables', 'loops', 'functions', 'arrays', 'STL vectors', 'classes', 'recursion', 'mini project'],
-    'Java': ['variables', 'conditions', 'loops', 'methods', 'classes', 'inheritance', 'collections', 'mini project'],
-    'HTML/CSS': ['semantic HTML', 'forms', 'flexbox', 'grid', 'responsive design', 'animations', 'landing page project'],
-    'SQL': ['select queries', 'where filters', 'joins', 'group by', 'subqueries', 'indexes basics', 'schema design']
-};
 
 function getLevel(xp) { return LEVELS.find(l => xp >= l.min && xp <= l.max) || LEVELS[0]; }
 function getLevelNum(xp) { return LEVELS.findIndex(l => xp >= l.min && xp <= l.max) + 1; }
@@ -348,10 +530,10 @@ function buildTeacherRoadmap() {
             <p class="teacher-goal">Is order mein topics complete karo. Kisi bhi topic pe click karke direct lesson start kar sakte ho.</p>
             <div class="teacher-roadmap-list">
                 ${topics.map((topic, i) => `
-                    <button class="teacher-roadmap-item" onclick="applyTeacherTopic('${esc(topic)}');startTeacherLesson();">
+                    <button class="teacher-roadmap-item" onclick="applyTeacherTopic('${esc(topic)}');startTeacherLesson()">
                         <strong>${i + 1}</strong>
                         <span>${esc(topic)}</span>
-                        <em>${teacherProgress.some(row => row.language === lang && row.topic === topic) ? 'Done' : 'Start'}</em>
+                        <em>${teacherProgress.find(row => row.language === lang && row.topic === topic) ? '✅ Done' : '📚 Pending'}</em>
                     </button>
                 `).join('')}
             </div>
@@ -359,146 +541,59 @@ function buildTeacherRoadmap() {
     `;
 }
 
-function getTeacherSettings() {
-    const language = document.getElementById('teacherLanguage')?.value || 'JavaScript';
-    return {
-        language,
-        level: document.getElementById('teacherLevel')?.value || 'Beginner',
-        mode: document.getElementById('teacherMode')?.value || 'Ultimate masterclass',
-        goal: document.getElementById('teacherGoal')?.value || 'College replacement full coding foundation',
-        dailyTime: document.getElementById('teacherDailyTime')?.value || '45 minutes/day',
-        intensity: document.getElementById('teacherIntensity')?.value || 'Normal pace',
-        topic: (document.getElementById('teacherTopic')?.value.trim() || decideTeacherTopic(language)).slice(0, 80)
+function startPlacementTest() {
+    const settings = getTeacherSettings();
+    const output = document.getElementById('teacherLessonOutput');
+    if (!output) return;
+    
+    const test = {
+        title: `${settings.language} Placement Test`,
+        instructions: 'Answer honestly. Result ke basis pe AI start topic suggest karega.',
+        questions: [
+            {
+                question: 'Variables aur data types ke basics clear hain?',
+                options: ['Haan, sab types use kar sakta hun', 'Kuch clear hain', 'Bahut kam pata'],
+                answerIndex: 0,
+                explanation: 'Variables foundation hain programming ka.',
+                skill: 'Variables'
+            },
+            {
+                question: 'Control flow (if/else, loops) implement kar sakta hun?',
+                options: ['Haan, confidently', 'Thoda thoda', 'Nahi',],
+                answerIndex: 0,
+                explanation: 'Control flow logic banane ke liye zaroori hai.',
+                skill: 'Control Flow'
+            },
+            {
+                question: 'Functions aur parameters ka concept clear hai?',
+                options: ['Haan, banate bhi hun', 'Basic idea hai', 'Nahi pata'],
+                answerIndex: 0,
+                explanation: 'Functions code reuse aur organization ke liye important hain.',
+                skill: 'Functions'
+            },
+            {
+                question: 'Arrays/Objects use kar sakta hun properly?',
+                options: ['Haan, expert hun', 'Basic use kar sakta hun', 'Nahi'],
+                answerIndex: 0,
+                explanation: 'Data structures problem solving ke liye important hain.',
+                skill: 'Data Structures'
+            },
+            {
+                question: 'Error handling kar sakta hun?',
+                options: ['Haan, try-catch use karta hun', 'Basic idea hai', 'Nahi pata'],
+                answerIndex: 0,
+                explanation: 'Error handling robust code banane ke liye zaroori hai.',
+                skill: 'Error Handling'
+            }
+        ],
+        score_bands: [
+            { min: 80, max: 100, level: 'Advanced', advice: 'Advanced topics start karo!', start_topic: 'Advanced Concepts' },
+            { min: 60, max: 79, level: 'Intermediate', advice: 'Intermediate level pe focus karo!', start_topic: 'Intermediate Topics' },
+            { min: 40, max: 59, level: 'Beginner+', advice: 'Basics strong karo!', start_topic: 'Fundamentals' },
+            { min: 0, max: 39, level: 'Beginner', advice: 'Zero se start karo!', start_topic: 'Variables and Data Types' }
+        ]
     };
-}
-
-function continueTeacherPath() {
-    const settings = getTeacherSettings();
-    const next = currentTeacherLesson?.lesson?.next_lesson || decideTeacherTopic(settings.language);
-    applyTeacherTopic(next);
-    startTeacherLesson();
-}
-
-async function generateCollegePlan() {
-    if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
-    const settings = getTeacherSettings();
-    const output = document.getElementById('teacherLessonOutput');
-    output.innerHTML = '<div class="loading"><div class="spinner"></div><p>Full course plan ban raha hai...</p></div>';
-    const prompt = `Create a college-replacement coding course plan in Hinglish.
-Language: ${settings.language}
-Level: ${settings.level}
-Goal: ${settings.goal}
-Daily time: ${settings.dailyTime}
-Intensity: ${settings.intensity}
-Student progress: ${teacherProgress.map(row => `${row.language}/${row.topic}/${row.score}%`).slice(0, 12).join(', ') || 'No saved progress'}
-
-Return ONLY strict JSON:
-{
-  "title": "course name",
-  "promise": "what student can do after this",
-  "diagnosis": "what to focus on based on progress",
-  "phases": [
-    {"name":"phase name","duration":"time","outcome":"outcome","topics":["topic1","topic2"],"project":"project","assessment":"assessment"}
-  ],
-  "weekly_schedule": ["week/day plan items"],
-  "rules": ["study rules"],
-  "capstone": "final project",
-  "grading_rubric": ["how mastery will be judged"],
-  "start_topic": "exact topic to start next"
-}
-Make it practical enough to replace a weak college coding course.`;
-    try {
-        const data = await callGroq([{ role: 'user', content: prompt }], {
-            max_tokens: 3200,
-            temperature: 0.35,
-            response_format: { type: 'json_object' }
-        });
-        const plan = extractJSON(data.choices?.[0]?.message?.content || '', null);
-        renderCollegePlan(plan, settings);
-    } catch(err) {
-        output.innerHTML = `<div class="teacher-empty"><h3>Course plan nahi bana</h3><p>${esc(err.message)}</p><button class="btn btn-ghost btn-sm" onclick="generateCollegePlan()">Retry</button></div>`;
-    }
-}
-
-function renderCollegePlan(plan, settings) {
-    const output = document.getElementById('teacherLessonOutput');
-    if (!plan || !Array.isArray(plan.phases)) {
-        output.innerHTML = `<div class="teacher-empty"><h3>Plan parse nahi hua</h3><p>Retry karo, ya direct Start Lesson dabao.</p></div>`;
-        return;
-    }
-    output.innerHTML = `
-        <div class="teacher-lesson-head"><div><span class="teacher-pill">${esc(settings.language)}</span><span class="teacher-pill">${esc(settings.goal)}</span></div></div>
-        <h2>${esc(plan.title || settings.language + ' Full Course')}</h2>
-        <div class="teacher-decision">${esc(plan.promise || '')}</div>
-        <div class="teacher-section"><h3>Diagnosis</h3><div class="teacher-rich-text">${esc(plan.diagnosis || 'Start from fundamentals and build projects.')}</div></div>
-        <div class="teacher-section"><h3>Course phases</h3>
-            <div class="teacher-course-phases">
-                ${plan.phases.map((phase, i) => `
-                    <div class="teacher-phase-card">
-                        <div class="teacher-phase-num">${i + 1}</div>
-                        <div>
-                            <h4>${esc(phase.name || 'Phase')}</h4>
-                            <p>${esc(phase.duration || '')} · ${esc(phase.outcome || '')}</p>
-                            <div class="teacher-concepts">${(phase.topics || []).map(t => `<span>${esc(t)}</span>`).join('')}</div>
-                            <div class="teacher-project">${esc(phase.project || '')}</div>
-                            <small>${esc(phase.assessment || '')}</small>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        </div>
-        ${renderTeacherListSection('Weekly schedule', plan.weekly_schedule)}
-        ${renderTeacherListSection('Study rules', plan.rules)}
-        <div class="teacher-section"><h3>Capstone</h3><div class="teacher-project">${esc(plan.capstone || '')}</div></div>
-        ${renderTeacherListSection('Mastery grading rubric', plan.grading_rubric)}
-        <div class="teacher-action-row teacher-sticky-actions">
-            <button class="btn" onclick="applyTeacherTopic('${esc(plan.start_topic || settings.topic)}');startTeacherLesson()">Start: ${esc(plan.start_topic || settings.topic)}</button>
-            <button class="btn btn-ghost" onclick="startPlacementTest()">Take Placement Test</button>
-        </div>
-    `;
-}
-
-async function startPlacementTest() {
-    if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
-    const settings = getTeacherSettings();
-    const output = document.getElementById('teacherLessonOutput');
-    output.innerHTML = '<div class="loading"><div class="spinner"></div><p>Placement test ban raha hai...</p></div>';
-    const prompt = `Create a diagnostic placement test for ${settings.language} in Hinglish.
-Goal: ${settings.goal}
-Level selected by student: ${settings.level}
-Return ONLY JSON:
-{
-  "title":"diagnostic test title",
-  "instructions":"short instructions",
-  "questions":[
-    {"question":"...","options":["A","B","C","D"],"answerIndex":0,"skill":"skill name","explanation":"why"}
-  ],
-  "score_bands":[
-    {"min":0,"max":40,"level":"Beginner","advice":"...","start_topic":"..."},
-    {"min":41,"max":75,"level":"Intermediate","advice":"...","start_topic":"..."},
-    {"min":76,"max":100,"level":"Advanced","advice":"...","start_topic":"..."}
-  ]
-}
-Make 12 questions covering fundamentals, debugging, dry-run, and problem solving.`;
-    try {
-        const data = await callGroq([{ role: 'user', content: prompt }], {
-            max_tokens: 2800,
-            temperature: 0.3,
-            response_format: { type: 'json_object' }
-        });
-        const test = extractJSON(data.choices?.[0]?.message?.content || '', null);
-        renderPlacementTest(test, settings);
-    } catch(err) {
-        output.innerHTML = `<div class="teacher-empty"><h3>Placement test nahi bana</h3><p>${esc(err.message)}</p><button class="btn btn-ghost btn-sm" onclick="startPlacementTest()">Retry</button></div>`;
-    }
-}
-
-function renderPlacementTest(test, settings) {
-    const output = document.getElementById('teacherLessonOutput');
-    if (!test || !Array.isArray(test.questions)) {
-        output.innerHTML = '<div class="teacher-empty"><h3>Test parse nahi hua</h3><p>Retry karo.</p></div>';
-        return;
-    }
+    
     window._teacherPlacementTest = test;
     output.innerHTML = `
         <div class="teacher-lesson-head"><div><span class="teacher-pill">${esc(settings.language)}</span><span class="teacher-pill">Placement Test</span></div></div>
@@ -552,20 +647,159 @@ function submitPlacementTest() {
     `);
 }
 
-function loadTeacherProgressLesson(id) {
-    const row = teacherProgress.find(item => item.id === id);
-    if (!row) return;
-    currentTeacherLesson = {
-        language: row.language,
-        level: row.level,
-        mode: row.mode || row.lesson_json?.mode || 'Saved lesson',
-        topic: row.topic,
-        lesson: row.lesson_json,
-        quiz: row.quiz_json || [],
-        savedScore: row.score || 0
-    };
-    renderTeacherLesson(true);
+function generateCollegePlan() {
+    const settings = getTeacherSettings();
+    const output = document.getElementById('teacherLessonOutput');
+    if (!output) return;
+    
+    output.innerHTML = '<div class="loading"><div class="spinner"></div><p>AI College plan bana raha hai...</p></div>';
+    
+    const prompt = `Create a complete college replacement coding course for Indian students.
+Language: ${settings.language}
+Level: ${settings.level}
+Goal: ${settings.goal}
+Daily study time: ${settings.dailyTime}
+Intensity: ${settings.intensity}
+
+Create a comprehensive course that can replace a weak college coding curriculum. Include practical projects, assessments, and real-world applications.
+
+Return ONLY valid JSON with this shape:
+{
+  "title": "course title",
+  "promise": "what student will achieve",
+  "diagnosis": "current level assessment and plan",
+  "phases": [
+    {"name":"phase name","duration":"time","outcome":"outcome","topics":["topic1","topic2"],"project":"project","assessment":"assessment"}
+  ],
+  "weekly_schedule": ["week/day plan items"],
+  "rules": ["study rules"],
+  "capstone": "final project",
+  "grading_rubric": ["how mastery will be judged"],
+  "start_topic": "exact topic to start next"
 }
+Make it practical enough to replace a weak college coding course.`;
+    
+    (async () => {
+        try {
+            const data = await callGroq([{ role: 'user', content: prompt }], {
+                max_tokens: 3200,
+                temperature: 0.35,
+                response_format: { type: 'json_object' }
+            });
+            const plan = extractJSON(data.choices?.[0]?.message?.content || '', null);
+            renderCollegePlan(plan, settings);
+        } catch(err) {
+            output.innerHTML = `<div class="teacher-empty"><h3>Course plan nahi bana</h3><p>${esc(err.message)}</p><button class="btn btn-ghost btn-sm" onclick="generateCollegePlan()">Retry</button></div>`;
+        }
+    })();
+}
+
+function renderCollegePlan(plan, settings) {
+    const output = document.getElementById('teacherLessonOutput');
+    if (!plan || !Array.isArray(plan.phases)) {
+        output.innerHTML = `<div class="teacher-empty"><h3>Plan parse nahi hua</h3><p>Retry karo, ya direct Start Lesson dabao.</p></div>`;
+        return;
+    }
+    output.innerHTML = `
+        <div class="teacher-lesson-head"><div><span class="teacher-pill">${esc(settings.language)}</span><span class="teacher-pill">${esc(settings.goal)}</span></div></div>
+        <h2>${esc(plan.title || settings.language + ' Full Course')}</h2>
+        <div class="teacher-decision">${esc(plan.promise || '')}</div>
+        <div class="teacher-section"><h3>Diagnosis</h3><div class="teacher-rich-text">${esc(plan.diagnosis || 'Start from fundamentals and build projects.')}</div></div>
+        <div class="teacher-section"><h3>Course phases</h3>
+            <div class="teacher-course-phases">
+                ${plan.phases.map((phase, i) => `
+                    <div class="teacher-phase-card">
+                        <div class="teacher-phase-num">${i + 1}</div>
+                        <div>
+                            <h4>${esc(phase.name || 'Phase')}</h4>
+                            <p>${esc(phase.duration || '')} · ${esc(phase.outcome || '')}</p>
+                            <div class="teacher-concepts">${(phase.topics || []).map(t => `<span>${esc(t)}</span>`).join('')}</div>
+                            <div class="teacher-project">${esc(phase.project || '')}</div>
+                            <small>${esc(phase.assessment || '')}</small>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+        ${plan.weekly_schedule ? `<div class="teacher-section"><h3>Weekly Schedule</h3><div class="teacher-rich-text">${plan.weekly_schedule.map(item => `• ${esc(item)}`).join('\\n')}</div></div>` : ''}
+        ${plan.rules ? `<div class="teacher-section"><h3>Study Rules</h3><div class="teacher-rich-text">${plan.rules.map(rule => `• ${esc(rule)}`).join('\\n')}</div></div>` : ''}
+        ${plan.capstone ? `<div class="teacher-section"><h3>Capstone Project</h3><div class="teacher-project">${esc(plan.capstone)}</div></div>` : ''}
+        <div class="teacher-sticky-actions">
+            <button class="btn" onclick="applyTeacherTopic('${esc(plan.start_topic || decideTeacherTopic(settings.language))}');startTeacherLesson()">Start First Lesson</button>
+        </div>
+    `;
+}
+
+function continueTeacherPath() {
+    const settings = getTeacherSettings();
+    const nextTopic = decideTeacherTopic(settings.language);
+    applyTeacherTopic(nextTopic);
+    startTeacherLesson();
+}
+
+function renderTeacherListSection(title, items) {
+    if (!Array.isArray(items) || items.length === 0) return '';
+    return `
+        <div class="teacher-section">
+            <h3>${esc(title)}</h3>
+            <div class="teacher-rich-text">${items.map(item => `• ${esc(item)}`).join('\\n')}</div>
+        </div>
+    `;
+}
+
+function renderTeacherDeepDive(lesson) {
+    if (!Array.isArray(lesson.deep_dive)) return '';
+    return lesson.deep_dive.map(section => `
+        <div class="teacher-deep-card">
+            <h4>${esc(section.heading || 'Section')}</h4>
+            <p>${esc(section.explanation || '')}</p>
+            ${section.code ? `<pre class="teacher-code"><code>${esc(section.code)}</code></pre>` : ''}
+            ${Array.isArray(section.dry_run) && section.dry_run.length ? `
+                <div class="teacher-mini-trace">
+                    ${section.dry_run.map(step => `<span>${esc(step)}</span>`).join('')}
+                </div>
+            ` : ''}
+        </div>
+    `).join('');
+}
+
+function renderTeacherHomework(homework) {
+    if (!Array.isArray(homework) || homework.length === 0) return '';
+    return `
+        <div class="teacher-section">
+            <h3>Homework Assignments</h3>
+            <div class="teacher-practice">
+                ${homework.map(task => `
+                    <div>
+                        <strong>${esc(task.title || 'Task')}</strong>
+                        <span style="color: var(--accent); margin-left: 8px;">${esc(task.difficulty || 'Easy')}</span>
+                        <p>${esc(task.requirement || '')}</p>
+                        ${task.hint ? `<small style="color: var(--text2);">💡 Hint: ${esc(task.hint)}</small>` : ''}
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+function renderTeacherDebuggingLab(debugging) {
+    if (!Array.isArray(debugging) || debugging.length === 0) return '';
+    return `
+        <div class="teacher-section">
+            <h3>Debugging Lab</h3>
+            <div class="teacher-debug-cards">
+                ${debugging.map((bug, i) => `
+                    <div class="teacher-debug-card">
+                        <h4>🐛 Bug ${i + 1}: ${esc(bug.bug || 'Unknown bug')}</h4>
+                        <strong>Why wrong:</strong> ${esc(bug.why_wrong || 'Unknown')}
+                        <strong>Fix:</strong> ${esc(bug.fix || 'Unknown')}
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
 
 async function startTeacherLesson() {
     if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
