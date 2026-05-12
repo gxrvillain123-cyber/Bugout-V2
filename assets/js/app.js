@@ -3078,8 +3078,14 @@ function updateAuthUI() {
         msgBell.style.display = 'inline-flex';
         notifBellWrap.style.display = 'block';
         
-        // Check if user is admin
-        if (ADMIN_USERS.includes(me.email.toLowerCase())) {
+        // Check if user is admin - more robust detection
+        console.log('Checking admin status for email:', me.email);
+        console.log('Admin users list:', ADMIN_USERS);
+        const isAdmin = ADMIN_USERS.includes(me.email.toLowerCase());
+        console.log('Is admin?', isAdmin);
+        
+        if (isAdmin) {
+            console.log('Enabling admin features for:', me.email);
             enableAdminFeatures();
             initCollaboration();
         }

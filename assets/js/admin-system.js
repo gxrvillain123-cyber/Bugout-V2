@@ -134,12 +134,13 @@ class AdminSystem {
     addAdminStyles() {
         const styles = document.createElement('style');
         styles.textContent = `
-            /* Admin Mode Styles - Premium Design */
+            /* Admin Mode Styles - Ultra Premium Design */
             .admin-mode {
                 --admin-primary: #ff0066;
                 --admin-secondary: #ff4400;
                 --admin-accent: #ff0066;
                 --admin-glow: rgba(255, 0, 102, 0.6);
+                --admin-gold: #ffd700;
             }
             
             .admin-panel {
@@ -148,18 +149,42 @@ class AdminSystem {
                 left: 50%;
                 transform: translate(-50%, -50%);
                 width: 95%;
-                max-width: 900px;
-                max-height: 85vh;
-                background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
-                border: 2px solid var(--admin-primary);
-                border-radius: 20px;
+                max-width: 1000px;
+                max-height: 90vh;
+                background: 
+                    radial-gradient(circle at 20% 50%, rgba(255, 0, 102, 0.1) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 80%, rgba(255, 68, 0, 0.1) 0%, transparent 50%),
+                    linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0f0f0f 100%);
+                border: 3px solid var(--admin-primary);
+                border-radius: 24px;
                 z-index: 10000;
                 display: none;
                 overflow: hidden;
                 box-shadow: 
-                    0 25px 50px rgba(255, 0, 102, 0.4),
-                    0 0 100px rgba(255, 0, 102, 0.2),
-                    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+                    0 30px 60px rgba(255, 0, 102, 0.5),
+                    0 0 120px rgba(255, 0, 102, 0.3),
+                    0 0 60px rgba(255, 215, 0, 0.2),
+                    inset 0 2px 0 rgba(255, 215, 0, 0.3),
+                    inset 0 -2px 0 rgba(255, 0, 102, 0.3);
+                animation: adminPanelEntrance 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            }
+            
+            @keyframes adminPanelEntrance {
+                0% { 
+                    opacity: 0; 
+                    transform: translate(-50%, -50%) scale(0.7) rotate(-5deg); 
+                    filter: blur(10px);
+                }
+                50% { 
+                    opacity: 0.8; 
+                    transform: translate(-50%, -50%) scale(1.05) rotate(2deg); 
+                    filter: blur(0px);
+                }
+                100% { 
+                    opacity: 1; 
+                    transform: translate(-50%, -50%) scale(1) rotate(0deg); 
+                    filter: blur(0px);
+                }
             }
             
             .admin-panel.show {
@@ -173,13 +198,16 @@ class AdminSystem {
             }
             
             .admin-panel-header {
-                background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-secondary) 100%);
-                padding: 1.5rem 2rem;
+                background: 
+                    linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-secondary) 50%, var(--admin-gold) 100%),
+                    radial-gradient(circle at 50% 50%, rgba(255, 215, 0, 0.2) 0%, transparent 70%);
+                padding: 2rem 2.5rem;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
                 position: relative;
                 overflow: hidden;
+                border-bottom: 2px solid var(--admin-gold);
             }
             
             .admin-panel-header::before {
@@ -189,8 +217,19 @@ class AdminSystem {
                 left: -100%;
                 width: 100%;
                 height: 100%;
-                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-                animation: adminHeaderShine 3s infinite;
+                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+                animation: adminHeaderShine 4s infinite;
+            }
+            
+            .admin-panel-header::after {
+                content: '👑';
+                position: absolute;
+                right: 20px;
+                top: 50%;
+                transform: translateY(-50%);
+                font-size: 3rem;
+                opacity: 0.3;
+                animation: adminCrownFloat 3s ease-in-out infinite;
             }
             
             @keyframes adminHeaderShine {
@@ -198,15 +237,23 @@ class AdminSystem {
                 100% { left: 100%; }
             }
             
+            @keyframes adminCrownFloat {
+                0%, 100% { transform: translateY(-50%) scale(1); }
+                50% { transform: translateY(-60%) scale(1.1); }
+            }
+            
             .admin-panel-header h3 {
                 color: #fff;
                 margin: 0;
-                font-size: 1.5rem;
+                font-size: 1.8rem;
                 font-weight: 900;
-                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+                text-shadow: 
+                    0 2px 4px rgba(0, 0, 0, 0.5),
+                    0 0 20px rgba(255, 215, 0, 0.5);
                 display: flex;
                 align-items: center;
-                gap: 10px;
+                gap: 12px;
+                letter-spacing: -0.5px;
             }
             
             .admin-close {
@@ -249,47 +296,101 @@ class AdminSystem {
             
             .admin-section {
                 margin-bottom: 2.5rem;
-                background: rgba(255, 0, 102, 0.05);
-                border: 1px solid rgba(255, 0, 102, 0.2);
-                border-radius: 16px;
-                padding: 1.5rem;
-                transition: all 0.3s;
+                background: 
+                    linear-gradient(135deg, rgba(255, 0, 102, 0.08) 0%, rgba(255, 68, 0, 0.05) 100%),
+                    radial-gradient(circle at 20% 20%, rgba(255, 215, 0, 0.1) 0%, transparent 50%);
+                border: 2px solid transparent;
+                background-clip: padding-box;
+                border-radius: 20px;
+                padding: 2rem;
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .admin-section::before {
+                content: '';
+                position: absolute;
+                inset: 0;
+                border-radius: 20px;
+                padding: 2px;
+                background: linear-gradient(135deg, var(--admin-primary), var(--admin-secondary), var(--admin-gold));
+                -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+                -webkit-mask-composite: xor;
+                mask-composite: exclude;
+                opacity: 0.6;
             }
             
             .admin-section:hover {
-                background: rgba(255, 0, 102, 0.08);
-                border-color: var(--admin-primary);
-                transform: translateY(-2px);
-                box-shadow: 0 10px 30px rgba(255, 0, 102, 0.2);
+                transform: translateY(-5px) scale(1.02);
+                box-shadow: 
+                    0 20px 40px rgba(255, 0, 102, 0.3),
+                    0 0 60px rgba(255, 215, 0, 0.2),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            }
+            
+            .admin-section:hover::before {
+                opacity: 1;
+                animation: adminSectionGlow 2s ease-in-out infinite;
+            }
+            
+            @keyframes adminSectionGlow {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.7; }
             }
             
             .admin-section h4 {
                 color: var(--admin-primary);
-                margin-bottom: 1.5rem;
-                font-size: 1.2rem;
-                font-weight: 800;
+                margin-bottom: 1.8rem;
+                font-size: 1.4rem;
+                font-weight: 900;
                 display: flex;
                 align-items: center;
-                gap: 8px;
-                text-shadow: 0 2px 4px rgba(255, 0, 102, 0.3);
+                gap: 12px;
+                text-shadow: 
+                    0 2px 4px rgba(255, 0, 102, 0.4),
+                    0 0 20px rgba(255, 215, 0, 0.3);
+                letter-spacing: -0.3px;
+                position: relative;
+            }
+            
+            .admin-section h4::after {
+                content: '';
+                position: absolute;
+                bottom: -8px;
+                left: 0;
+                width: 60px;
+                height: 3px;
+                background: linear-gradient(90deg, var(--admin-primary), var(--admin-gold));
+                border-radius: 2px;
+                animation: adminUnderlineExtend 0.6s ease-out;
+            }
+            
+            @keyframes adminUnderlineExtend {
+                from { width: 0; }
+                to { width: 60px; }
             }
             
             .admin-btn {
-                background: linear-gradient(135deg, rgba(255, 0, 102, 0.1) 0%, rgba(255, 68, 0, 0.1) 100%);
-                border: 1px solid var(--admin-primary);
+                background: 
+                    linear-gradient(135deg, rgba(255, 0, 102, 0.15) 0%, rgba(255, 68, 0, 0.1) 100%),
+                    radial-gradient(circle at 30% 30%, rgba(255, 215, 0, 0.1) 0%, transparent 50%);
+                border: 2px solid var(--admin-primary);
                 color: var(--admin-primary);
-                padding: 12px 20px;
-                border-radius: 12px;
+                padding: 14px 24px;
+                border-radius: 16px;
                 cursor: pointer;
-                font-size: 0.95rem;
-                font-weight: 700;
-                margin: 6px;
-                transition: all 0.3s;
+                font-size: 1rem;
+                font-weight: 800;
+                margin: 8px;
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
                 display: inline-flex;
                 align-items: center;
-                gap: 8px;
+                gap: 10px;
                 position: relative;
                 overflow: hidden;
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+                letter-spacing: -0.2px;
             }
             
             .admin-btn::before {
@@ -299,8 +400,22 @@ class AdminSystem {
                 left: -100%;
                 width: 100%;
                 height: 100%;
-                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-                transition: left 0.5s;
+                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+                transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            
+            .admin-btn::after {
+                content: '';
+                position: absolute;
+                inset: 0;
+                border-radius: 16px;
+                padding: 2px;
+                background: linear-gradient(135deg, var(--admin-primary), var(--admin-secondary), var(--admin-gold));
+                -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+                -webkit-mask-composite: xor;
+                mask-composite: exclude;
+                opacity: 0;
+                transition: opacity 0.4s;
             }
             
             .admin-btn:hover::before {
@@ -308,16 +423,25 @@ class AdminSystem {
             }
             
             .admin-btn:hover {
-                background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-secondary) 100%);
+                background: 
+                    linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-secondary) 50%, var(--admin-gold) 100%),
+                    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
                 color: #fff;
-                transform: translateY(-3px);
+                transform: translateY(-4px) scale(1.05);
                 box-shadow: 
-                    0 8px 25px rgba(255, 0, 102, 0.4),
-                    0 0 20px rgba(255, 0, 102, 0.3);
+                    0 12px 35px rgba(255, 0, 102, 0.5),
+                    0 0 40px rgba(255, 215, 0, 0.4),
+                    0 0 20px rgba(255, 255, 255, 0.3);
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+            }
+            
+            .admin-btn:hover::after {
+                opacity: 1;
             }
             
             .admin-btn:active {
-                transform: translateY(-1px);
+                transform: translateY(-2px) scale(1.02);
+                transition: all 0.1s;
             }
             
             .admin-toolbar {
