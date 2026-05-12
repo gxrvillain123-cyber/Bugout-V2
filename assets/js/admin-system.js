@@ -26,20 +26,41 @@ class AdminSystem {
     }
 
     checkAdminStatus() {
-        // Check if current user is admin
-        if (window.me && window.me.email) {
-            this.isAdmin = this.adminUsers.includes(window.me.email.toLowerCase());
-            if (this.isAdmin) {
-                this.enableAdminMode();
-            }
-        }
-
-        // Also check for localStorage admin override (for development)
+        console.log('=== ADMIN STATUS CHECK ===');
+        console.log('Window.me exists:', !!window.me);
+        console.log('Admin users list:', this.adminUsers);
+        
+        // Check for localStorage admin override first (for development)
         const devAdmin = localStorage.getItem('bugout_dev_admin');
+        console.log('Dev admin override:', devAdmin);
+        
         if (devAdmin === 'true') {
+            console.log('🔓 Using dev admin override');
             this.isAdmin = true;
             this.enableAdminMode();
+            return;
         }
+        
+        // Check if current user is admin
+        if (window.me && window.me.email) {
+            const userEmail = window.me.email.toLowerCase();
+            console.log('User email:', userEmail);
+            console.log('Checking against admin list:', this.adminUsers);
+            
+            this.isAdmin = this.adminUsers.includes(userEmail);
+            console.log('Is admin?', this.isAdmin);
+            
+            if (this.isAdmin) {
+                console.log('✅ Admin detected, enabling admin mode');
+                this.enableAdminMode();
+            } else {
+                console.log('❌ User is not admin');
+            }
+        } else {
+            console.log('❌ No user logged in or no email available');
+        }
+        
+        console.log('=== END ADMIN STATUS CHECK ===');
     }
 
     enableAdminMode() {
@@ -878,7 +899,9 @@ class AdminSystem {
 let adminSystem;
 
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('Initializing admin system...');
     adminSystem = new AdminSystem();
+    window.adminSystem = adminSystem; // Make it globally accessible
     
     // Add keyboard shortcut for admin panel (Ctrl+Shift+A)
     document.addEventListener('keydown', (e) => {
@@ -886,6 +909,8 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             if (adminSystem.isAdmin) {
                 adminSystem.togglePanel();
+            } else {
+                console.log('Admin panel requires admin privileges');
             }
         }
     });
@@ -894,6 +919,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
         console.log('%c👑 DEV MODE: Type localStorage.setItem("bugout_dev_admin", "true") and refresh to enable admin mode', 'color: #ff0066; font-size: 12px;');
     }
+    
+    // Check for immediate admin status (in case user is already logged in)
+    setTimeout(() => {
+        if (window.me && window.me.email) {
+            console.log('Checking admin status for already logged in user:', window.me.email);
+            adminSystem.checkAdminStatus();
+        }
+    }, 1000);
 });
 
 // Global admin functions
@@ -905,4 +938,25 @@ window.enableAdminMode = () => {
 window.disableAdminMode = () => {
     localStorage.removeItem('bugout_dev_admin');
     location.reload();
+};
+
+// Manual admin check function for debugging
+window.checkAdminStatus = () => {
+    if (window.adminSystem) {
+        window.adminSystem.checkAdminStatus();
+        console.log('Admin status:', window.adminSystem.isAdmin);
+        console.log('Current user email:', window.me?.email);
+        console.log('Admin users list:', window.adminSystem.adminUsers);
+    } else {
+        console.log('Admin system not initialized');
+    }
+};
+
+// Force enable admin for testing
+window.forceAdmin = () => {
+    if (window.adminSystem) {
+        window.adminSystem.isAdmin = true;
+        window.adminSystem.enableAdminMode();
+        console.log('Admin mode forced enabled');
+    }
 };

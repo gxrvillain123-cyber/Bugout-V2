@@ -3079,16 +3079,28 @@ function updateAuthUI() {
         notifBellWrap.style.display = 'block';
         
         // Check if user is admin - more robust detection
-        console.log('Checking admin status for email:', me.email);
+        console.log('=== APP.JS ADMIN CHECK ===');
+        console.log('User email:', me.email);
         console.log('Admin users list:', ADMIN_USERS);
         const isAdmin = ADMIN_USERS.includes(me.email.toLowerCase());
         console.log('Is admin?', isAdmin);
         
         if (isAdmin) {
-            console.log('Enabling admin features for:', me.email);
+            console.log('✅ Admin detected in app.js, enabling admin features for:', me.email);
             enableAdminFeatures();
             initCollaboration();
+            
+            // Also trigger admin system check
+            if (window.adminSystem) {
+                console.log('Triggering admin system check...');
+                window.adminSystem.checkAdminStatus();
+            } else {
+                console.log('Admin system not yet initialized');
+            }
+        } else {
+            console.log('❌ User is not admin');
         }
+        console.log('=== END APP.JS ADMIN CHECK ===');
     } else {
         authBtn.textContent = 'Sign In';
         authBtn.onclick = handleAuth;
