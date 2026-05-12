@@ -1389,8 +1389,10 @@ window.addEventListener('DOMContentLoaded', async () => {
         if (event === 'SIGNED_OUT') clearUser();
     });
     const routed = await openInitialRoute();
-    if (!routed) loadBugs();
+    if (!routed) { showSkeletonBugs(); loadBugs(); }
     loadStats();
+    loadTrending();
+    if (me) loadDailyChallenge();
 });
 
 async function loadStats() {
@@ -1400,9 +1402,9 @@ async function loadStats() {
             db.from('solutions').select('*', { count: 'exact', head: true }),
             db.from('profiles').select('*', { count: 'exact', head: true })
         ]);
-        document.getElementById('statBugs').textContent = b || 0;
-        document.getElementById('statSolutions').textContent = s || 0;
-        document.getElementById('statWarriors').textContent = u || 0;
+        animateCounter(document.getElementById('statBugs'), b || 0);
+        animateCounter(document.getElementById('statSolutions'), s || 0);
+        animateCounter(document.getElementById('statWarriors'), u || 0);
     } catch(e) {}
 }
 
@@ -1670,6 +1672,7 @@ async function setUser(user) {
         else { myName = user.email.split('@')[0]; myXP = 0; }
     } catch(e) { myName = user.email.split('@')[0]; myXP = 0; }
     renderUserUI(); startUnreadCheck(); startNotifCheck(); await loadMyBookmarks();
+    loadDailyChallenge();
 }
 
 function clearUser() {
@@ -1704,7 +1707,7 @@ async function addXP(amount) {
         const newLvl = getLevelNum(myXP), lvl = getLevel(myXP);
         document.getElementById('userXP').textContent = myXP + ' XP';
         document.getElementById('userName').textContent = lvl.emoji + ' ' + myName;
-        if (newLvl > oldLvl) toast(`🎉 Level Up! Tu ab ${lvl.emoji} ${lvl.name} hai!`, 'ok');
+        if (newLvl > oldLvl) showAchievement(lvl.emoji, 'Level Up!', `Tu ab ${lvl.name} hai! Keep going warrior! 😈`);
         await checkAndAwardBadges();
     } catch(e) {}
 }
@@ -2499,4 +2502,182 @@ function toast(msg, type = 'ok') {
     document.querySelectorAll('.toast').forEach(t => t.remove());
     const t = document.createElement('div'); t.className = 'toast ' + type; t.textContent = msg; document.body.appendChild(t);
     setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(() => t.remove(), 300); }, 3000);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  🔥 TRENDING BUGS
+// ═══════════════════════════════════════════════════════════════
+async function loadTrending() {
+    try {
+        const { data: bugs } = await db.from('bugs').select('id,title,category,solutions_count,created_at,status')
+            .order('solutions_count', { ascending: false })
+            .limit(8);
+        if (!bugs || bugs.length < 2) return;
+        const section = document.getElementById('trendingSection');
+        const scroll = document.getElementById('trendingScroll');
+        if (!section || !scroll) return;
+        scroll.innerHTML = bugs.map(b => `
+            <div class="trending-card" onclick="openBug('${b.id}')">
+                <span class="trending-fire">🔥</span>
+                <span class="bug-tag">${esc(b.category || 'General')}</span>
+                <h4>${esc(b.title)}</h4>
+                <div class="trending-stats">
+                    <span>💡 ${b.solutions_count || 0} solutions</span>
+                    <span>${getStatusBadge(b.status || 'open')}</span>
+                    <span>🕐 ${timeAgo(b.created_at)}</span>
+                </div>
+            </div>
+        `).join('');
+        section.style.display = 'block';
+    } catch(e) { /* silent */ }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  🎯 DAILY CHALLENGE
+// ═══════════════════════════════════════════════════════════════
+let dailyChallengeData = null;
+let dailyTimerInterval = null;
+
+function getDailyKey() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+async function loadDailyChallenge() {
+    if (!me) return;
+    const wrap = document.getElementById('dailyChallengeWrap');
+    if (!wrap) return;
+    const todayKey = getDailyKey();
+    const stored = localStorage.getItem('bugout_daily_' + me.id);
+    if (stored) {
+        try {
+            const parsed = JSON.parse(stored);
+            if (parsed.date === todayKey) {
+                if (parsed.solved) { wrap.style.display = 'none'; return; }
+                dailyChallengeData = parsed;
+                renderDailyChallenge(parsed);
+                wrap.style.display = 'block';
+                startDailyTimer();
+                return;
+            }
+        } catch(e) {}
+    }
+    try {
+        const data = await callGroq([{ role: 'user', content: `Generate a daily coding challenge for BUGOUT community. Return ONLY JSON: {"title":"short title","description":"2-3 line problem description in Hinglish","difficulty":"Easy/Medium/Hard","xp":20,"hint":"optional hint","category":"Coding"}. Make it interesting and unique for date ${todayKey}.` }], {
+            max_tokens: 400, temperature: 0.6, response_format: { type: 'json_object' }
+        });
+        const challenge = extractJSON(data.choices?.[0]?.message?.content || '', null);
+        if (!challenge || !challenge.title) return;
+        challenge.date = todayKey;
+        challenge.solved = false;
+        challenge.xp = challenge.xp || 30;
+        dailyChallengeData = challenge;
+        localStorage.setItem('bugout_daily_' + me.id, JSON.stringify(challenge));
+        renderDailyChallenge(challenge);
+        wrap.style.display = 'block';
+        startDailyTimer();
+    } catch(e) { /* silent */ }
+}
+
+function renderDailyChallenge(ch) {
+    document.getElementById('dailyChallengeTitle').textContent = ch.title || 'Daily Challenge';
+    document.getElementById('dailyChallengeDesc').textContent = ch.description || 'Solve this challenge to earn bonus XP!';
+    document.getElementById('dailyChallengeXP').textContent = `+${ch.xp || 30} XP`;
+    document.getElementById('dailyChallengeDiff').textContent = ch.difficulty || 'Medium';
+    const streak = parseInt(localStorage.getItem('bugout_daily_streak_' + me.id) || '0');
+    document.getElementById('dailyStreakBadge').textContent = `🔥 ${streak} day streak`;
+}
+
+function startDailyTimer() {
+    if (dailyTimerInterval) clearInterval(dailyTimerInterval);
+    const el = document.getElementById('dailyTimer');
+    if (!el) return;
+    function update() {
+        const now = new Date();
+        const tomorrow = new Date(now); tomorrow.setHours(24, 0, 0, 0);
+        const diff = tomorrow - now;
+        const h = Math.floor(diff / 3600000), m = Math.floor((diff % 3600000) / 60000), s = Math.floor((diff % 60000) / 1000);
+        el.textContent = `⏰ Resets in ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    }
+    update();
+    dailyTimerInterval = setInterval(update, 1000);
+}
+
+function solveDailyChallenge() {
+    if (!me || !dailyChallengeData) return;
+    dailyChallengeData.solved = true;
+    localStorage.setItem('bugout_daily_' + me.id, JSON.stringify(dailyChallengeData));
+    const streakKey = 'bugout_daily_streak_' + me.id;
+    const lastKey = 'bugout_daily_last_' + me.id;
+    const last = localStorage.getItem(lastKey);
+    const todayKey = getDailyKey();
+    const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+    const yKey = `${yesterday.getFullYear()}-${String(yesterday.getMonth()+1).padStart(2,'0')}-${String(yesterday.getDate()).padStart(2,'0')}`;
+    let streak = parseInt(localStorage.getItem(streakKey) || '0');
+    if (last === yKey) { streak += 1; } else if (last !== todayKey) { streak = 1; }
+    localStorage.setItem(streakKey, streak);
+    localStorage.setItem(lastKey, todayKey);
+    const xp = dailyChallengeData.xp || 30;
+    addXP(xp);
+    document.getElementById('dailyChallengeWrap').style.display = 'none';
+    showAchievement('🎯', 'Daily Challenge Complete!', `+${xp} XP earned! Streak: ${streak} days 🔥`);
+}
+
+function skipDailyChallenge() {
+    document.getElementById('dailyChallengeWrap').style.display = 'none';
+    toast('Challenge skipped. Kal try karna! 💪', 'ok');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  📊 ANIMATED COUNTERS
+// ═══════════════════════════════════════════════════════════════
+function animateCounter(el, target, duration = 1200) {
+    if (!el) return;
+    const start = 0;
+    const startTime = performance.now();
+    function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        el.textContent = Math.floor(start + (target - start) * eased);
+        if (progress < 1) requestAnimationFrame(update);
+    }
+    requestAnimationFrame(update);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  🏅 ACHIEVEMENT POPUP
+// ═══════════════════════════════════════════════════════════════
+function showAchievement(icon, title, desc) {
+    document.getElementById('achIcon').textContent = icon;
+    document.getElementById('achTitle').textContent = title;
+    document.getElementById('achDesc').textContent = desc;
+    document.getElementById('achOverlay').classList.add('show');
+    document.getElementById('achPopup').classList.add('show');
+    setTimeout(() => closeAchievement(), 4000);
+}
+
+function closeAchievement() {
+    document.getElementById('achOverlay').classList.remove('show');
+    document.getElementById('achPopup').classList.remove('show');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  💀 SKELETON LOADERS
+// ═══════════════════════════════════════════════════════════════
+function showSkeletonBugs() {
+    const grid = document.getElementById('bugsGrid');
+    if (!grid) return;
+    grid.innerHTML = Array(6).fill('').map(() => `
+        <div class="bug-card" style="pointer-events:none;">
+            <div class="skeleton skeleton-text short" style="height:20px;width:80px;margin-bottom:12px;"></div>
+            <div class="skeleton skeleton-text" style="height:18px;margin-bottom:10px;"></div>
+            <div class="skeleton skeleton-text medium" style="height:14px;margin-bottom:6px;"></div>
+            <div class="skeleton skeleton-text short" style="height:14px;margin-bottom:16px;"></div>
+            <div style="display:flex;justify-content:space-between;">
+                <div class="skeleton skeleton-text" style="width:60px;height:12px;"></div>
+                <div class="skeleton skeleton-text" style="width:80px;height:12px;"></div>
+            </div>
+        </div>
+    `).join('');
 }
