@@ -226,7 +226,12 @@ const LEVELS = [
     { min: 25,  max: 49,  name: 'Warrior',  emoji: '⚔️' },
     { min: 50,  max: 74,  name: 'Knight',   emoji: '🛡️' },
     { min: 75,  max: 99,  name: 'Champion', emoji: '🏆' },
-    { min: 100, max: Infinity, name: 'Legend', emoji: '😈' }
+    { min: 100, max: Infinity, name: 'Legend' }
+];
+const ADMIN_USERS = [
+    'shash@mindforgers.com', // Your admin email
+    'admin@bugout.com',
+    'founder@mindforgers.com'
 ];
 const BADGE_DEFS = [
     { name: 'First Blood',    icon: '🩸', desc: 'Pehla bug post kiya!',   check: (b,s,x) => b >= 1 },
@@ -3058,38 +3063,24 @@ function toast(msg, type = 'ok') {
 // Collaboration integration
 function updateAuthUI() {
     const authBtn = document.getElementById('authBtn');
-    const postBtn = document.getElementById('postBtn');
-    const dashboardNavBtn = document.getElementById('dashboardNavBtn');
-    const arenaNavBtn = document.getElementById('arenaNavBtn');
-    const mentorNavBtn = document.getElementById('mentorNavBtn');
-    const teacherNavBtn = document.getElementById('teacherNavBtn');
-    const analyzerNavBtn = document.getElementById('analyzerNavBtn');
-    const collabNavBtn = document.getElementById('collabNavBtn');
-    const bookmarkNavBtn = document.getElementById('bookmarkNavBtn');
     const userPill = document.getElementById('userPill');
-    const notifBell = document.getElementById('notifBell');
+    const postBtn = document.getElementById('postBtn');
     const msgBell = document.getElementById('msgBell');
+    const notifBellWrap = document.getElementById('notifBellWrap');
 
     if (me) {
         authBtn.textContent = 'Sign Out';
         authBtn.onclick = handleSignOut;
+        userPill.style.display = 'flex';
+        document.getElementById('userName').textContent = myName || 'User';
+        document.getElementById('userXP').textContent = myXP + ' XP';
         postBtn.style.display = 'inline-flex';
-        if (dashboardNavBtn) dashboardNavBtn.style.display = 'inline-flex';
-        if (arenaNavBtn) arenaNavBtn.style.display = 'inline-flex';
-        if (mentorNavBtn) mentorNavBtn.style.display = 'inline-flex';
-        if (teacherNavBtn) teacherNavBtn.style.display = 'inline-flex';
-        if (analyzerNavBtn) analyzerNavBtn.style.display = 'inline-flex';
-        if (collabNavBtn) collabNavBtn.style.display = 'inline-flex';
-        if (bookmarkNavBtn) bookmarkNavBtn.style.display = 'inline-flex';
-        if (userPill) userPill.style.display = 'inline-flex';
-        if (notifBell) notifBell.style.display = 'inline-flex';
-        if (msgBell) msgBell.style.display = 'inline-flex';
+        msgBell.style.display = 'inline-flex';
+        notifBellWrap.style.display = 'block';
         
-        userPill.querySelector('#userName').textContent = me.display_name || me.username || 'Anonymous';
-        userPill.querySelector('#userXP').textContent = (me.xp || 0) + ' XP';
-        
-        // Initialize collaboration
-        if (typeof initCollaboration === 'function') {
+        // Check if user is admin
+        if (ADMIN_USERS.includes(me.email.toLowerCase())) {
+            enableAdminFeatures();
             initCollaboration();
         }
     } else {
