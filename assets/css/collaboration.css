@@ -79,6 +79,99 @@
 .collab-whiteboard-container { flex: 1; position: relative; overflow: hidden; background: #fff; }
 .collab-whiteboard { width: 100%; height: 100%; cursor: crosshair; display: block; }
 
+/* Voice Chat Controls */
+.voice-chat-controls { display: flex; gap: 0.5rem; align-items: center; }
+.voice-chat-controls button { position: relative; }
+.voice-chat-controls button.active { background: var(--accent); color: var(--bg); }
+.voice-chat-controls button.recording { background: var(--error); animation: pulse 1.5s infinite; }
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.collab-room-controls { display: flex; align-items: center; gap: 1rem; }
+
+/* Code Playground */
+.collab-playground-toolbar { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 0.5rem; }
+.collab-playground-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; height: 100%; padding: 1rem; }
+.collab-playground-editor { display: flex; flex-direction: column; }
+.collab-playground-input { flex: 1; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; color: var(--text); font-family: 'Consolas', 'Monaco', monospace; font-size: 0.9rem; line-height: 1.5; resize: none; min-height: 300px; }
+.collab-playground-output { display: flex; flex-direction: column; }
+.collab-output-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+.collab-output-header h4 { margin: 0; }
+.collab-output-controls { display: flex; gap: 0.5rem; }
+.collab-output-content { flex: 1; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; min-height: 200px; font-family: 'Consolas', 'Monaco', monospace; font-size: 0.85rem; line-height: 1.4; overflow-y: auto; white-space: pre-wrap; }
+
+/* AI Assistant */
+.collab-ai-toolbar { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid var(--border); }
+.collab-ai-toolbar h4 { margin: 0; }
+.collab-ai-controls { display: flex; gap: 0.5rem; }
+.collab-ai-layout { display: grid; grid-template-columns: 1fr 300px; gap: 1rem; height: 100%; padding: 1rem; }
+.collab-ai-chat { display: flex; flex-direction: column; }
+.collab-ai-messages { flex: 1; overflow-y: auto; margin-bottom: 1rem; min-height: 200px; }
+.collab-ai-input-area { display: flex; gap: 0.5rem; align-items: flex-end; }
+.collab-ai-input { flex: 1; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem; color: var(--text); font-size: 0.9rem; resize: none; min-height: 60px; max-height: 120px; }
+.collab-ai-send-btn { background: var(--accent); color: var(--bg); border: none; border-radius: 8px; padding: 0.5rem 0.75rem; cursor: pointer; font-size: 0.9rem; transition: background 0.2s; }
+.collab-ai-send-btn:hover { background: var(--accent2); }
+.collab-ai-suggestions { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; }
+.collab-ai-suggestions h5 { margin: 0 0 1rem 0; font-size: 0.9rem; color: var(--text); }
+.collab-ai-quick-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.5rem; }
+.collab-ai-action { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 0.75rem; color: var(--text); cursor: pointer; font-size: 0.85rem; transition: all 0.2s; text-align: left; }
+.collab-ai-action:hover { border-color: var(--accent); transform: translateY(-1px); }
+
+/* File Sharing */
+.collab-file-share { position: relative; }
+.collab-file-drop-zone { border: 2px dashed var(--border); border-radius: 8px; padding: 2rem; text-align: center; transition: all 0.2s; cursor: pointer; }
+.collab-file-drop-zone.dragover { border-color: var(--accent); background: rgba(0, 255, 136, 0.1); }
+.collab-file-list { margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+.collab-file-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: var(--bg2); border-radius: 6px; transition: background 0.2s; }
+.collab-file-item:hover { background: var(--border); }
+.collab-file-icon { font-size: 1.5rem; }
+.collab-file-info { flex: 1; }
+.collab-file-name { font-weight: 600; font-size: 0.9rem; }
+.collab-file-size { font-size: 0.8rem; color: var(--text2); }
+.collab-file-remove { background: var(--error); color: #fff; border: none; border-radius: 4px; padding: 0.25rem 0.5rem; cursor: pointer; font-size: 0.75rem; }
+
+/* Collaborative Cursors */
+.collab-cursor { position: absolute; width: 16px; height: 16px; border-radius: 50%; pointer-events: none; z-index: 1000; transition: all 0.1s ease-out; }
+.collab-cursor::after { content: attr(data-name); position: absolute; top: -20px; left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, 0.8); color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; white-space: nowrap; }
+
+/* Recording Indicator */
+.collab-recording-indicator { position: fixed; top: 1rem; right: 1rem; background: var(--error); color: #fff; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; z-index: 1001; animation: pulse 1.5s infinite; }
+
+/* Karma System */
+.user-karma { font-size: 0.75rem; font-weight: 700; color: #ffd700; margin-left: 0.5rem; }
+.karma-actions { display: flex; gap: 0.25rem; margin-top: 0.25rem; }
+.karma-btn { background: none; border: none; padding: 2px 4px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+.karma-btn:hover { background: var(--bg2); transform: scale(1.1); }
+
+/* Room Templates */
+.room-template-preview { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-top: 1rem; }
+.room-template-preview h5 { margin: 0 0 0.5rem 0; color: var(--accent); }
+.room-template-preview p { color: var(--text2); font-size: 0.9rem; margin: 0; }
+
+/* Enhanced AI Messages */
+.collab-ai-message { margin-bottom: 1rem; padding: 1rem; background: var(--bg2); border-radius: 8px; }
+.collab-ai-message.user { border-left: 3px solid var(--accent); }
+.collab-ai-message.assistant { border-left: 3px solid var(--success); }
+.collab-ai-message-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+.collab-ai-message-role { font-weight: 600; font-size: 0.85rem; }
+.collab-ai-message-time { font-size: 0.75rem; color: var(--text2); }
+.collab-ai-message-content { line-height: 1.4; }
+
+/* Enhanced File Sharing */
+.collab-file-drop-zone { background: var(--bg2); border: 2px dashed var(--border); border-radius: 12px; padding: 2rem; text-align: center; transition: all 0.3s; cursor: pointer; margin-bottom: 1rem; }
+.collab-file-drop-zone:hover { border-color: var(--accent); background: rgba(0, 255, 136, 0.05); }
+.collab-file-drop-zone.dragover { border-color: var(--accent); background: rgba(0, 255, 136, 0.1); transform: scale(1.02); }
+
+/* Screen Share Video */
+#screenShareVideo { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); }
+
+/* Recording Indicator */
+.collab-recording-indicator::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.8); z-index: -1; }
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .collab-room-layout { grid-template-columns: 1fr; height: auto; }
@@ -88,4 +181,9 @@
     .collab-rooms-grid { grid-template-columns: 1fr; }
     .collab-whiteboard-toolbar { flex-direction: column; align-items: stretch; }
     .collab-wb-tools, .collab-wb-colors, .collab-wb-actions { justify-content: center; }
+    .collab-playground-layout { grid-template-columns: 1fr; }
+    .collab-ai-layout { grid-template-columns: 1fr; }
+    .voice-chat-controls { flex-wrap: wrap; }
+    .collab-ai-quick-actions { grid-template-columns: 1fr; }
+    .karma-actions { flex-wrap: wrap; }
 }

@@ -457,7 +457,20 @@
                         <div class="collab-user-count">0 users</div>
                     </div>
                 </div>
-                <button class="btn btn-sm btn-danger" onclick="leaveCollabRoom()">Leave Room</button>
+                <div class="collab-room-controls">
+                    <div class="voice-chat-controls">
+                        <button class="btn btn-sm btn-ghost" id="voiceBtn" onclick="toggleVoiceChat()" title="Voice Chat 🎤">
+                            <span id="voiceIcon">🎤</span>
+                        </button>
+                        <button class="btn btn-sm btn-ghost" id="screenShareBtn" onclick="toggleScreenShare()" title="Share Screen 🖥️">
+                            <span id="screenShareIcon">🖥️</span>
+                        </button>
+                        <button class="btn btn-sm btn-ghost" id="recordBtn" onclick="toggleRecording()" title="Record Session ⏺️">
+                            <span id="recordIcon">⏺️</span>
+                        </button>
+                    </div>
+                    <button class="btn btn-sm btn-danger" onclick="leaveCollabRoom()">Leave Room</button>
+                </div>
             </div>
             
             <div class="collab-room-layout">
@@ -489,7 +502,9 @@
                     <!-- Tab Navigation -->
                     <div class="collab-tabs">
                         <button class="collab-tab active" id="codeTab" onclick="switchCollabTab('code')">💻 Code Editor</button>
+                        <button class="collab-tab" id="playgroundTab" onclick="switchCollabTab('playground')">🚀 Playground</button>
                         <button class="collab-tab" id="whiteboardTab" onclick="switchCollabTab('whiteboard')">🎨 Whiteboard</button>
+                        <button class="collab-tab" id="aiAssistantTab" onclick="switchCollabTab('aiAssistant')">🤖 AI Assistant</button>
                     </div>
                     
                     <!-- Code Editor Panel -->
@@ -537,6 +552,71 @@
                         </div>
                         <div class="collab-whiteboard-container">
                             <canvas class="collab-whiteboard" id="collabWhiteboard"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Code Playground Panel -->
+                    <div class="collab-panel" id="playgroundPanel">
+                        <div class="collab-playground-toolbar">
+                            <select class="collab-lang-select" id="playgroundLangSelect">
+                                <option value="javascript">JavaScript</option>
+                                <option value="python">Python</option>
+                                <option value="html">HTML</option>
+                                <option value="css">CSS</option>
+                                <option value="sql">SQL</option>
+                            </select>
+                            <button class="btn btn-sm" id="runCodeBtn" onclick="runPlaygroundCode()">▶️ Run Code</button>
+                            <button class="btn btn-sm btn-ghost" onclick="clearPlayground()">Clear</button>
+                            <button class="btn btn-sm btn-ghost" onclick="sharePlayground()">Share Result</button>
+                        </div>
+                        <div class="collab-playground-layout">
+                            <div class="collab-playground-editor">
+                                <textarea class="collab-playground-input" id="playgroundCodeInput" placeholder="// Write your code here and click Run..." spellcheck="false"></textarea>
+                            </div>
+                            <div class="collab-playground-output">
+                                <div class="collab-output-header">
+                                    <h4>Output</h4>
+                                    <div class="collab-output-controls">
+                                        <button class="btn btn-xs" onclick="clearPlaygroundOutput()">Clear</button>
+                                        <button class="btn btn-xs" onclick="copyPlaygroundOutput()">Copy</button>
+                                    </div>
+                                </div>
+                                <div class="collab-output-content" id="playgroundOutput">
+                                    <div class="collab-empty">Run code to see output...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- AI Assistant Panel -->
+                    <div class="collab-panel" id="aiAssistantPanel">
+                        <div class="collab-ai-toolbar">
+                            <h4>🤖 AI Coding Assistant</h4>
+                            <div class="collab-ai-controls">
+                                <button class="btn btn-sm" id="aiAskBtn" onclick="askAIAssistant()">Ask AI</button>
+                                <button class="btn btn-sm btn-ghost" onclick="clearAIChat()">Clear</button>
+                            </div>
+                        </div>
+                        <div class="collab-ai-layout">
+                            <div class="collab-ai-chat">
+                                <div class="collab-ai-messages" id="aiMessages">
+                                    <div class="collab-empty">Ask me anything about your code! 🤖</div>
+                                </div>
+                                <div class="collab-ai-input-area">
+                                    <textarea class="collab-ai-input" id="aiInput" placeholder="e.g. How do I fix this error? Explain this function..." rows="2"></textarea>
+                                    <button class="collab-ai-send-btn" onclick="askAIAssistant()">➤</button>
+                                </div>
+                            </div>
+                            <div class="collab-ai-suggestions">
+                                <h5>Quick Actions</h5>
+                                <div class="collab-ai-quick-actions">
+                                    <button class="collab-ai-action" onclick="aiExplainCode()">📖 Explain Code</button>
+                                    <button class="collab-ai-action" onclick="aiDebugCode()">🐛 Debug Code</button>
+                                    <button class="collab-ai-action" onclick="aiOptimizeCode()">⚡ Optimize Code</button>
+                                    <button class="collab-ai-action" onclick="aiAddTests()">🧪 Add Tests</button>
+                                    <button class="collab-ai-action" onclick="aiConvertLanguage()">🔄 Convert Language</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -663,6 +743,19 @@
             <select id="roomType">
                 <option value="public">🌍 Public - Anyone can join</option>
                 <option value="private">🔒 Private - Invite only</option>
+            </select>
+        </div>
+        <div class="field">
+            <label>Quick Start Template</label>
+            <select id="roomTemplate" onchange="applyRoomTemplate()">
+                <option value="">Custom Room</option>
+                <option value="pair-programming">👥 Pair Programming</option>
+                <option value="code-review">🔍 Code Review</option>
+                <option value="study-group">📚 Study Group</option>
+                <option value="interview-practice">💼 Interview Practice</option>
+                <option value="hackathon">🚀 Hackathon Team</option>
+                <option value="debug-session">🐛 Debug Session</option>
+                <option value="teaching">👨‍🏫 Teaching Session</option>
             </select>
         </div>
         <div class="form-actions" style="margin-top:1.5rem;">
