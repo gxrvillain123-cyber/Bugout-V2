@@ -14,9 +14,89 @@
         .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
         header { background: linear-gradient(135deg, var(--bg2), rgba(0, 255, 136, 0.03)); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; backdrop-filter: blur(10px); }
         nav { display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; width: 100%; max-width: none; }
-        .logo { font-size: 1.6rem; font-weight: 900; background: var(--gradient2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; cursor: pointer; letter-spacing: -1px; transition: transform 0.2s; flex-shrink: 0; }
-        .logo:hover { transform: scale(1.05); }
-        .logo span { color: var(--text2); font-weight: 400; font-size: 0.9rem; margin-left: 6px; }
+        .logo { 
+            font-size: 1.8rem; 
+            font-weight: 900; 
+            cursor: pointer; 
+            letter-spacing: -1px; 
+            transition: all 0.3s; 
+            flex-shrink: 0; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+        }
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: var(--bg);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+            transition: all 0.3s;
+        }
+        .logo-icon::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: rotate(45deg);
+            transition: all 0.5s;
+        }
+        .logo:hover .logo-icon {
+            transform: rotate(5deg) scale(1.1);
+            box-shadow: 0 6px 20px rgba(0, 255, 136, 0.4);
+        }
+        .logo:hover .logo-icon::before {
+            animation: logoShine 0.5s ease-in-out;
+        }
+        @keyframes logoShine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+        .logo-text {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+        }
+        .logo-text::after {
+            content: 'BUGOUT';
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: linear-gradient(135deg, var(--text) 0%, var(--text2) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .logo:hover .logo-text::after {
+            opacity: 1;
+        }
+        .logo-subtitle {
+            color: var(--text2);
+            font-weight: 400;
+            font-size: 0.75rem;
+            margin-top: 2px;
+            opacity: 0.8;
+            transition: all 0.3s;
+        }
+        .logo:hover .logo-subtitle {
+            opacity: 1;
+            color: var(--text);
+        }
         .nav-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; flex-shrink: 0; }
         .nav-center { display: flex; align-items: center; gap: 8px; flex: 1; justify-content: center; max-width: 600px; margin: 0 auto; }
         .nav-btn { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 8px 16px; color: var(--text2); cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.2s; display: none; }
@@ -653,8 +733,15 @@
         @media (max-width: 600px) {
             .container { padding: 0 16px; }
             nav { align-items: flex-start; gap: 10px; padding: 0.75rem 1rem; }
-            .logo { font-size: 1.35rem; line-height: 1.1; padding-top: 5px; }
-            .logo span { display: block; margin-left: 0; margin-top: 3px; font-size: 0.72rem; }
+            .logo { font-size: 1.4rem; gap: 6px; }
+            .logo-icon { 
+                width: 32px; 
+                height: 32px; 
+                font-size: 1.2rem; 
+                border-radius: 8px; 
+            }
+            .logo-text { font-size: 1.4rem; }
+            .logo-subtitle { font-size: 0.65rem; }
             .nav-right { flex: 1; justify-content: flex-end; gap: 7px; }
             .user-pill { order: -2; max-width: 100%; padding: 6px 10px; font-size: 0.78rem; }
             #userName { max-width: 142px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
