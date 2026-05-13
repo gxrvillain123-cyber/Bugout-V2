@@ -228,11 +228,6 @@ const LEVELS = [
     { min: 75,  max: 99,  name: 'Champion', emoji: '🏆' },
     { min: 100, max: Infinity, name: 'Legend' }
 ];
-const ADMIN_USERS = [
-    'shreyanshshekhar353@gmail.com', // Your admin email
-    'admin@bugout.com',
-    'founder@mindforgers.com'
-];
 const BADGE_DEFS = [
     { name: 'First Blood',    icon: '🩸', desc: 'Pehla bug post kiya!',   check: (b,s,x) => b >= 1 },
     { name: 'Problem Solver', icon: '💡', desc: 'Pehla solution diya!',    check: (b,s,x) => s >= 1 },
@@ -3078,29 +3073,7 @@ function updateAuthUI() {
         msgBell.style.display = 'inline-flex';
         notifBellWrap.style.display = 'block';
         
-        // Check if user is admin - more robust detection
-        console.log('=== APP.JS ADMIN CHECK ===');
-        console.log('User email:', me.email);
-        console.log('Admin users list:', ADMIN_USERS);
-        const isAdmin = ADMIN_USERS.includes(me.email.toLowerCase());
-        console.log('Is admin?', isAdmin);
-        
-        if (isAdmin) {
-            console.log('✅ Admin detected in app.js, enabling admin features for:', me.email);
-            enableAdminFeatures();
-            initCollaboration();
-            
-            // Also trigger admin system check
-            if (window.adminSystem) {
-                console.log('Triggering admin system check...');
-                window.adminSystem.checkAdminStatus();
-            } else {
-                console.log('Admin system not yet initialized');
-            }
-        } else {
-            console.log('❌ User is not admin');
-        }
-        console.log('=== END APP.JS ADMIN CHECK ===');
+        initCollaboration();
     } else {
         authBtn.textContent = 'Sign In';
         authBtn.onclick = handleAuth;
