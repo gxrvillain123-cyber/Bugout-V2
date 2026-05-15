@@ -1305,7 +1305,7 @@ function renderDailyQuests(progress, streak = 0) {
         { key: 'comments_posted', title: 'Comment Once', desc: 'Discussion ko alive rakho.', target: 1, icon: '💬' }
     ];
     const done = quests.every(q => (progress[q.key] || 0) >= q.target);
-    return `<div class="dash-section">
+    return `<div class="dash-section daily-quest-card">
         <div class="dash-section-title">🔥 Daily Quest <span class="streak-pill">🔥 ${streak || 0} day streak</span></div>
         ${progress.missingTable ? `<div class="empty" style="padding:1rem;"><h3>daily_quests table missing</h3><p>Supabase SQL run karne ke baad quests live ho jayenge.</p></div>` : ''}
         <div class="quest-grid">
@@ -1319,8 +1319,8 @@ function renderDailyQuests(progress, streak = 0) {
                 </div>`;
             }).join('')}
         </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:1rem;">
-            <span style="color:var(--text2);font-size:0.85rem;">All 3 complete karo aur +15 XP bonus claim karo.</span>
+        <div class="dash-quest-footer">
+            <span class="dash-quest-note">All 3 complete karo aur +15 XP bonus claim karo.</span>
             <button class="btn btn-sm ${done && !progress.quest_claimed && !progress.missingTable ? '' : 'btn-disabled'}" onclick="claimDailyQuest()">Claim +15 XP</button>
         </div>
     </div>`;
@@ -1432,14 +1432,14 @@ async function loadDashboard() {
                 ${renderXPChart(xpTimeline, color)}
             </div>
 
-            <div class="dash-section">
+            <div class="dash-section dashboard-full">
                 <div class="dash-section-title">🗓️ Activity Calendar (Last Year)</div>
                 <div class="calendar-grid">${calData.map(d => `<div class="cal-day level-${d.level}" title="${d.date}: ${d.count} activity"></div>`).join('')}</div>
                 <div class="cal-legend">Less <div class="cal-legend-squares">${[0,1,2,3,4].map(l => `<div class="cal-legend-sq cal-day level-${l}"></div>`).join('')}</div> More</div>
             </div>
 
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
-                <div class="dash-section" style="margin-bottom:0;">
+            <div class="dash-insight-grid">
+                <div class="dash-section">
                     <div class="dash-section-title">🎯 Solution Win Rate</div>
                     <div class="win-ring-wrap">
                         <div class="win-ring">
@@ -1459,7 +1459,7 @@ async function loadDashboard() {
                         </div>
                     </div>
                 </div>
-                <div class="dash-section" style="margin-bottom:0;">
+                <div class="dash-section">
                     <div class="dash-section-title">👥 Community</div>
                     <div class="win-stats-list">
                         <div class="win-stat-row"><span class="win-stat-label">👥 Followers</span><span class="win-stat-val">${counts.followers}</span></div>
@@ -2140,7 +2140,7 @@ async function goProfile(userId, fromRoute = false) {
                     <div class="follow-stat" onclick="showFollowList('${userId}','followers')"><div class="follow-count" id="profile-followers-count">${counts.followers}</div><div class="follow-label">Followers</div></div>
                     <div class="follow-stat" onclick="showFollowList('${userId}','following')"><div class="follow-count">${counts.following}</div><div class="follow-label">Following</div></div>
                 </div>
-                <div style="display:flex;gap:10px;margin-top:1rem;flex-wrap:wrap;">
+                <div class="profile-actions">
                     ${isMe
                         ? `<button class="btn btn-ghost btn-sm" onclick="openEditModal()">✏️ Edit Profile</button><button class="btn btn-ghost btn-sm" onclick="goDashboard()">📊 Dashboard</button><button class="btn btn-ghost btn-sm" onclick="goMentor()">🧠 AI Mentor</button><button class="btn btn-ghost btn-sm" onclick="goTeacher()">AI Teacher</button><button class="btn btn-ghost btn-sm" onclick="goAnalyzer()">🧪 Code Analyzer</button><button class="share-btn" onclick="copyShareLink('profile','${userId}')">🔗 Share</button>`
                         : me
@@ -2157,9 +2157,9 @@ async function goProfile(userId, fromRoute = false) {
                     <div class="profile-stat"><div class="profile-stat-num">${solsPosted}</div><div class="profile-stat-label">💡 Solutions</div></div>
                     <div class="profile-stat"><div class="profile-stat-num">${bestSols}</div><div class="profile-stat-label">✅ Best</div></div>
                 </div>
-                <div style="margin-top:1.5rem;"><h3 style="font-size:0.9rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.75rem;">🏅 Badges</h3>${renderBadges(badgesArr)}</div>
+                <div class="profile-badges-section"><h3 class="profile-badges-title">🏅 Badges</h3>${renderBadges(badgesArr)}</div>
             </div>
-            ${bugsPosted > 0 ? `<div class="profile-bugs"><h3>Recent Bugs</h3><div style="display:flex;flex-direction:column;gap:0.75rem;">${bugs.slice(0, 5).map(b => `<div class="bug-card" onclick="openBug('${b.id}')"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><span class="bug-tag">${esc(b.category)}</span>${getStatusBadge(b.status || 'open')}</div><h3 style="font-size:1rem;">${esc(b.title)}</h3><div class="bug-footer" style="margin-top:0.5rem;"><span>${timeAgo(b.created_at)}</span><span>💡 ${b.solutions_count || 0} solutions</span></div></div>`).join('')}</div></div>` : ''}`;
+            ${bugsPosted > 0 ? `<div class="profile-bugs"><h3>Recent Bugs</h3><div class="profile-recent-list">${bugs.slice(0, 6).map(b => `<div class="bug-card" onclick="openBug('${b.id}')"><div class="bug-card-head"><span class="bug-tag">${esc(b.category)}</span>${getStatusBadge(b.status || 'open')}</div><h3 style="font-size:1rem;">${esc(b.title)}</h3><div class="bug-footer" style="margin-top:0.5rem;"><span>${timeAgo(b.created_at)}</span><span>💡 ${b.solutions_count || 0} solutions</span></div></div>`).join('')}</div></div>` : ''}`;
     } catch(err) { wrap.innerHTML = `<button class="back-btn" onclick="goHome()">← Back</button><div class="empty"><h3>Profile nahi mila 😔</h3><p>${esc(err.message)}</p></div>`; }
 }
 
@@ -2588,7 +2588,7 @@ function renderBugCard(b, searchQuery) {
     const bookmarkBtn = me ? `<button class="bookmark-btn-card ${isSaved ? 'saved' : ''}" data-bookmark="${b.id}" onclick="toggleBookmark('${b.id}',event)" title="${isSaved ? 'Bookmarked!' : 'Bookmark'}">🔖</button>` : '';
     return `<div class="bug-card" onclick="openBug('${b.id}')">
         ${bookmarkBtn}
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;"><span class="bug-tag" style="margin-bottom:0;">${esc(b.category)}</span>${getStatusBadge(b.status || 'open')}</div>
+        <div class="bug-card-head"><span class="bug-tag">${esc(b.category)}</span>${getStatusBadge(b.status || 'open')}</div>
         ${tagsHTML}
         <h3>${searchQuery ? highlightMatch(b.title, searchQuery) : esc(b.title)}</h3>
         <p>${searchQuery ? highlightMatch(b.description, searchQuery) : esc(b.description)}</p>
@@ -2738,14 +2738,14 @@ async function openBug(id, fromRoute = false) {
         wrap.innerHTML = `
             <button class="back-btn" onclick="goHome()">← Back to bugs</button>
             <div class="detail-card">
-                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span class="bug-tag">${esc(bug.category)}</span>${getStatusBadge(currentStatus)}</div>
+                <div class="detail-tag-row"><span class="bug-tag">${esc(bug.category)}</span>${getStatusBadge(currentStatus)}</div>
                 <h2>${esc(bug.title)}</h2>${tagsHTML}
                 <p class="desc" style="margin-top:12px;">${esc(bug.description)}</p>
                 ${statusHTML}
                 <div class="detail-meta">
                     <span>by <strong style="cursor:pointer;color:var(--accent);" onclick="goProfile('${bug.user_id}')">${esc(bug.username || 'Anonymous')}</strong></span>
                     <span>${timeAgo(bug.created_at)}</span><span>💡 ${solutions.length} solutions</span>
-                    <span style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;"><button class="share-btn" onclick="copyShareLink('bug','${bug.id}')">🔗 Share</button>${isOwner ? `<button class="btn btn-ghost btn-sm" onclick="openEditBugModal()">✏️ Edit</button><button class="btn btn-danger btn-sm" onclick="askDelete('${bug.id}',event)">🗑️ Delete</button>` : ''}</span>
+                    <span class="detail-actions"><button class="share-btn" onclick="copyShareLink('bug','${bug.id}')">🔗 Share</button>${isOwner ? `<button class="btn btn-ghost btn-sm" onclick="openEditBugModal()">✏️ Edit</button><button class="btn btn-danger btn-sm" onclick="askDelete('${bug.id}',event)">🗑️ Delete</button>` : ''}</span>
                 </div>
             </div>
             <div class="ai-box show related-bug-box" id="relatedBugBox">
@@ -2754,10 +2754,10 @@ async function openBug(id, fromRoute = false) {
             </div>
             <div class="solutions-header">Solutions (${solutions.length})</div>
             ${me ? `<div class="solution-input-box"><h4>Post your solution 💡</h4><div class="field"><textarea id="solText" placeholder="Share your solution..." rows="4"></textarea></div>
-                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <div class="solution-action-row">
                     <button class="btn btn-sm" id="solBtn" onclick="submitSolution()">Post Solution</button>
                     <button class="btn btn-sm btn-ghost" onclick="reviewSolutionWithAI()">Review Solution</button>
-                    <button class="ai-solver-btn" style="width:auto;padding:6px 14px;font-size:0.82rem;" onclick="getAISolutionsForDetail('${bug.id}')">🤖 Ask AI</button>
+                    <button class="ai-solver-btn ai-compact-btn" onclick="getAISolutionsForDetail('${bug.id}')">🤖 Ask AI</button>
                 </div>
                 <div class="ai-box" id="solutionCoachBox" style="margin-top:0.75rem;">
                     <div class="ai-box-header"><span>Coach</span><span class="ai-box-title">Solution Quality Coach</span><span class="ai-box-subtitle">Before posting</span></div>
@@ -2768,7 +2768,7 @@ async function openBug(id, fromRoute = false) {
                     <div id="aiDetailContent"></div>
                     <div class="ai-footer-note">⚡ "↗ Use as my solution" click karo!</div>
                 </div>
-            </div>` : `<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;text-align:center;"><p style="color:var(--text2);margin-bottom:1rem;">Solution post karne ke liye Sign In karo</p><button class="btn btn-sm" onclick="openModal()">Sign In</button></div>`}
+            </div>` : `<div class="solution-signin-card"><p>Solution post karne ke liye Sign In karo</p><button class="btn btn-sm" onclick="openModal()">Sign In</button></div>`}
             <div class="solutions-list">${solutions.length === 0 ? '<div class="empty" style="grid-column:unset;"><p>Koi solution nahi abhi 💪<br>Pehle warrior bano!</p></div>' : solutions.map(s => renderSolutionCard(s, isOwner, bug.id)).join('')}</div>`;
         loadRelatedBugsForActive();
     } catch(err) { wrap.innerHTML = `<button class="back-btn" onclick="goHome()">← Back</button><div class="empty"><h3>Error 😔</h3><p>${esc(err.message)}</p></div>`; }

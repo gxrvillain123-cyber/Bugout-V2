@@ -1,9 +1,9 @@
 /* Collaboration Styles */
-.collab-wrap { padding: 2rem 0; }
+.collab-wrap { width: min(100%, var(--content-wide, 1760px)); margin-inline: auto; padding: 2rem 0 3rem; }
 .collab-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
 .collab-head h2 { margin: 0; }
 .collab-rooms-section h3 { margin: 1.5rem 0 1rem; color: var(--text); }
-.collab-rooms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
+.collab-rooms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: var(--section-gap, 1.5rem); }
 .collab-room-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; cursor: pointer; transition: all 0.2s; }
 .collab-room-card:hover { border-color: var(--accent); transform: translateY(-2px); }
 .collab-room-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem; }
@@ -19,12 +19,12 @@
 .collab-status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
 
 /* Collaboration Room Page */
-.collab-room-wrap { padding: 1rem 0; }
+.collab-room-wrap { width: min(100%, var(--content-wide, 1760px)); margin-inline: auto; padding: 1rem 0 3rem; }
 .collab-room-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
 .collab-room-info h2 { margin: 0 0 0.5rem 0; }
 .collab-room-users { display: flex; align-items: center; gap: 1rem; color: var(--text2); font-size: 0.9rem; }
 .collab-user-count { background: var(--bg2); padding: 4px 12px; border-radius: 16px; }
-.collab-room-layout { display: grid; grid-template-columns: 300px 1fr; gap: 1.5rem; height: calc(100vh - 200px); }
+.collab-room-layout { display: grid; grid-template-columns: minmax(280px, 0.26fr) minmax(0, 1fr); gap: var(--section-gap, 1.5rem); min-height: 620px; height: calc(100vh - 190px); }
 .collab-sidebar { display: flex; flex-direction: column; gap: 1rem; }
 .collab-users-panel, .collab-chat-panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; }
 .collab-users-panel { flex: 0 0 auto; }
@@ -95,7 +95,7 @@
 
 /* Code Playground */
 .collab-playground-toolbar { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 0.5rem; }
-.collab-playground-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; height: 100%; padding: 1rem; }
+.collab-playground-layout { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr); gap: 1rem; height: 100%; padding: 1rem; }
 .collab-playground-editor { display: flex; flex-direction: column; }
 .collab-playground-input { flex: 1; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; color: var(--text); font-family: 'Consolas', 'Monaco', monospace; font-size: 0.9rem; line-height: 1.5; resize: none; min-height: 300px; }
 .collab-playground-output { display: flex; flex-direction: column; }
@@ -108,7 +108,7 @@
 .collab-ai-toolbar { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid var(--border); }
 .collab-ai-toolbar h4 { margin: 0; }
 .collab-ai-controls { display: flex; gap: 0.5rem; }
-.collab-ai-layout { display: grid; grid-template-columns: 1fr 300px; gap: 1rem; height: 100%; padding: 1rem; }
+.collab-ai-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 0.32fr); gap: 1rem; height: 100%; padding: 1rem; }
 .collab-ai-chat { display: flex; flex-direction: column; }
 .collab-ai-messages { flex: 1; overflow-y: auto; margin-bottom: 1rem; min-height: 200px; }
 .collab-ai-input-area { display: flex; gap: 0.5rem; align-items: flex-end; }
@@ -173,16 +173,19 @@
 .collab-recording-indicator::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.8); z-index: -1; }
 
 /* Responsive Design */
-@media (max-width: 768px) {
+@media (max-width: 1000px) {
     .collab-room-layout { grid-template-columns: 1fr; height: auto; }
     .collab-sidebar { order: 2; }
     .collab-main { order: 1; min-height: 400px; }
     .collab-chat-panel { min-height: 300px; }
+    .collab-playground-layout { grid-template-columns: 1fr; }
+    .collab-ai-layout { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
     .collab-rooms-grid { grid-template-columns: 1fr; }
     .collab-whiteboard-toolbar { flex-direction: column; align-items: stretch; }
     .collab-wb-tools, .collab-wb-colors, .collab-wb-actions { justify-content: center; }
-    .collab-playground-layout { grid-template-columns: 1fr; }
-    .collab-ai-layout { grid-template-columns: 1fr; }
     .voice-chat-controls { flex-wrap: wrap; }
     .collab-ai-quick-actions { grid-template-columns: 1fr; }
     .karma-actions { flex-wrap: wrap; }
