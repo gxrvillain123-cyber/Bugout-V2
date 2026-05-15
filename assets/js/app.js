@@ -2303,6 +2303,11 @@ function goPost() {
     lastTriageSuggestion = null;
     showPage('postPage');
 }
+
+function showPostModal() {
+    goPost();
+}
+
 async function goArena() {
     if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
     showPage('arenaPage');
