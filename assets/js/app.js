@@ -20,7 +20,7 @@ async function callGroq(messages, options = {}) {
     return response.json();
 }
 
-let me = null, myName = null, myXP = 0, activeBug = null, activeCategory = 'all', bugToDelete = null;
+let me = null, myName = null, myXP = 0, myRole = 'user', activeBug = null, activeCategory = 'all', bugToDelete = null;
 let editSelectedColor = '#00ff88', editSelectedInterests = [], editingBugId = null, editBugTags = [];
 let currentProfileId = null, chatPartnerId = null, chatPartnerProfile = null, msgSubscription = null;
 let allFollowersList = [], unreadCheckInterval = null, currentTags = [], searchTimeout = null;
@@ -246,6 +246,9 @@ function getLevel(xp) { return LEVELS.find(l => xp >= l.min && xp <= l.max) || L
 function getLevelNum(xp) { return LEVELS.findIndex(l => xp >= l.min && xp <= l.max) + 1; }
 function getXPProgress(xp) { const l = getLevel(xp); if (l.max === Infinity) return 100; return Math.round(((xp - l.min) / (l.max - l.min + 1)) * 100); }
 function getXPToNext(xp) { const l = getLevel(xp); return l.max === Infinity ? 0 : l.max - xp + 1; }
+function isAdminUser() { return myRole === 'admin'; }
+function getRoleBadge(role) { return role === 'admin' ? '<span class="admin-role-badge">Admin</span>' : ''; }
+function canManageBug(bug) { return !!me && (isAdminUser() || bug?.user_id === me.id); }
 function makeAvatar(initial, color, size=80) { return `<div class="profile-avatar" style="background:${color||'#00ff88'};width:${size}px;height:${size}px;font-size:${size*0.4}px;">${initial}</div>`; }
 function parseSupabaseDate(value) {
     if (!value) return null;
@@ -2120,6 +2123,7 @@ async function goProfile(userId, fromRoute = false) {
         const bugsPosted = bugs ? bugs.length : 0, solsPosted = solutions ? solutions.length : 0;
         const bestSols = solutions ? solutions.filter(s => s.is_best_solution).length : 0;
         const isMe = me && me.id === userId, displayName = profile.display_name || profile.username || 'Anonymous';
+        const role = profile.role || 'user';
         const color = profile.avatar_color || '#00ff88', interests = profile.interests || [], canMsg = me && !isMe;
         const badgesArr = Array.isArray(badges) ? badges : [];
         wrap.innerHTML = `
@@ -2128,10 +2132,11 @@ async function goProfile(userId, fromRoute = false) {
                 <div class="profile-top">
                     ${makeAvatar(displayName[0].toUpperCase(), color, 80)}
                     <div class="profile-info">
-                        <h2>${esc(displayName)} ${isMe ? '😈' : ''}</h2>
+                        <h2>${esc(displayName)} ${isMe ? '😈' : ''} ${getRoleBadge(role)}</h2>
                         <div class="username-tag">@${esc(profile.username || 'anonymous')}</div>
                         ${profile.bio ? `<div class="bio-text">${esc(profile.bio)}</div>` : ''}
                         <div class="level-badge">${lvl.emoji} Level ${lvlNum} — ${lvl.name}</div>
+                        ${role === 'admin' ? '<div class="admin-note">Platform admin - can moderate bugs and manage status</div>' : ''}
                         <div style="margin-top:8px;"><span class="streak-pill">🔥 ${profile.streak || 0} day streak</span></div>
                         ${interests.length > 0 ? `<div class="interests-wrap">${interests.map(i => `<span class="interest-tag">${esc(i)}</span>`).join('')}</div>` : ''}
                     </div>
@@ -2202,15 +2207,15 @@ async function saveProfile() {
 async function setUser(user) {
     me = user;
     try {
-        const { data } = await db.from('profiles').select('username,display_name,xp').eq('user_id', user.id).maybeSingle();
-        if (data) { myName = data.display_name || data.username || user.email.split('@')[0]; myXP = data.xp || 0; }
-        else { myName = user.email.split('@')[0]; myXP = 0; }
-    } catch(e) { myName = user.email.split('@')[0]; myXP = 0; }
+        const { data } = await db.from('profiles').select('*').eq('user_id', user.id).maybeSingle();
+        if (data) { myName = data.display_name || data.username || user.email.split('@')[0]; myXP = data.xp || 0; myRole = data.role || 'user'; }
+        else { myName = user.email.split('@')[0]; myXP = 0; myRole = 'user'; }
+    } catch(e) { myName = user.email.split('@')[0]; myXP = 0; myRole = 'user'; }
     renderUserUI(); startUnreadCheck(); startNotifCheck(); await loadMyBookmarks();
 }
 
 function clearUser() {
-    me = null; myName = null; myXP = 0; myBookmarks = new Set(); mentorHistory = []; teacherProgress = []; currentTeacherLesson = null;
+    me = null; myName = null; myXP = 0; myRole = 'user'; myBookmarks = new Set(); mentorHistory = []; teacherProgress = []; currentTeacherLesson = null;
     if (unreadCheckInterval) { clearInterval(unreadCheckInterval); unreadCheckInterval = null; }
     if (notifCheckInterval) { clearInterval(notifCheckInterval); notifCheckInterval = null; }
     if (msgSubscription) { msgSubscription.unsubscribe(); msgSubscription = null; }
@@ -2221,6 +2226,7 @@ function renderUserUI() {
     const on = !!me;
     document.getElementById('authBtn').textContent = on ? 'Sign Out' : 'Sign In';
     document.getElementById('userPill').style.display = on ? 'flex' : 'none';
+    document.getElementById('userPill').classList.toggle('admin', on && isAdminUser());
     document.getElementById('postBtn').style.display = on ? 'inline-flex' : 'none';
     document.getElementById('msgBell').style.display = on ? 'flex' : 'none';
     document.getElementById('bookmarkNavBtn').style.display = on ? 'inline-flex' : 'none';
@@ -2232,7 +2238,7 @@ function renderUserUI() {
     document.getElementById('collabNavBtn').style.display = on ? 'inline-flex' : 'none';
     document.getElementById('notifBellWrap').classList.toggle('show', on);
     if (on && typeof initCollaboration === 'function') initCollaboration();
-    if (on) { const lvl = getLevel(myXP); document.getElementById('userName').textContent = lvl.emoji + ' ' + myName; document.getElementById('userXP').textContent = myXP + ' XP'; }
+    if (on) { const lvl = getLevel(myXP); document.getElementById('userName').textContent = lvl.emoji + ' ' + myName; document.getElementById('userXP').textContent = (isAdminUser() ? 'ADMIN - ' : '') + myXP + ' XP'; }
 }
 
 async function addXP(amount) {
@@ -2241,7 +2247,7 @@ async function addXP(amount) {
         const oldLvl = getLevelNum(myXP); myXP += amount;
         await db.from('profiles').update({ xp: myXP }).eq('user_id', me.id);
         const newLvl = getLevelNum(myXP), lvl = getLevel(myXP);
-        document.getElementById('userXP').textContent = myXP + ' XP';
+        document.getElementById('userXP').textContent = (isAdminUser() ? 'ADMIN - ' : '') + myXP + ' XP';
         document.getElementById('userName').textContent = lvl.emoji + ' ' + myName;
         if (newLvl > oldLvl) toast(`🎉 Level Up! Tu ab ${lvl.emoji} ${lvl.name} hai!`, 'ok');
         await checkAndAwardBadges();
@@ -2646,7 +2652,7 @@ async function submitBug() {
 }
 
 function openEditBugModal() {
-    if (!me || !activeBug || activeBug.user_id !== me.id) { toast('Sirf owner edit kar sakta hai!', 'err'); return; }
+    if (!canManageBug(activeBug)) { toast('Sirf owner ya admin edit kar sakta hai!', 'err'); return; }
     editingBugId = activeBug.id;
     editBugTags = Array.isArray(activeBug.tags) ? [...activeBug.tags] : [];
     document.getElementById('editBugTitle').value = activeBug.title || '';
@@ -2703,7 +2709,9 @@ async function saveBugEdit() {
     btn.textContent = 'Saving...';
     btn.classList.add('btn-disabled');
     try {
-        const { error } = await db.from('bugs').update({ title, category, description, tags: editBugTags }).eq('id', editingBugId).eq('user_id', me.id);
+        let query = db.from('bugs').update({ title, category, description, tags: editBugTags }).eq('id', editingBugId);
+        if (!isAdminUser()) query = query.eq('user_id', me.id);
+        const { error } = await query;
         if (error) throw error;
         const id = editingBugId;
         closeEditBugModal();
@@ -2717,7 +2725,9 @@ async function saveBugEdit() {
 function askDelete(bugId, e) { e.stopPropagation(); bugToDelete = bugId; document.getElementById('confirmDialog').classList.add('show'); }
 function closeConfirm() { document.getElementById('confirmDialog').classList.remove('show'); bugToDelete = null; }
 async function confirmDelete() {
-    if (!bugToDelete) return; closeConfirm();
+    if (!bugToDelete) return;
+    if (!canManageBug(activeBug)) { closeConfirm(); bugToDelete = null; toast('Sirf owner ya admin delete kar sakta hai!', 'err'); return; }
+    closeConfirm();
     try {
         await db.from('solutions').delete().eq('bug_id', bugToDelete);
         await db.from('bookmarks').delete().eq('bug_id', bugToDelete);
@@ -2737,11 +2747,11 @@ async function openBug(id, fromRoute = false) {
             db.from('solutions').select('*').eq('bug_id', id).order('upvotes', { ascending: false })
         ]);
         if (e1) throw e1;
-        activeBug = bug; const solutions = sols || [], isOwner = me && bug.user_id === me.id;
+        activeBug = bug; const solutions = sols || [], isOwner = me && bug.user_id === me.id, canManage = canManageBug(bug);
         const tags = bug.tags && bug.tags.length ? bug.tags : [];
         const tagsHTML = tags.length ? `<div class="bug-tags-wrap" style="margin-top:8px;">${tags.map(t => `<span class="bug-tag-pill" onclick="filterByTagFromDetail('${esc(t)}')">#${esc(t)}</span>`).join('')}</div>` : '';
         const currentStatus = bug.status || 'open';
-        const statusHTML = isOwner ? `<div class="status-select-wrap"><label>📊 Status:</label><select class="status-select" onchange="updateBugStatus('${bug.id}',this.value)"><option value="open" ${currentStatus === 'open' ? 'selected' : ''}>🔴 Open</option><option value="in_progress" ${currentStatus === 'in_progress' ? 'selected' : ''}>🟡 In Progress</option><option value="solved" ${currentStatus === 'solved' ? 'selected' : ''}>🟢 Solved</option></select></div>` : '';
+        const statusHTML = canManage ? `<div class="status-select-wrap"><label>📊 Status:</label><select class="status-select" onchange="updateBugStatus('${bug.id}',this.value)"><option value="open" ${currentStatus === 'open' ? 'selected' : ''}>🔴 Open</option><option value="in_progress" ${currentStatus === 'in_progress' ? 'selected' : ''}>🟡 In Progress</option><option value="solved" ${currentStatus === 'solved' ? 'selected' : ''}>🟢 Solved</option></select></div>` : '';
         wrap.innerHTML = `
             <button class="back-btn" onclick="goHome()">← Back to bugs</button>
             <div class="detail-card">
@@ -2752,7 +2762,7 @@ async function openBug(id, fromRoute = false) {
                 <div class="detail-meta">
                     <span>by <strong style="cursor:pointer;color:var(--accent);" onclick="goProfile('${bug.user_id}')">${esc(bug.username || 'Anonymous')}</strong></span>
                     <span>${timeAgo(bug.created_at)}</span><span>💡 ${solutions.length} solutions</span>
-                    <span class="detail-actions"><button class="share-btn" onclick="copyShareLink('bug','${bug.id}')">🔗 Share</button>${isOwner ? `<button class="btn btn-ghost btn-sm" onclick="openEditBugModal()">✏️ Edit</button><button class="btn btn-danger btn-sm" onclick="askDelete('${bug.id}',event)">🗑️ Delete</button>` : ''}</span>
+                    <span class="detail-actions"><button class="share-btn" onclick="copyShareLink('bug','${bug.id}')">🔗 Share</button>${canManage ? `<button class="btn btn-ghost btn-sm" onclick="openEditBugModal()">✏️ Edit</button><button class="btn btn-danger btn-sm" onclick="askDelete('${bug.id}',event)">🗑️ Delete</button>` : ''}</span>
                 </div>
             </div>
             <div class="ai-box show related-bug-box" id="relatedBugBox">
@@ -2776,7 +2786,7 @@ async function openBug(id, fromRoute = false) {
                     <div class="ai-footer-note">⚡ "↗ Use as my solution" click karo!</div>
                 </div>
             </div>` : `<div class="solution-signin-card"><p>Solution post karne ke liye Sign In karo</p><button class="btn btn-sm" onclick="openModal()">Sign In</button></div>`}
-            <div class="solutions-list">${solutions.length === 0 ? '<div class="empty" style="grid-column:unset;"><p>Koi solution nahi abhi 💪<br>Pehle warrior bano!</p></div>' : solutions.map(s => renderSolutionCard(s, isOwner, bug.id)).join('')}</div>`;
+            <div class="solutions-list">${solutions.length === 0 ? '<div class="empty" style="grid-column:unset;"><p>Koi solution nahi abhi 💪<br>Pehle warrior bano!</p></div>' : solutions.map(s => renderSolutionCard(s, canManage, bug.id)).join('')}</div>`;
         loadRelatedBugsForActive();
     } catch(err) { wrap.innerHTML = `<button class="back-btn" onclick="goHome()">← Back</button><div class="empty"><h3>Error 😔</h3><p>${esc(err.message)}</p></div>`; }
 }
@@ -3074,8 +3084,9 @@ function updateAuthUI() {
         authBtn.textContent = 'Sign Out';
         authBtn.onclick = handleSignOut;
         userPill.style.display = 'flex';
+        userPill.classList.toggle('admin', isAdminUser());
         document.getElementById('userName').textContent = myName || 'User';
-        document.getElementById('userXP').textContent = myXP + ' XP';
+        document.getElementById('userXP').textContent = (isAdminUser() ? 'ADMIN - ' : '') + myXP + ' XP';
         postBtn.style.display = 'inline-flex';
         msgBell.style.display = 'inline-flex';
         notifBellWrap.style.display = 'block';
@@ -3092,7 +3103,7 @@ function updateAuthUI() {
         if (analyzerNavBtn) analyzerNavBtn.style.display = 'none';
         if (collabNavBtn) collabNavBtn.style.display = 'none';
         if (bookmarkNavBtn) bookmarkNavBtn.style.display = 'none';
-        if (userPill) userPill.style.display = 'none';
+        if (userPill) { userPill.style.display = 'none'; userPill.classList.remove('admin'); }
         if (notifBell) notifBell.style.display = 'none';
         if (msgBell) msgBell.style.display = 'none';
     }
