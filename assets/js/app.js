@@ -2229,7 +2229,9 @@ function renderUserUI() {
     document.getElementById('mentorNavBtn').style.display = on ? 'inline-flex' : 'none';
     document.getElementById('teacherNavBtn').style.display = on ? 'inline-flex' : 'none';
     document.getElementById('analyzerNavBtn').style.display = on ? 'inline-flex' : 'none';
+    document.getElementById('collabNavBtn').style.display = on ? 'inline-flex' : 'none';
     document.getElementById('notifBellWrap').classList.toggle('show', on);
+    if (on && typeof initCollaboration === 'function') initCollaboration();
     if (on) { const lvl = getLevel(myXP); document.getElementById('userName').textContent = lvl.emoji + ' ' + myName; document.getElementById('userXP').textContent = myXP + ' XP'; }
 }
 
