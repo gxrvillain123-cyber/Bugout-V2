@@ -3,6 +3,7 @@ const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 const db = window.supabase.createClient(SB_URL, SB_KEY);
 const GROQ_API_URL = '/api/groq';
 const GROQ_MODEL = 'llama-3.3-70b-versatile';
+const GROQ_VISION_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
 
 async function callGroq(messages, options = {}) {
     const response = await fetch(GROQ_API_URL, {
@@ -20,12 +21,13 @@ async function callGroq(messages, options = {}) {
     return response.json();
 }
 
-let me = null, myName = null, myXP = 0, activeBug = null, activeCategory = 'all', bugToDelete = null;
+let me = null, myName = null, myXP = 0, myRole = 'user', activeBug = null, activeCategory = 'all', bugToDelete = null;
 let editSelectedColor = '#00ff88', editSelectedInterests = [], editingBugId = null, editBugTags = [];
 let currentProfileId = null, chatPartnerId = null, chatPartnerProfile = null, msgSubscription = null;
 let allFollowersList = [], unreadCheckInterval = null, currentTags = [], searchTimeout = null;
 let notifCheckInterval = null, notifPanelOpen = false, myBookmarks = new Set(), activeStatusFilter = null, activeSort = 'newest';
 let mentorHistory = [];
+let mentorPendingImages = [], mentorPasteReady = false;
 let teacherProgress = [], currentTeacherLesson = null;
 let lastTriageSuggestion = null;
 let arenaProblems = [], arenaSubmissions = new Map(), arenaBatchGeneratedAt = null, arenaTimer = null;
@@ -246,6 +248,9 @@ function getLevel(xp) { return LEVELS.find(l => xp >= l.min && xp <= l.max) || L
 function getLevelNum(xp) { return LEVELS.findIndex(l => xp >= l.min && xp <= l.max) + 1; }
 function getXPProgress(xp) { const l = getLevel(xp); if (l.max === Infinity) return 100; return Math.round(((xp - l.min) / (l.max - l.min + 1)) * 100); }
 function getXPToNext(xp) { const l = getLevel(xp); return l.max === Infinity ? 0 : l.max - xp + 1; }
+function isAdminUser() { return myRole === 'admin'; }
+function getRoleBadge(role) { return role === 'admin' ? '<span class="admin-role-badge">Admin</span>' : ''; }
+function canManageBug(bug) { return !!me && (isAdminUser() || bug?.user_id === me.id); }
 function makeAvatar(initial, color, size=80) { return `<div class="profile-avatar" style="background:${color||'#00ff88'};width:${size}px;height:${size}px;font-size:${size*0.4}px;">${initial}</div>`; }
 function parseSupabaseDate(value) {
     if (!value) return null;
@@ -309,84 +314,269 @@ async function readGroqError(response) {
 // ═══════════════════════════════════════════════════════════════
 //  🧠 AI MENTOR MODE
 // ═══════════════════════════════════════════════════════════════
-const MENTOR_SYSTEM = `You are BUGOUT AI Mentor — a friendly, knowledgeable AI assistant for the BUGOUT community.
+const MENTOR_SYSTEM = `You are BUGOUT AI Mentor — a friendly, knowledgeable mentor for the BUGOUT community (a platform where warriors help each other solve problems).
 
-You are a general-purpose AI assistant like ChatGPT. You help with ANY question the user asks, including but not limited to:
-- 💻 Coding and programming questions (JavaScript, Python, C++, React, Node, etc.)
-- 🗺️ Data Structures & Algorithms
-- 🎓 Career advice and education
-- 📚 General knowledge and learning
-- 🌱 Life advice, relationships, personal growth
-- 📝 Writing assistance
-- 🔬 Science, history, geography, and all academic subjects
-- 🎭 Entertainment, culture, arts
-- 💡 Creative ideas and brainstorming
-- 📊 Math, statistics, and problem-solving
-- 🌍 Current events and news
-- 🏃 Health, fitness, and wellness
-- 💼 Business, finance, and entrepreneurship
-- 🎮 Gaming, technology, and hobbies
+You help with:
+- 💻 Coding (JavaScript, Python, C++, React, Node, etc.)
+- 🗺️ DSA (Data Structures & Algorithms) — explain concepts, solve problems step by step
+- 🎓 Career advice for CSE students (resume, projects, internships, placements)
+- 📚 Study strategies and roadmaps
+- 🌱 Life advice and motivation
+- 🐛 Debugging help
 
 Your personality:
-- Friendly, helpful, and conversational
-- Adapt your tone and language based on the question type
+- Friendly aur encouraging — "warrior" style 😈
 - Mix of Hindi/English (Hinglish) allowed when user uses it
-- Give clear, well-structured, and accurate answers
-- For coding questions: provide working code examples
-- For academic questions: explain concepts thoroughly
-- For personal questions: be empathetic and thoughtful
-- Keep responses appropriate to the question's context
+- Give concrete, actionable advice
+- For code questions: always provide working code examples
+- If the user uploads an image, inspect it carefully and answer from the visual evidence.
+- If the user asks for a curve, graph, or plotted math function, explain it briefly in text. Do not draw ASCII art.
+- Keep responses clear and well-structured
 
-IMPORTANT: Answer each question naturally based on its topic. Do NOT force coding or CSE context into unrelated questions. If someone asks about English literature, answer about English literature. If someone asks about life advice, give life advice. If someone asks about cooking, help with cooking. Be a true general-purpose AI assistant.`;
+Context: User is likely a CSE student from India, possibly 1st-2nd year, using BUGOUT platform.`;
+
+const MENTOR_IMAGE_LIMIT = 5;
+const MENTOR_IMAGE_PER_IMAGE_LIMIT = 3.4 * 1024 * 1024;
+const MENTOR_IMAGE_TOTAL_LIMIT = 3.7 * 1024 * 1024;
+const MENTOR_IMAGE_MAX_DIMENSION = 1600;
 
 async function goMentor() {
     if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
     showPage('mentorPage');
+    setupMentorPasteUpload();
 }
 
 async function sendMentorMessage() {
     const input = document.getElementById('mentorInput');
     const msg = input.value.trim();
-    if (!msg) return;
+    const attachments = mentorPendingImages.slice();
+    if (!msg && attachments.length === 0) return;
     if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
+    const visibleText = msg || 'Please explain the uploaded image.';
+    const historyText = buildMentorHistoryText(visibleText, attachments);
+    const priorHistory = mentorHistory.slice(-10);
     input.value = '';
     input.style.height = '44px';
-    document.getElementById('mentorSendBtn').disabled = true;
+    clearMentorPendingImages();
+    setMentorBusy(true);
 
     const welcome = document.querySelector('.mentor-welcome');
     if (welcome) welcome.remove();
 
-    appendMentorMessage(msg, true);
-    mentorHistory.push({ role: 'user', content: msg });
+    appendMentorMessage(visibleText, true, { images: attachments });
+    mentorHistory.push({ role: 'user', content: historyText });
     const typingId = showMentorTyping();
 
     try {
-        await db.from('mentor_chats').insert({ user_id: me.id, message: msg, is_user: true });
+        await db.from('mentor_chats').insert({ user_id: me.id, message: historyText, is_user: true });
 
         const messages = [
             { role: 'system', content: MENTOR_SYSTEM },
-            ...mentorHistory.slice(-10)
+            ...priorHistory,
+            buildMentorModelMessage(visibleText, attachments)
         ];
 
-        const data = await callGroq(messages, { max_tokens: 1000, temperature: 0.75 });
+        const data = await callGroq(messages, {
+            model: attachments.length ? GROQ_VISION_MODEL : GROQ_MODEL,
+            max_tokens: 1200,
+            temperature: 0.75
+        });
         const aiReply = data.choices?.[0]?.message?.content || 'Kuch error aa gaya — dobara try karo!';
+        const graph = createMentorGraphFromText(visibleText);
 
         removeTyping(typingId);
-        appendMentorMessage(aiReply, false);
+        appendMentorMessage(aiReply, false, { graph });
         mentorHistory.push({ role: 'assistant', content: aiReply });
 
-        await db.from('mentor_chats').insert({ user_id: me.id, message: aiReply, is_user: false });
+        await db.from('mentor_chats').insert({
+            user_id: me.id,
+            message: graph ? `${aiReply}\n\n[Generated visual: y = ${graph.expression}]` : aiReply,
+            is_user: false
+        });
 
     } catch(err) {
         removeTyping(typingId);
         appendMentorMessage(`😔 Error: ${err.message}. Dobara try karo!`, false);
     }
 
-    document.getElementById('mentorSendBtn').disabled = false;
-    document.getElementById('mentorInput').focus();
+    setMentorBusy(false);
+    input.focus();
 }
 
-function appendMentorMessage(text, isUser) {
+function buildMentorHistoryText(text, images = []) {
+    if (!images.length) return text;
+    const names = images.map(img => img.name).join(', ');
+    return `${text}\n\n[Uploaded image${images.length > 1 ? 's' : ''}: ${names}]`;
+}
+
+function buildMentorModelMessage(text, images = []) {
+    if (!images.length) return { role: 'user', content: text };
+    return {
+        role: 'user',
+        content: [
+            { type: 'text', text },
+            ...images.map(img => ({
+                type: 'image_url',
+                image_url: { url: img.dataUrl }
+            }))
+        ]
+    };
+}
+
+function setMentorBusy(isBusy) {
+    const sendBtn = document.getElementById('mentorSendBtn');
+    const uploadBtn = document.getElementById('mentorUploadBtn');
+    if (sendBtn) sendBtn.disabled = isBusy;
+    if (uploadBtn) uploadBtn.disabled = isBusy;
+}
+
+function openMentorImagePicker() {
+    const input = document.getElementById('mentorImageInput');
+    if (input) input.click();
+}
+
+async function handleMentorImageFiles(fileList) {
+    const files = Array.from(fileList || []).filter(file => file && file.type.startsWith('image/'));
+    if (!files.length) return;
+    const available = MENTOR_IMAGE_LIMIT - mentorPendingImages.length;
+    if (available <= 0) {
+        toast(`Max ${MENTOR_IMAGE_LIMIT} images ek message mein upload kar sakte ho.`, 'err');
+        return;
+    }
+    const batch = files.slice(0, available);
+    if (files.length > available) toast(`Sirf ${available} aur image add ho sakti hai.`, 'err');
+
+    try {
+        for (const file of batch) {
+            const prepared = await prepareMentorImage(file);
+            const totalBytes = mentorPendingImages.reduce((sum, img) => sum + img.bytes, 0) + prepared.bytes;
+            if (totalBytes > MENTOR_IMAGE_TOTAL_LIMIT) {
+                toast('Images thodi heavy hain. Ek chhoti/clear screenshot upload karo.', 'err');
+                break;
+            }
+            mentorPendingImages.push(prepared);
+        }
+        renderMentorAttachmentPreview();
+    } catch(err) {
+        toast(err.message || 'Image upload nahi ho paya.', 'err');
+    } finally {
+        const picker = document.getElementById('mentorImageInput');
+        if (picker) picker.value = '';
+    }
+}
+
+async function prepareMentorImage(file) {
+    const rawDataUrl = await readFileAsDataUrl(file);
+    let dataUrl = rawDataUrl;
+    let bytes = dataUrlByteLength(dataUrl);
+    if (bytes > MENTOR_IMAGE_PER_IMAGE_LIMIT) {
+        dataUrl = await compressMentorImage(rawDataUrl);
+        bytes = dataUrlByteLength(dataUrl);
+    }
+    if (bytes > MENTOR_IMAGE_PER_IMAGE_LIMIT) {
+        throw new Error(`${file.name || 'Image'} abhi bhi too large hai. Crop ya chhota screenshot try karo.`);
+    }
+    return {
+        id: 'mentor-img-' + Date.now() + '-' + Math.random().toString(36).slice(2),
+        name: file.name || 'image',
+        bytes,
+        dataUrl
+    };
+}
+
+function readFileAsDataUrl(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error('Image read nahi ho payi.'));
+        reader.readAsDataURL(file);
+    });
+}
+
+function loadMentorImage(dataUrl) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('Image load nahi ho payi.'));
+        img.src = dataUrl;
+    });
+}
+
+async function compressMentorImage(dataUrl) {
+    const img = await loadMentorImage(dataUrl);
+    let maxDim = MENTOR_IMAGE_MAX_DIMENSION;
+    let best = dataUrl;
+    for (let pass = 0; pass < 4; pass++) {
+        const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(img.width * scale));
+        canvas.height = Math.max(1, Math.round(img.height * scale));
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        for (const quality of [0.86, 0.76, 0.66, 0.56]) {
+            best = canvas.toDataURL('image/jpeg', quality);
+            if (dataUrlByteLength(best) <= MENTOR_IMAGE_PER_IMAGE_LIMIT) return best;
+        }
+        maxDim = Math.round(maxDim * 0.75);
+    }
+    return best;
+}
+
+function dataUrlByteLength(dataUrl) {
+    const base64 = String(dataUrl || '').split(',')[1] || '';
+    return Math.ceil(base64.length * 3 / 4);
+}
+
+function renderMentorAttachmentPreview() {
+    const wrap = document.getElementById('mentorAttachmentPreview');
+    if (!wrap) return;
+    wrap.classList.toggle('show', mentorPendingImages.length > 0);
+    wrap.innerHTML = mentorPendingImages.map(img => `
+        <div class="mentor-attachment-chip">
+            <img src="${img.dataUrl}" alt="${esc(img.name)}">
+            <div class="mentor-attachment-meta">
+                <div class="mentor-attachment-name">${esc(img.name)}</div>
+                <div class="mentor-attachment-size">${formatMentorFileSize(img.bytes)}</div>
+            </div>
+            <button class="mentor-attachment-remove" onclick="removeMentorImage('${img.id}')" title="Remove image" aria-label="Remove image">×</button>
+        </div>
+    `).join('');
+}
+
+function removeMentorImage(id) {
+    mentorPendingImages = mentorPendingImages.filter(img => img.id !== id);
+    renderMentorAttachmentPreview();
+}
+
+function clearMentorPendingImages() {
+    mentorPendingImages = [];
+    renderMentorAttachmentPreview();
+    const picker = document.getElementById('mentorImageInput');
+    if (picker) picker.value = '';
+}
+
+function setupMentorPasteUpload() {
+    if (mentorPasteReady) return;
+    const input = document.getElementById('mentorInput');
+    if (!input) return;
+    input.addEventListener('paste', event => {
+        const imageFiles = Array.from(event.clipboardData?.files || []).filter(file => file.type.startsWith('image/'));
+        if (!imageFiles.length) return;
+        event.preventDefault();
+        handleMentorImageFiles(imageFiles);
+    });
+    mentorPasteReady = true;
+}
+
+function formatMentorFileSize(bytes) {
+    if (!bytes) return '0 KB';
+    if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function appendMentorMessage(text, isUser, options = {}) {
     const container = document.getElementById('mentorMessages');
     const wrap = document.createElement('div');
     wrap.className = `mentor-bubble-wrap ${isUser ? 'user' : 'ai'}`;
@@ -395,7 +585,9 @@ function appendMentorMessage(text, isUser) {
         ? `<div class="mentor-av user-av">${(myName||'U')[0].toUpperCase()}</div>`
         : `<div class="mentor-av ai">🧠</div>`;
     const formattedText = formatMentorText(text);
-    wrap.innerHTML = `${avatarHTML}<div><div class="mentor-bubble">${formattedText}</div><div class="mentor-time">${timeStr}</div></div>`;
+    const imageHTML = options.images?.length ? `<div class="mentor-bubble-media">${options.images.map(img => `<img src="${img.dataUrl}" alt="${esc(img.name)}">`).join('')}</div>` : '';
+    const graphHTML = options.graph ? renderMentorGraphCard(options.graph) : '';
+    wrap.innerHTML = `${avatarHTML}<div><div class="mentor-bubble">${imageHTML}${formattedText}${graphHTML}</div><div class="mentor-time">${timeStr}</div></div>`;
     container.appendChild(wrap);
     container.scrollTop = container.scrollHeight;
 }
@@ -407,6 +599,250 @@ function formatMentorText(text) {
     t = t.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
     t = t.replace(/\n/g, '<br>');
     return t;
+}
+
+function createMentorGraphFromText(text) {
+    const expression = extractMentorGraphExpression(text);
+    if (!expression) return null;
+    const parsed = parseMentorMathExpression(expression);
+    if (!parsed) return null;
+    return buildMentorGraph(parsed.expression, parsed.evaluate);
+}
+
+function extractMentorGraphExpression(text) {
+    const raw = String(text || '').replace(/π/g, 'pi').replace(/[−–—]/g, '-');
+    const wantsGraph = /\b(graph|plot|curve|draw|visuali[sz]e|image|pic|picture|banao|dikhao)\b/i.test(raw);
+    const equationMatch = raw.match(/(?:y\s*=|f\s*\(\s*x\s*\)\s*=)\s*([a-z0-9xpie+\-*/^().\s]+)/i);
+    if (equationMatch) return cleanupMentorExpression(equationMatch[1]);
+    if (!wantsGraph) return null;
+    const phraseMatch = raw.match(/(?:graph|plot|curve|draw|visuali[sz]e|show|image|pic|picture|banao|dikhao)(?:\s+(?:of|for|the|ka|ki|ko))?\s+([a-z0-9xpie+\-*/^().\s]+)/i);
+    if (phraseMatch) return cleanupMentorExpression(phraseMatch[1]);
+    const trigMatch = raw.match(/\b(sin|cos|tan)\s*x\b/i);
+    if (trigMatch) return `${trigMatch[1]}(x)`;
+    return null;
+}
+
+function cleanupMentorExpression(expr) {
+    let value = String(expr || '');
+    for (let i = 0; i < 3; i++) {
+        value = value.replace(/^(?:such\s+as\s+)?(?:curve|graph|plot|draw|of|for|the|ka|ki|ko)\s+/i, '');
+    }
+    return value
+        .replace(/\b(please|pls|karo|karna|bana|banao|dikhao|show|etc|instead|ascii|art)\b.*$/i, '')
+        .replace(/\b(sin|cos|tan|log|ln|sqrt|abs|exp)\s*x\b/gi, '$1(x)')
+        .replace(/\s+/g, '')
+        .replace(/^y=/i, '')
+        .trim();
+}
+
+function parseMentorMathExpression(input) {
+    const expression = cleanupMentorExpression(input);
+    if (!expression || expression.length > 80) return null;
+    try {
+        const tokens = insertMentorImplicitMultiplication(tokenizeMentorExpression(expression));
+        let pos = 0;
+        const peek = () => tokens[pos];
+        const take = () => tokens[pos++];
+        const parseExpression = () => {
+            let node = parseTerm();
+            while (peek()?.value === '+' || peek()?.value === '-') {
+                const op = take().value;
+                const right = parseTerm();
+                const left = node;
+                node = x => op === '+' ? left(x) + right(x) : left(x) - right(x);
+            }
+            return node;
+        };
+        const parseTerm = () => {
+            let node = parsePower();
+            while (peek()?.value === '*' || peek()?.value === '/') {
+                const op = take().value;
+                const right = parsePower();
+                const left = node;
+                node = x => op === '*' ? left(x) * right(x) : left(x) / right(x);
+            }
+            return node;
+        };
+        const parsePower = () => {
+            let node = parseUnary();
+            if (peek()?.value === '^') {
+                take();
+                const right = parsePower();
+                const left = node;
+                node = x => Math.pow(left(x), right(x));
+            }
+            return node;
+        };
+        const parseUnary = () => {
+            if (peek()?.value === '+') { take(); return parseUnary(); }
+            if (peek()?.value === '-') {
+                take();
+                const node = parseUnary();
+                return x => -node(x);
+            }
+            return parsePrimary();
+        };
+        const parsePrimary = () => {
+            const token = take();
+            if (!token) throw new Error('Unexpected end');
+            if (token.type === 'number') return () => token.value;
+            if (token.type === 'variable') return x => x;
+            if (token.type === 'constant') return () => token.value === 'pi' ? Math.PI : Math.E;
+            if (token.type === 'func') {
+                const fnName = token.value;
+                const arg = parsePrimary();
+                return x => applyMentorMathFunction(fnName, arg(x));
+            }
+            if (token.value === '(') {
+                const node = parseExpression();
+                if (take()?.value !== ')') throw new Error('Missing closing paren');
+                return node;
+            }
+            throw new Error('Bad token');
+        };
+        const evaluate = parseExpression();
+        if (pos !== tokens.length) return null;
+        return { expression, evaluate };
+    } catch(e) {
+        return null;
+    }
+}
+
+function tokenizeMentorExpression(expression) {
+    const tokens = [];
+    let i = 0;
+    while (i < expression.length) {
+        const ch = expression[i];
+        if (/[0-9.]/.test(ch)) {
+            let j = i + 1;
+            while (j < expression.length && /[0-9.]/.test(expression[j])) j++;
+            const value = Number(expression.slice(i, j));
+            if (!Number.isFinite(value)) throw new Error('Bad number');
+            tokens.push({ type: 'number', value });
+            i = j;
+            continue;
+        }
+        if (/[a-z]/i.test(ch)) {
+            let j = i + 1;
+            while (j < expression.length && /[a-z]/i.test(expression[j])) j++;
+            const word = expression.slice(i, j).toLowerCase();
+            if (word === 'x') tokens.push({ type: 'variable', value: word });
+            else if (word === 'pi' || word === 'e') tokens.push({ type: 'constant', value: word });
+            else if (['sin','cos','tan','asin','acos','atan','sqrt','abs','log','ln','exp'].includes(word)) tokens.push({ type: 'func', value: word });
+            else throw new Error('Unsupported token');
+            i = j;
+            continue;
+        }
+        if ('+-*/^()'.includes(ch)) {
+            tokens.push({ type: ch === '(' || ch === ')' ? 'paren' : 'op', value: ch });
+            i++;
+            continue;
+        }
+        throw new Error('Bad character');
+    }
+    return tokens;
+}
+
+function insertMentorImplicitMultiplication(tokens) {
+    const out = [];
+    const endsValue = token => token && (['number','variable','constant'].includes(token.type) || token.value === ')');
+    const startsValue = token => token && (['number','variable','constant','func'].includes(token.type) || token.value === '(');
+    tokens.forEach(token => {
+        const prev = out[out.length - 1];
+        if (endsValue(prev) && startsValue(token)) out.push({ type: 'op', value: '*' });
+        out.push(token);
+    });
+    return out;
+}
+
+function applyMentorMathFunction(name, value) {
+    const fns = {
+        sin: Math.sin, cos: Math.cos, tan: Math.tan,
+        asin: Math.asin, acos: Math.acos, atan: Math.atan,
+        sqrt: Math.sqrt, abs: Math.abs, log: Math.log10 || (v => Math.log(v) / Math.LN10),
+        ln: Math.log, exp: Math.exp
+    };
+    return fns[name](value);
+}
+
+function buildMentorGraph(expression, evaluate) {
+    const W = 720, H = 420, PAD = 48;
+    const trig = /\b(sin|cos|tan|asin|acos|atan)\b/i.test(expression);
+    const xMin = trig ? -2 * Math.PI : -10;
+    const xMax = trig ? 2 * Math.PI : 10;
+    const samples = 520;
+    const points = [];
+    for (let i = 0; i <= samples; i++) {
+        const x = xMin + (i / samples) * (xMax - xMin);
+        const y = evaluate(x);
+        points.push({ x, y: Number.isFinite(y) && Math.abs(y) < 1e5 ? y : null });
+    }
+    const ys = points.map(p => p.y).filter(y => y !== null).sort((a, b) => a - b);
+    if (!ys.length) return null;
+    const low = ys[Math.floor(ys.length * 0.03)];
+    const high = ys[Math.floor(ys.length * 0.97)];
+    let yMin = Number.isFinite(low) ? low : ys[0];
+    let yMax = Number.isFinite(high) ? high : ys[ys.length - 1];
+    if (Math.abs(yMax - yMin) < 0.0001) { yMin -= 1; yMax += 1; }
+    const yPad = (yMax - yMin) * 0.14;
+    yMin -= yPad;
+    yMax += yPad;
+    const sx = x => PAD + ((x - xMin) / (xMax - xMin)) * (W - PAD * 2);
+    const sy = y => H - PAD - ((y - yMin) / (yMax - yMin)) * (H - PAD * 2);
+    const grid = [];
+    for (let i = 0; i <= 8; i++) {
+        const gx = PAD + i * ((W - PAD * 2) / 8);
+        const gy = PAD + i * ((H - PAD * 2) / 8);
+        grid.push(`<line class="mentor-graph-grid" x1="${gx}" y1="${PAD}" x2="${gx}" y2="${H - PAD}"></line>`);
+        grid.push(`<line class="mentor-graph-grid" x1="${PAD}" y1="${gy}" x2="${W - PAD}" y2="${gy}"></line>`);
+    }
+    const axis = [];
+    if (xMin < 0 && xMax > 0) axis.push(`<line class="mentor-graph-axis" x1="${sx(0)}" y1="${PAD}" x2="${sx(0)}" y2="${H - PAD}"></line>`);
+    if (yMin < 0 && yMax > 0) axis.push(`<line class="mentor-graph-axis" x1="${PAD}" y1="${sy(0)}" x2="${W - PAD}" y2="${sy(0)}"></line>`);
+    const segments = [];
+    let current = [];
+    points.forEach((point, index) => {
+        const y = point.y;
+        if (y === null || y < yMin || y > yMax) {
+            if (current.length > 1) segments.push(current);
+            current = [];
+            return;
+        }
+        const xy = `${sx(point.x).toFixed(1)},${sy(y).toFixed(1)}`;
+        const prev = points[index - 1];
+        if (prev && prev.y !== null && Math.abs(prev.y - y) > (yMax - yMin) * 0.42) {
+            if (current.length > 1) segments.push(current);
+            current = [];
+        }
+        current.push(xy);
+    });
+    if (current.length > 1) segments.push(current);
+    const lines = segments.map(seg => `<polyline class="mentor-graph-line" points="${seg.join(' ')}"></polyline>`).join('');
+    const svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Graph of y equals ${esc(expression)}">
+        <rect x="0" y="0" width="${W}" height="${H}" fill="#050505"></rect>
+        ${grid.join('')}
+        ${axis.join('')}
+        ${lines}
+        <text class="mentor-graph-label" x="${PAD}" y="${H - 16}">x: ${formatGraphNumber(xMin)} to ${formatGraphNumber(xMax)}</text>
+        <text class="mentor-graph-label" x="${W - PAD - 170}" y="${H - 16}">y: ${formatGraphNumber(yMin)} to ${formatGraphNumber(yMax)}</text>
+    </svg>`;
+    return { expression, svg };
+}
+
+function formatGraphNumber(value) {
+    if (Math.abs(value - Math.PI) < 0.01) return 'pi';
+    if (Math.abs(value + Math.PI) < 0.01) return '-pi';
+    if (Math.abs(value - 2 * Math.PI) < 0.01) return '2pi';
+    if (Math.abs(value + 2 * Math.PI) < 0.01) return '-2pi';
+    return Math.abs(value) >= 10 ? value.toFixed(0) : value.toFixed(2);
+}
+
+function renderMentorGraphCard(graph) {
+    if (!graph) return '';
+    return `<div class="mentor-graph-card">
+        <div class="mentor-graph-head"><strong>Generated graph</strong><span>y = ${esc(graph.expression)}</span></div>
+        ${graph.svg}
+    </div>`;
 }
 
 function showMentorTyping() {
@@ -428,6 +864,7 @@ function autoResizeMentorInput(el) { el.style.height = '44px'; el.style.height =
 
 async function clearMentorChat() {
     mentorHistory = [];
+    clearMentorPendingImages();
     document.getElementById('mentorMessages').innerHTML = `
         <div class="mentor-welcome">
             <div class="mentor-welcome-icon">🧠</div>
@@ -1316,7 +1753,7 @@ function renderDailyQuests(progress, streak = 0) {
         { key: 'comments_posted', title: 'Comment Once', desc: 'Discussion ko alive rakho.', target: 1, icon: '💬' }
     ];
     const done = quests.every(q => (progress[q.key] || 0) >= q.target);
-    return `<div class="dash-section">
+    return `<div class="dash-section daily-quest-card">
         <div class="dash-section-title">🔥 Daily Quest <span class="streak-pill">🔥 ${streak || 0} day streak</span></div>
         ${progress.missingTable ? `<div class="empty" style="padding:1rem;"><h3>daily_quests table missing</h3><p>Supabase SQL run karne ke baad quests live ho jayenge.</p></div>` : ''}
         <div class="quest-grid">
@@ -1330,8 +1767,8 @@ function renderDailyQuests(progress, streak = 0) {
                 </div>`;
             }).join('')}
         </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:1rem;">
-            <span style="color:var(--text2);font-size:0.85rem;">All 3 complete karo aur +15 XP bonus claim karo.</span>
+        <div class="dash-quest-footer">
+            <span class="dash-quest-note">All 3 complete karo aur +15 XP bonus claim karo.</span>
             <button class="btn btn-sm ${done && !progress.quest_claimed && !progress.missingTable ? '' : 'btn-disabled'}" onclick="claimDailyQuest()">Claim +15 XP</button>
         </div>
     </div>`;
@@ -1443,14 +1880,14 @@ async function loadDashboard() {
                 ${renderXPChart(xpTimeline, color)}
             </div>
 
-            <div class="dash-section">
+            <div class="dash-section dashboard-full">
                 <div class="dash-section-title">🗓️ Activity Calendar (Last Year)</div>
                 <div class="calendar-grid">${calData.map(d => `<div class="cal-day level-${d.level}" title="${d.date}: ${d.count} activity"></div>`).join('')}</div>
                 <div class="cal-legend">Less <div class="cal-legend-squares">${[0,1,2,3,4].map(l => `<div class="cal-legend-sq cal-day level-${l}"></div>`).join('')}</div> More</div>
             </div>
 
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
-                <div class="dash-section" style="margin-bottom:0;">
+            <div class="dash-insight-grid">
+                <div class="dash-section">
                     <div class="dash-section-title">🎯 Solution Win Rate</div>
                     <div class="win-ring-wrap">
                         <div class="win-ring">
@@ -1470,7 +1907,7 @@ async function loadDashboard() {
                         </div>
                     </div>
                 </div>
-                <div class="dash-section" style="margin-bottom:0;">
+                <div class="dash-section">
                     <div class="dash-section-title">👥 Community</div>
                     <div class="win-stats-list">
                         <div class="win-stat-row"><span class="win-stat-label">👥 Followers</span><span class="win-stat-val">${counts.followers}</span></div>
@@ -2131,6 +2568,7 @@ async function goProfile(userId, fromRoute = false) {
         const bugsPosted = bugs ? bugs.length : 0, solsPosted = solutions ? solutions.length : 0;
         const bestSols = solutions ? solutions.filter(s => s.is_best_solution).length : 0;
         const isMe = me && me.id === userId, displayName = profile.display_name || profile.username || 'Anonymous';
+        const role = profile.role || 'user';
         const color = profile.avatar_color || '#00ff88', interests = profile.interests || [], canMsg = me && !isMe;
         const badgesArr = Array.isArray(badges) ? badges : [];
         wrap.innerHTML = `
@@ -2139,10 +2577,11 @@ async function goProfile(userId, fromRoute = false) {
                 <div class="profile-top">
                     ${makeAvatar(displayName[0].toUpperCase(), color, 80)}
                     <div class="profile-info">
-                        <h2>${esc(displayName)} ${isMe ? '😈' : ''}</h2>
+                        <h2>${esc(displayName)} ${isMe ? '😈' : ''} ${getRoleBadge(role)}</h2>
                         <div class="username-tag">@${esc(profile.username || 'anonymous')}</div>
                         ${profile.bio ? `<div class="bio-text">${esc(profile.bio)}</div>` : ''}
                         <div class="level-badge">${lvl.emoji} Level ${lvlNum} — ${lvl.name}</div>
+                        ${role === 'admin' ? '<div class="admin-note">Platform admin - can moderate bugs and manage status</div>' : ''}
                         <div style="margin-top:8px;"><span class="streak-pill">🔥 ${profile.streak || 0} day streak</span></div>
                         ${interests.length > 0 ? `<div class="interests-wrap">${interests.map(i => `<span class="interest-tag">${esc(i)}</span>`).join('')}</div>` : ''}
                     </div>
@@ -2151,7 +2590,7 @@ async function goProfile(userId, fromRoute = false) {
                     <div class="follow-stat" onclick="showFollowList('${userId}','followers')"><div class="follow-count" id="profile-followers-count">${counts.followers}</div><div class="follow-label">Followers</div></div>
                     <div class="follow-stat" onclick="showFollowList('${userId}','following')"><div class="follow-count">${counts.following}</div><div class="follow-label">Following</div></div>
                 </div>
-                <div style="display:flex;gap:10px;margin-top:1rem;flex-wrap:wrap;">
+                <div class="profile-actions">
                     ${isMe
                         ? `<button class="btn btn-ghost btn-sm" onclick="openEditModal()">✏️ Edit Profile</button><button class="btn btn-ghost btn-sm" onclick="goDashboard()">📊 Dashboard</button><button class="btn btn-ghost btn-sm" onclick="goMentor()">🧠 AI Mentor</button><button class="btn btn-ghost btn-sm" onclick="goTeacher()">AI Teacher</button><button class="btn btn-ghost btn-sm" onclick="goAnalyzer()">🧪 Code Analyzer</button><button class="share-btn" onclick="copyShareLink('profile','${userId}')">🔗 Share</button>`
                         : me
@@ -2168,9 +2607,9 @@ async function goProfile(userId, fromRoute = false) {
                     <div class="profile-stat"><div class="profile-stat-num">${solsPosted}</div><div class="profile-stat-label">💡 Solutions</div></div>
                     <div class="profile-stat"><div class="profile-stat-num">${bestSols}</div><div class="profile-stat-label">✅ Best</div></div>
                 </div>
-                <div style="margin-top:1.5rem;"><h3 style="font-size:0.9rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.75rem;">🏅 Badges</h3>${renderBadges(badgesArr)}</div>
+                <div class="profile-badges-section"><h3 class="profile-badges-title">🏅 Badges</h3>${renderBadges(badgesArr)}</div>
             </div>
-            ${bugsPosted > 0 ? `<div class="profile-bugs"><h3>Recent Bugs</h3><div style="display:flex;flex-direction:column;gap:0.75rem;">${bugs.slice(0, 5).map(b => `<div class="bug-card" onclick="openBug('${b.id}')"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><span class="bug-tag">${esc(b.category)}</span>${getStatusBadge(b.status || 'open')}</div><h3 style="font-size:1rem;">${esc(b.title)}</h3><div class="bug-footer" style="margin-top:0.5rem;"><span>${timeAgo(b.created_at)}</span><span>💡 ${b.solutions_count || 0} solutions</span></div></div>`).join('')}</div></div>` : ''}`;
+            ${bugsPosted > 0 ? `<div class="profile-bugs"><h3>Recent Bugs</h3><div class="profile-recent-list">${bugs.slice(0, 6).map(b => `<div class="bug-card" onclick="openBug('${b.id}')"><div class="bug-card-head"><span class="bug-tag">${esc(b.category)}</span>${getStatusBadge(b.status || 'open')}</div><h3 style="font-size:1rem;">${esc(b.title)}</h3><div class="bug-footer" style="margin-top:0.5rem;"><span>${timeAgo(b.created_at)}</span><span>💡 ${b.solutions_count || 0} solutions</span></div></div>`).join('')}</div></div>` : ''}`;
     } catch(err) { wrap.innerHTML = `<button class="back-btn" onclick="goHome()">← Back</button><div class="empty"><h3>Profile nahi mila 😔</h3><p>${esc(err.message)}</p></div>`; }
 }
 
@@ -2213,15 +2652,16 @@ async function saveProfile() {
 async function setUser(user) {
     me = user;
     try {
-        const { data } = await db.from('profiles').select('username,display_name,xp').eq('user_id', user.id).maybeSingle();
-        if (data) { myName = data.display_name || data.username || user.email.split('@')[0]; myXP = data.xp || 0; }
-        else { myName = user.email.split('@')[0]; myXP = 0; }
-    } catch(e) { myName = user.email.split('@')[0]; myXP = 0; }
+        const { data } = await db.from('profiles').select('*').eq('user_id', user.id).maybeSingle();
+        if (data) { myName = data.display_name || data.username || user.email.split('@')[0]; myXP = data.xp || 0; myRole = data.role || 'user'; }
+        else { myName = user.email.split('@')[0]; myXP = 0; myRole = 'user'; }
+    } catch(e) { myName = user.email.split('@')[0]; myXP = 0; myRole = 'user'; }
     renderUserUI(); startUnreadCheck(); startNotifCheck(); await loadMyBookmarks();
 }
 
 function clearUser() {
-    me = null; myName = null; myXP = 0; myBookmarks = new Set(); mentorHistory = []; teacherProgress = []; currentTeacherLesson = null;
+    me = null; myName = null; myXP = 0; myRole = 'user'; myBookmarks = new Set(); mentorHistory = []; teacherProgress = []; currentTeacherLesson = null;
+    clearMentorPendingImages();
     if (unreadCheckInterval) { clearInterval(unreadCheckInterval); unreadCheckInterval = null; }
     if (notifCheckInterval) { clearInterval(notifCheckInterval); notifCheckInterval = null; }
     if (msgSubscription) { msgSubscription.unsubscribe(); msgSubscription = null; }
@@ -2232,6 +2672,7 @@ function renderUserUI() {
     const on = !!me;
     document.getElementById('authBtn').textContent = on ? 'Sign Out' : 'Sign In';
     document.getElementById('userPill').style.display = on ? 'flex' : 'none';
+    document.getElementById('userPill').classList.toggle('admin', on && isAdminUser());
     document.getElementById('postBtn').style.display = on ? 'inline-flex' : 'none';
     document.getElementById('msgBell').style.display = on ? 'flex' : 'none';
     document.getElementById('bookmarkNavBtn').style.display = on ? 'inline-flex' : 'none';
@@ -2240,8 +2681,10 @@ function renderUserUI() {
     document.getElementById('mentorNavBtn').style.display = on ? 'inline-flex' : 'none';
     document.getElementById('teacherNavBtn').style.display = on ? 'inline-flex' : 'none';
     document.getElementById('analyzerNavBtn').style.display = on ? 'inline-flex' : 'none';
+    document.getElementById('collabNavBtn').style.display = on ? 'inline-flex' : 'none';
     document.getElementById('notifBellWrap').classList.toggle('show', on);
-    if (on) { const lvl = getLevel(myXP); document.getElementById('userName').textContent = lvl.emoji + ' ' + myName; document.getElementById('userXP').textContent = myXP + ' XP'; }
+    if (on && typeof initCollaboration === 'function') initCollaboration();
+    if (on) { const lvl = getLevel(myXP); document.getElementById('userName').textContent = lvl.emoji + ' ' + myName; document.getElementById('userXP').textContent = (isAdminUser() ? 'ADMIN - ' : '') + myXP + ' XP'; }
 }
 
 async function addXP(amount) {
@@ -2250,7 +2693,7 @@ async function addXP(amount) {
         const oldLvl = getLevelNum(myXP); myXP += amount;
         await db.from('profiles').update({ xp: myXP }).eq('user_id', me.id);
         const newLvl = getLevelNum(myXP), lvl = getLevel(myXP);
-        document.getElementById('userXP').textContent = myXP + ' XP';
+        document.getElementById('userXP').textContent = (isAdminUser() ? 'ADMIN - ' : '') + myXP + ' XP';
         document.getElementById('userName').textContent = lvl.emoji + ' ' + myName;
         if (newLvl > oldLvl) toast(`🎉 Level Up! Tu ab ${lvl.emoji} ${lvl.name} hai!`, 'ok');
         await checkAndAwardBadges();
@@ -2314,6 +2757,11 @@ function goPost() {
     lastTriageSuggestion = null;
     showPage('postPage');
 }
+
+function showPostModal() {
+    goPost();
+}
+
 async function goArena() {
     if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
     showPage('arenaPage');
@@ -2599,7 +3047,7 @@ function renderBugCard(b, searchQuery) {
     const bookmarkBtn = me ? `<button class="bookmark-btn-card ${isSaved ? 'saved' : ''}" data-bookmark="${b.id}" onclick="toggleBookmark('${b.id}',event)" title="${isSaved ? 'Bookmarked!' : 'Bookmark'}">🔖</button>` : '';
     return `<div class="bug-card" onclick="openBug('${b.id}')">
         ${bookmarkBtn}
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;"><span class="bug-tag" style="margin-bottom:0;">${esc(b.category)}</span>${getStatusBadge(b.status || 'open')}</div>
+        <div class="bug-card-head"><span class="bug-tag">${esc(b.category)}</span>${getStatusBadge(b.status || 'open')}</div>
         ${tagsHTML}
         <h3>${searchQuery ? highlightMatch(b.title, searchQuery) : esc(b.title)}</h3>
         <p>${searchQuery ? highlightMatch(b.description, searchQuery) : esc(b.description)}</p>
@@ -2650,7 +3098,7 @@ async function submitBug() {
 }
 
 function openEditBugModal() {
-    if (!me || !activeBug || activeBug.user_id !== me.id) { toast('Sirf owner edit kar sakta hai!', 'err'); return; }
+    if (!canManageBug(activeBug)) { toast('Sirf owner ya admin edit kar sakta hai!', 'err'); return; }
     editingBugId = activeBug.id;
     editBugTags = Array.isArray(activeBug.tags) ? [...activeBug.tags] : [];
     document.getElementById('editBugTitle').value = activeBug.title || '';
@@ -2707,7 +3155,9 @@ async function saveBugEdit() {
     btn.textContent = 'Saving...';
     btn.classList.add('btn-disabled');
     try {
-        const { error } = await db.from('bugs').update({ title, category, description, tags: editBugTags }).eq('id', editingBugId).eq('user_id', me.id);
+        let query = db.from('bugs').update({ title, category, description, tags: editBugTags }).eq('id', editingBugId);
+        if (!isAdminUser()) query = query.eq('user_id', me.id);
+        const { error } = await query;
         if (error) throw error;
         const id = editingBugId;
         closeEditBugModal();
@@ -2721,7 +3171,9 @@ async function saveBugEdit() {
 function askDelete(bugId, e) { e.stopPropagation(); bugToDelete = bugId; document.getElementById('confirmDialog').classList.add('show'); }
 function closeConfirm() { document.getElementById('confirmDialog').classList.remove('show'); bugToDelete = null; }
 async function confirmDelete() {
-    if (!bugToDelete) return; closeConfirm();
+    if (!bugToDelete) return;
+    if (!canManageBug(activeBug)) { closeConfirm(); bugToDelete = null; toast('Sirf owner ya admin delete kar sakta hai!', 'err'); return; }
+    closeConfirm();
     try {
         await db.from('solutions').delete().eq('bug_id', bugToDelete);
         await db.from('bookmarks').delete().eq('bug_id', bugToDelete);
@@ -2741,22 +3193,22 @@ async function openBug(id, fromRoute = false) {
             db.from('solutions').select('*').eq('bug_id', id).order('upvotes', { ascending: false })
         ]);
         if (e1) throw e1;
-        activeBug = bug; const solutions = sols || [], isOwner = me && bug.user_id === me.id;
+        activeBug = bug; const solutions = sols || [], isOwner = me && bug.user_id === me.id, canManage = canManageBug(bug);
         const tags = bug.tags && bug.tags.length ? bug.tags : [];
         const tagsHTML = tags.length ? `<div class="bug-tags-wrap" style="margin-top:8px;">${tags.map(t => `<span class="bug-tag-pill" onclick="filterByTagFromDetail('${esc(t)}')">#${esc(t)}</span>`).join('')}</div>` : '';
         const currentStatus = bug.status || 'open';
-        const statusHTML = isOwner ? `<div class="status-select-wrap"><label>📊 Status:</label><select class="status-select" onchange="updateBugStatus('${bug.id}',this.value)"><option value="open" ${currentStatus === 'open' ? 'selected' : ''}>🔴 Open</option><option value="in_progress" ${currentStatus === 'in_progress' ? 'selected' : ''}>🟡 In Progress</option><option value="solved" ${currentStatus === 'solved' ? 'selected' : ''}>🟢 Solved</option></select></div>` : '';
+        const statusHTML = canManage ? `<div class="status-select-wrap"><label>📊 Status:</label><select class="status-select" onchange="updateBugStatus('${bug.id}',this.value)"><option value="open" ${currentStatus === 'open' ? 'selected' : ''}>🔴 Open</option><option value="in_progress" ${currentStatus === 'in_progress' ? 'selected' : ''}>🟡 In Progress</option><option value="solved" ${currentStatus === 'solved' ? 'selected' : ''}>🟢 Solved</option></select></div>` : '';
         wrap.innerHTML = `
             <button class="back-btn" onclick="goHome()">← Back to bugs</button>
             <div class="detail-card">
-                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span class="bug-tag">${esc(bug.category)}</span>${getStatusBadge(currentStatus)}</div>
+                <div class="detail-tag-row"><span class="bug-tag">${esc(bug.category)}</span>${getStatusBadge(currentStatus)}</div>
                 <h2>${esc(bug.title)}</h2>${tagsHTML}
                 <p class="desc" style="margin-top:12px;">${esc(bug.description)}</p>
                 ${statusHTML}
                 <div class="detail-meta">
                     <span>by <strong style="cursor:pointer;color:var(--accent);" onclick="goProfile('${bug.user_id}')">${esc(bug.username || 'Anonymous')}</strong></span>
                     <span>${timeAgo(bug.created_at)}</span><span>💡 ${solutions.length} solutions</span>
-                    <span style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;"><button class="share-btn" onclick="copyShareLink('bug','${bug.id}')">🔗 Share</button>${isOwner ? `<button class="btn btn-ghost btn-sm" onclick="openEditBugModal()">✏️ Edit</button><button class="btn btn-danger btn-sm" onclick="askDelete('${bug.id}',event)">🗑️ Delete</button>` : ''}</span>
+                    <span class="detail-actions"><button class="share-btn" onclick="copyShareLink('bug','${bug.id}')">🔗 Share</button>${canManage ? `<button class="btn btn-ghost btn-sm" onclick="openEditBugModal()">✏️ Edit</button><button class="btn btn-danger btn-sm" onclick="askDelete('${bug.id}',event)">🗑️ Delete</button>` : ''}</span>
                 </div>
             </div>
             <div class="ai-box show related-bug-box" id="relatedBugBox">
@@ -2765,10 +3217,10 @@ async function openBug(id, fromRoute = false) {
             </div>
             <div class="solutions-header">Solutions (${solutions.length})</div>
             ${me ? `<div class="solution-input-box"><h4>Post your solution 💡</h4><div class="field"><textarea id="solText" placeholder="Share your solution..." rows="4"></textarea></div>
-                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <div class="solution-action-row">
                     <button class="btn btn-sm" id="solBtn" onclick="submitSolution()">Post Solution</button>
                     <button class="btn btn-sm btn-ghost" onclick="reviewSolutionWithAI()">Review Solution</button>
-                    <button class="ai-solver-btn" style="width:auto;padding:6px 14px;font-size:0.82rem;" onclick="getAISolutionsForDetail('${bug.id}')">🤖 Ask AI</button>
+                    <button class="ai-solver-btn ai-compact-btn" onclick="getAISolutionsForDetail('${bug.id}')">🤖 Ask AI</button>
                 </div>
                 <div class="ai-box" id="solutionCoachBox" style="margin-top:0.75rem;">
                     <div class="ai-box-header"><span>Coach</span><span class="ai-box-title">Solution Quality Coach</span><span class="ai-box-subtitle">Before posting</span></div>
@@ -2779,8 +3231,8 @@ async function openBug(id, fromRoute = false) {
                     <div id="aiDetailContent"></div>
                     <div class="ai-footer-note">⚡ "↗ Use as my solution" click karo!</div>
                 </div>
-            </div>` : `<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;text-align:center;"><p style="color:var(--text2);margin-bottom:1rem;">Solution post karne ke liye Sign In karo</p><button class="btn btn-sm" onclick="openModal()">Sign In</button></div>`}
-            <div class="solutions-list">${solutions.length === 0 ? '<div class="empty" style="grid-column:unset;"><p>Koi solution nahi abhi 💪<br>Pehle warrior bano!</p></div>' : solutions.map(s => renderSolutionCard(s, isOwner, bug.id)).join('')}</div>`;
+            </div>` : `<div class="solution-signin-card"><p>Solution post karne ke liye Sign In karo</p><button class="btn btn-sm" onclick="openModal()">Sign In</button></div>`}
+            <div class="solutions-list">${solutions.length === 0 ? '<div class="empty" style="grid-column:unset;"><p>Koi solution nahi abhi 💪<br>Pehle warrior bano!</p></div>' : solutions.map(s => renderSolutionCard(s, canManage, bug.id)).join('')}</div>`;
         loadRelatedBugsForActive();
     } catch(err) { wrap.innerHTML = `<button class="back-btn" onclick="goHome()">← Back</button><div class="empty"><h3>Error 😔</h3><p>${esc(err.message)}</p></div>`; }
 }
@@ -3078,8 +3530,9 @@ function updateAuthUI() {
         authBtn.textContent = 'Sign Out';
         authBtn.onclick = handleSignOut;
         userPill.style.display = 'flex';
+        userPill.classList.toggle('admin', isAdminUser());
         document.getElementById('userName').textContent = myName || 'User';
-        document.getElementById('userXP').textContent = myXP + ' XP';
+        document.getElementById('userXP').textContent = (isAdminUser() ? 'ADMIN - ' : '') + myXP + ' XP';
         postBtn.style.display = 'inline-flex';
         msgBell.style.display = 'inline-flex';
         notifBellWrap.style.display = 'block';
@@ -3096,7 +3549,7 @@ function updateAuthUI() {
         if (analyzerNavBtn) analyzerNavBtn.style.display = 'none';
         if (collabNavBtn) collabNavBtn.style.display = 'none';
         if (bookmarkNavBtn) bookmarkNavBtn.style.display = 'none';
-        if (userPill) userPill.style.display = 'none';
+        if (userPill) { userPill.style.display = 'none'; userPill.classList.remove('admin'); }
         if (notifBell) notifBell.style.display = 'none';
         if (msgBell) msgBell.style.display = 'none';
     }
