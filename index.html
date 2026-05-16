@@ -135,9 +135,16 @@
                 </div>
             </div>
             <div class="mentor-input-area">
-                <textarea class="mentor-input" id="mentorInput" placeholder="Kuch bhi pucho — coding, career, life... 😈" rows="1"
-                    onkeydown="handleMentorKey(event)" oninput="autoResizeMentorInput(this)"></textarea>
-                <button class="mentor-send-btn" id="mentorSendBtn" onclick="sendMentorMessage()">➤</button>
+                <div class="mentor-compose">
+                    <div class="mentor-attachment-preview" id="mentorAttachmentPreview"></div>
+                    <div class="mentor-input-row">
+                        <button class="mentor-upload-btn" id="mentorUploadBtn" onclick="openMentorImagePicker()" title="Upload image" aria-label="Upload image">+</button>
+                        <input type="file" id="mentorImageInput" accept="image/*" multiple hidden onchange="handleMentorImageFiles(this.files)">
+                        <textarea class="mentor-input" id="mentorInput" placeholder="Kuch bhi pucho — coding, career, life... 😈" rows="1"
+                            onkeydown="handleMentorKey(event)" oninput="autoResizeMentorInput(this)"></textarea>
+                        <button class="mentor-send-btn" id="mentorSendBtn" onclick="sendMentorMessage()">➤</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
