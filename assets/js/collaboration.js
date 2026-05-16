@@ -1,10 +1,9 @@
 // Collaboration functionality for Bugout-V2
-// Real-time collaboration rooms with chat, code sharing, and whiteboard
+// Real-time collaboration rooms with chat, code sharing, and whiteboard using Supabase Realtime
 
-let collabWebSocket = null;
 let currentRoomId = null;
 let currentRoom = null;
-let collabUserId = null;
+let collabRoomCode = null;
 let whiteboardCanvas = null;
 let whiteboardCtx = null;
 let isDrawing = false;
@@ -12,14 +11,19 @@ let currentWBTool = 'pen';
 let currentWBColor = '#000000';
 let codeUpdateTimeout = null;
 
+// Supabase realtime subscriptions
+let roomsSubscription = null;
+let participantsSubscription = null;
+let messagesSubscription = null;
+let codeSubscription = null;
+let whiteboardSubscription = null;
+
 // Initialize collaboration
 function initCollaboration() {
     if (!me) {
         toast('Please sign in to use collaboration rooms', 'error');
         return;
     }
-    
-    collabUserId = `user_${me.id}_${Date.now()}`;
     
     // Add collaboration navigation button visibility
     updateCollabNavigation();
@@ -51,39 +55,40 @@ async function loadCollabRooms() {
     roomsGrid.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading rooms...</p></div>';
     
     try {
-        // For now, create mock rooms - in production, this would fetch from server
-        const mockRooms = [
-            {
-                id: 'ROOM001',
-                name: 'JavaScript Discussion',
-                description: 'Discuss JavaScript concepts and solve problems together',
-                type: 'public',
-                userCount: 3,
-                maxUsers: 8,
-                users: [
-                    { avatar: '👨‍💻', name: 'Alex' },
-                    { avatar: '👩‍💻', name: 'Sarah' },
-                    { avatar: '🧑‍💻', name: 'Mike' }
-                ],
-                status: 'active'
-            },
-            {
-                id: 'ROOM002', 
-                name: 'Python Practice',
-                description: 'Practice Python coding problems together',
-                type: 'public',
-                userCount: 5,
-                maxUsers: 8,
-                users: [
-                    { avatar: '🐍', name: 'PythonPro' },
-                    { avatar: '👨‍🎓', name: 'Student1' },
-                    { avatar: '👩‍🎓', name: 'Student2' }
-                ],
-                status: 'active'
-            }
-        ];
+        // Fetch public rooms from Supabase
+        const { data: rooms, error } = await db
+            .from('collab_rooms')
+            .select(`
+                *,
+                collab_participants(user_id, username, user_avatar, user_xp, is_online)
+            `)
+            .eq('type', 'public')
+            .eq('status', 'active')
+            .order('created_at', { ascending: false });
         
-        renderCollabRooms(mockRooms);
+        if (error) throw error;
+        
+        // Transform data for rendering
+        const transformedRooms = rooms.map(room => ({
+            id: room.id,
+            roomCode: room.room_code,
+            name: room.name,
+            description: room.description,
+            type: room.type,
+            userCount: room.collab_participants.length,
+            maxUsers: room.max_users,
+            users: room.collab_participants.map(p => ({
+                avatar: p.user_avatar,
+                name: p.username,
+                isOnline: p.is_online
+            })),
+            status: room.status
+        }));
+        
+        renderCollabRooms(transformedRooms);
+        
+        // Set up realtime subscription for rooms
+        setupRoomsRealtime();
     } catch (error) {
         console.error('Error loading rooms:', error);
         roomsGrid.innerHTML = '<div class="collab-empty">Failed to load rooms</div>';
@@ -100,7 +105,7 @@ function renderCollabRooms(rooms) {
     }
     
     roomsGrid.innerHTML = rooms.map(room => `
-        <div class="collab-room-card" onclick="joinCollabRoom('${room.id}')">
+        <div class="collab-room-card" onclick="joinCollabRoom('${room.id}', '${room.roomCode}')">
             <div class="collab-room-header">
                 <div class="collab-room-name">${room.name}</div>
                 <div class="collab-room-type">${room.type === 'public' ? '🌍 Public' : '🔒 Private'}</div>
@@ -126,18 +131,19 @@ function renderCollabRooms(rooms) {
 }
 
 // Join collaboration room
-function joinCollabRoom(roomId) {
+async function joinCollabRoom(roomId, roomCode) {
     if (!me) {
         toast('Please sign in to join rooms', 'error');
         return;
     }
     
     currentRoomId = roomId;
+    collabRoomCode = roomCode;
     showPage('collabRoomPage');
     initCollabRoom();
     
-    // Connect WebSocket
-    connectCollabWebSocket(roomId);
+    // Join room via Supabase
+    await joinRoomViaSupabase(roomId);
     
     setRoute({ collab: roomId });
 }
@@ -155,44 +161,226 @@ function initCollabRoom() {
     // Set room title
     const roomTitle = document.getElementById('collabRoomTitle');
     if (roomTitle) {
-        roomTitle.textContent = `Room ${currentRoomId}`;
+        roomTitle.textContent = `Room ${collabRoomCode || currentRoomId}`;
     }
     
     // Initialize code editor
     setupCodeEditor();
 }
 
-// Connect collaboration WebSocket
-function connectCollabWebSocket(roomId) {
-    // For now, simulate WebSocket connection
-    // In production, this would connect to actual WebSocket server
-    console.log('Connecting to collaboration room:', roomId);
+// Setup realtime subscription for rooms list
+function setupRoomsRealtime() {
+    if (roomsSubscription) {
+        roomsSubscription.unsubscribe();
+    }
     
-    // Simulate successful connection
-    setTimeout(() => {
-        onCollabRoomJoined({
-            roomId: roomId,
-            room: {
-                id: roomId,
-                name: `Room ${roomId}`,
-                users: [
-                    { id: collabUserId, name: me.username || 'You', avatar: '👤', isOnline: true }
-                ],
-                messages: [],
-                codeContent: '',
-                whiteboardData: null
-            }
-        });
-    }, 1000);
+    roomsSubscription = db
+        .channel('public:collab_rooms')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'collab_rooms' }, payload => {
+            loadCollabRooms(); // Reload rooms when changes occur
+        })
+        .subscribe();
 }
 
-// Handle room joined
-function onCollabRoomJoined(data) {
-    currentRoom = data.room;
-    updateRoomUsers();
-    updateRoomMessages();
+// Join room via Supabase
+async function joinRoomViaSupabase(roomId) {
+    try {
+        // Add user as participant
+        const { error: participantError } = await db
+            .from('collab_participants')
+            .upsert({
+                room_id: roomId,
+                user_id: me.id,
+                username: me.username || 'Anonymous',
+                user_avatar: '👤',
+                user_xp: myXP || 0,
+                is_online: true,
+                color: `#${Math.floor(Math.random()*16777215).toString(16)}`
+            }, { onConflict: 'room_id,user_id' });
+        
+        if (participantError) throw participantError;
+        
+        // Load room data
+        await loadRoomData(roomId);
+        
+        // Setup realtime subscriptions for this room
+        setupRoomRealtime(roomId);
+        
+        toast('Joined room successfully', 'success');
+    } catch (error) {
+        console.error('Error joining room:', error);
+        toast('Failed to join room', 'error');
+    }
+}
+
+// Load room data from Supabase
+async function loadRoomData(roomId) {
+    try {
+        // Load room details
+        const { data: room, error: roomError } = await db
+            .from('collab_rooms')
+            .select('*')
+            .eq('id', roomId)
+            .single();
+        
+        if (roomError) throw roomError;
+        
+        // Load participants
+        const { data: participants, error: participantsError } = await db
+            .from('collab_participants')
+            .select('*')
+            .eq('room_id', roomId);
+        
+        if (participantsError) throw participantsError;
+        
+        // Load messages
+        const { data: messages, error: messagesError } = await db
+            .from('collab_messages')
+            .select('*')
+            .eq('room_id', roomId)
+            .order('created_at', { ascending: true })
+            .limit(100);
+        
+        if (messagesError) throw messagesError;
+        
+        // Load code content
+        const { data: codeData, error: codeError } = await db
+            .from('collab_code')
+            .select('*')
+            .eq('room_id', roomId)
+            .single();
+        
+        if (codeError && codeError.code !== 'PGRST116') throw codeError; // PGRST116 is "not found"
+        
+        // Load whiteboard data
+        const { data: whiteboardData, error: whiteboardError } = await db
+            .from('collab_whiteboard')
+            .select('*')
+            .eq('room_id', roomId)
+            .single();
+        
+        if (whiteboardError && whiteboardError.code !== 'PGRST116') throw whiteboardError;
+        
+        // Set current room
+        currentRoom = {
+            id: room.id,
+            roomCode: room.room_code,
+            name: room.name,
+            description: room.description,
+            type: room.type,
+            maxUsers: room.max_users,
+            users: participants.map(p => ({
+                id: p.user_id,
+                name: p.username,
+                avatar: p.user_avatar,
+                xp: p.user_xp,
+                isOnline: p.is_online,
+                color: p.color
+            })),
+            messages: messages.map(m => ({
+                id: m.id,
+                userId: m.user_id,
+                userName: m.username,
+                userAvatar: m.user_avatar,
+                content: m.content,
+                timestamp: m.created_at,
+                type: m.message_type
+            })),
+            codeContent: codeData?.content || '',
+            whiteboardData: whiteboardData?.canvas_data || null
+        };
+        
+        // Update UI
+        updateRoomUsers();
+        updateRoomMessages();
+        
+        // Set code editor content
+        const codeInput = document.getElementById('collabCodeInput');
+        if (codeInput && currentRoom.codeContent) {
+            codeInput.value = currentRoom.codeContent;
+        }
+        
+        // Restore whiteboard if data exists
+        if (currentRoom.whiteboardData && whiteboardCanvas) {
+            restoreWhiteboard(currentRoom.whiteboardData);
+        }
+    } catch (error) {
+        console.error('Error loading room data:', error);
+        toast('Failed to load room data', 'error');
+    }
+}
+
+// Setup realtime subscriptions for room
+function setupRoomRealtime(roomId) {
+    // Cleanup existing subscriptions
+    if (participantsSubscription) participantsSubscription.unsubscribe();
+    if (messagesSubscription) messagesSubscription.unsubscribe();
+    if (codeSubscription) codeSubscription.unsubscribe();
+    if (whiteboardSubscription) whiteboardSubscription.unsubscribe();
     
-    toast(`Joined ${data.room.name}`, 'success');
+    // Subscribe to participants changes
+    participantsSubscription = db
+        .channel(`room_${roomId}_participants`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'collab_participants', filter: `room_id=eq.${roomId}` }, payload => {
+            loadRoomData(roomId);
+        })
+        .subscribe();
+    
+    // Subscribe to messages
+    messagesSubscription = db
+        .channel(`room_${roomId}_messages`)
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'collab_messages', filter: `room_id=eq.${roomId}` }, payload => {
+            if (currentRoom) {
+                currentRoom.messages.push({
+                    id: payload.new.id,
+                    userId: payload.new.user_id,
+                    userName: payload.new.username,
+                    userAvatar: payload.new.user_avatar,
+                    content: payload.new.content,
+                    timestamp: payload.new.created_at,
+                    type: payload.new.message_type
+                });
+                updateRoomMessages();
+            }
+        })
+        .subscribe();
+    
+    // Subscribe to code updates
+    codeSubscription = db
+        .channel(`room_${roomId}_code`)
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'collab_code', filter: `room_id=eq.${roomId}` }, payload => {
+            if (currentRoom && payload.new.content !== undefined) {
+                currentRoom.codeContent = payload.new.content;
+                const codeInput = document.getElementById('collabCodeInput');
+                if (codeInput && document.activeElement !== codeInput) {
+                    codeInput.value = payload.new.content;
+                }
+            }
+        })
+        .subscribe();
+    
+    // Subscribe to whiteboard updates
+    whiteboardSubscription = db
+        .channel(`room_${roomId}_whiteboard`)
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'collab_whiteboard', filter: `room_id=eq.${roomId}` }, payload => {
+            if (currentRoom && payload.new.canvas_data) {
+                currentRoom.whiteboardData = payload.new.canvas_data;
+                restoreWhiteboard(payload.new.canvas_data);
+            }
+        })
+        .subscribe();
+}
+
+// Restore whiteboard from saved data
+function restoreWhiteboard(canvasData) {
+    if (!whiteboardCanvas || !whiteboardCtx || !canvasData) return;
+    
+    const img = new Image();
+    img.onload = () => {
+        whiteboardCtx.clearRect(0, 0, whiteboardCanvas.width, whiteboardCanvas.height);
+        whiteboardCtx.drawImage(img, 0, 0);
+    };
+    img.src = canvasData;
 }
 
 // Update room users list
@@ -203,16 +391,28 @@ function updateRoomUsers() {
     const userCount = document.querySelector('.collab-user-count');
     
     if (usersList) {
-        usersList.innerHTML = currentRoom.users.map(user => `
-            <div class="collab-user-item">
-                <div class="collab-user-avatar-small" style="background: ${getAvatarColor(user.name)}">${user.avatar}</div>
-                <div class="collab-user-info">
-                    <div class="collab-user-name">${user.name}</div>
-                    <div class="collab-user-level">${user.xp || 0} XP</div>
+        usersList.innerHTML = currentRoom.users.map(user => {
+            const karma = getUserKarma(user.id);
+            const karmaDisplay = karma.total > 0 ? `<div class="user-karma">⭐ ${karma.total}</div>` : '';
+            
+            return `
+                <div class="collab-user-item">
+                    <div class="collab-user-avatar-small" style="background: ${user.color || getAvatarColor(user.name)}">${user.avatar}</div>
+                    <div class="collab-user-info">
+                        <div class="collab-user-name">${user.name}</div>
+                        <div class="collab-user-level">${user.xp || 0} XP</div>
+                        ${karmaDisplay}
+                    </div>
+                    <div class="collab-user-status ${user.isOnline ? 'online' : 'offline'}"></div>
+                    <div class="karma-actions">
+                        <button class="karma-btn" onclick="awardKarma('${user.id}', 'helpful')" title="Award Helpful">👍</button>
+                        <button class="karma-btn" onclick="awardKarma('${user.id}', 'collaborative')" title="Award Collaborative">🤝</button>
+                        <button class="karma-btn" onclick="awardKarma('${user.id}', 'knowledgeable')" title="Award Knowledgeable">🧠</button>
+                        <button class="karma-btn" onclick="awardKarma('${user.id}', 'creative')" title="Award Creative">💡</button>
+                    </div>
                 </div>
-                <div class="collab-user-status ${user.isOnline ? 'online' : 'offline'}"></div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
     
     if (userCount) {
@@ -248,32 +448,33 @@ function updateRoomMessages() {
 }
 
 // Send collaboration message
-function sendCollabMessage() {
+async function sendCollabMessage() {
     const input = document.getElementById('collabChatInput');
     const content = input.value.trim();
     
-    if (!content || !currentRoom) return;
+    if (!content || !currentRoom || !me) return;
     
-    const message = {
-        id: Date.now().toString(),
-        userId: collabUserId,
-        userName: me.username || 'You',
-        userAvatar: '👤',
-        content: content,
-        timestamp: new Date().toISOString(),
-        type: 'text'
-    };
-    
-    // Add to local room
-    currentRoom.messages.push(message);
-    updateRoomMessages();
-    
-    // Clear input
-    input.value = '';
-    autoResizeCollabInput(input);
-    
-    // Send to WebSocket (simulated)
-    console.log('Sending message:', message);
+    try {
+        const { error } = await db
+            .from('collab_messages')
+            .insert({
+                room_id: currentRoomId,
+                user_id: me.id,
+                username: me.username || 'Anonymous',
+                user_avatar: '👤',
+                content: content,
+                message_type: 'text'
+            });
+        
+        if (error) throw error;
+        
+        // Clear input
+        input.value = '';
+        autoResizeCollabInput(input);
+    } catch (error) {
+        console.error('Error sending message:', error);
+        toast('Failed to send message', 'error');
+    }
 }
 
 // Handle chat input keydown
@@ -322,10 +523,8 @@ function setupCodeEditor() {
         // Debounce code updates
         clearTimeout(codeUpdateTimeout);
         codeUpdateTimeout = setTimeout(() => {
-            if (currentRoom) {
-                currentRoom.codeContent = e.target.value;
-                // Send to WebSocket (simulated)
-                console.log('Code updated:', e.target.value);
+            if (currentRoom && currentRoomId) {
+                updateCodeContent(e.target.value);
             }
         }, 500);
     });
@@ -336,15 +535,31 @@ function setupCodeEditor() {
     }
 }
 
+// Update code content via Supabase
+async function updateCodeContent(content) {
+    if (!currentRoomId || !me) return;
+    
+    try {
+        const { error } = await db
+            .from('collab_code')
+            .upsert({
+                room_id: currentRoomId,
+                content: content,
+                updated_by: me.id
+            }, { onConflict: 'room_id' });
+        
+        if (error) throw error;
+    } catch (error) {
+        console.error('Error updating code:', error);
+    }
+}
+
 // Clear collaboration code
 function clearCollabCode() {
     const codeInput = document.getElementById('collabCodeInput');
     if (codeInput) {
         codeInput.value = '';
-        if (currentRoom) {
-            currentRoom.codeContent = '';
-            console.log('Code cleared');
-        }
+        updateCodeContent('');
     }
 }
 
@@ -425,11 +640,30 @@ function stopDrawing() {
         isDrawing = false;
         whiteboardCtx.beginPath();
         
-        // Save whiteboard state (simulated)
-        if (currentRoom) {
-            currentRoom.whiteboardData = whiteboardCanvas.toDataURL();
-            console.log('Whiteboard updated');
+        // Save whiteboard state to Supabase
+        if (currentRoom && currentRoomId && whiteboardCanvas) {
+            saveWhiteboard();
         }
+    }
+}
+
+// Save whiteboard to Supabase
+async function saveWhiteboard() {
+    if (!currentRoomId || !whiteboardCanvas || !me) return;
+    
+    try {
+        const canvasData = whiteboardCanvas.toDataURL();
+        const { error } = await db
+            .from('collab_whiteboard')
+            .upsert({
+                room_id: currentRoomId,
+                canvas_data: canvasData,
+                updated_by: me.id
+            }, { onConflict: 'room_id' });
+        
+        if (error) throw error;
+    } catch (error) {
+        console.error('Error saving whiteboard:', error);
     }
 }
 
@@ -472,11 +706,7 @@ function clearWhiteboard() {
     if (!whiteboardCanvas || !whiteboardCtx) return;
     
     whiteboardCtx.clearRect(0, 0, whiteboardCanvas.width, whiteboardCanvas.height);
-    
-    if (currentRoom) {
-        currentRoom.whiteboardData = null;
-        console.log('Whiteboard cleared');
-    }
+    saveWhiteboard();
 }
 
 // Download whiteboard
@@ -490,14 +720,41 @@ function downloadWhiteboard() {
 }
 
 // Leave collaboration room
-function leaveCollabRoom() {
-    if (collabWebSocket) {
-        collabWebSocket.close();
-        collabWebSocket = null;
+async function leaveCollabRoom() {
+    // Cleanup subscriptions
+    if (participantsSubscription) {
+        participantsSubscription.unsubscribe();
+        participantsSubscription = null;
+    }
+    if (messagesSubscription) {
+        messagesSubscription.unsubscribe();
+        messagesSubscription = null;
+    }
+    if (codeSubscription) {
+        codeSubscription.unsubscribe();
+        codeSubscription = null;
+    }
+    if (whiteboardSubscription) {
+        whiteboardSubscription.unsubscribe();
+        whiteboardSubscription = null;
+    }
+    
+    // Remove user from participants
+    if (currentRoomId && me) {
+        try {
+            await db
+                .from('collab_participants')
+                .delete()
+                .eq('room_id', currentRoomId)
+                .eq('user_id', me.id);
+        } catch (error) {
+            console.error('Error leaving room:', error);
+        }
     }
     
     currentRoomId = null;
     currentRoom = null;
+    collabRoomCode = null;
     whiteboardCanvas = null;
     whiteboardCtx = null;
     
@@ -596,7 +853,7 @@ function applyRoomTemplate() {
 }
 
 // Create collaboration room
-function createCollabRoom() {
+async function createCollabRoom() {
     const name = document.getElementById('roomNameInput').value.trim();
     const description = document.getElementById('roomDescInput').value.trim();
     const maxUsers = parseInt(document.getElementById('roomMaxUsers').value);
@@ -608,41 +865,48 @@ function createCollabRoom() {
         return;
     }
     
-    // Create room with karma tracking
-    const newRoom = {
-        id: `ROOM${Date.now().toString().slice(-6)}`,
-        name: name,
-        description: description || 'A collaboration room',
-        type: type,
-        maxUsers: maxUsers,
-        userCount: 1,
-        users: [
-            { 
-                id: collabUserId,
-                avatar: '👤', 
-                name: me.username || 'You',
-                karma: getUserKarma(me.id),
-                joinedAt: new Date().toISOString()
-            }
-        ],
-        status: 'active',
-        createdBy: me.id,
-        template: template,
-        createdAt: new Date().toISOString(),
-        karma: {
-            helpful: 0,
-            collaborative: 0,
-            knowledgeable: 0,
-            creative: 0
-        }
-    };
-    
-    closeCreateRoomModal();
-    
-    // Join newly created room
-    joinCollabRoom(newRoom.id);
-    
-    toast(`Created room: ${name}`, 'success');
+    try {
+        // Generate unique room code
+        const roomCode = generateRoomCode();
+        
+        // Create room in Supabase
+        const { data: room, error: roomError } = await db
+            .from('collab_rooms')
+            .insert({
+                room_code: roomCode,
+                name: name,
+                description: description || 'A collaboration room',
+                type: type,
+                max_users: maxUsers,
+                created_by: me.id,
+                template: template,
+                status: 'active'
+            })
+            .select()
+            .single();
+        
+        if (roomError) throw roomError;
+        
+        closeCreateRoomModal();
+        
+        // Join newly created room
+        await joinCollabRoom(room.id, room.room_code);
+        
+        toast(`Created room: ${name}`, 'success');
+    } catch (error) {
+        console.error('Error creating room:', error);
+        toast('Failed to create room', 'error');
+    }
+}
+
+// Generate unique room code
+function generateRoomCode() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = '';
+    for (let i = 0; i < 6; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
 }
 
 // Karma System
@@ -664,16 +928,8 @@ function updateUserKarma(userId, action, value = 1) {
     current.total = current.helpful + current.collaborative + current.knowledgeable + current.creative;
     userKarma.set(userId, current);
     
-    // Broadcast karma update
-    if (collabWebSocket && collabWebSocket.readyState === 1) {
-        collabWebSocket.send(JSON.stringify({
-            type: 'karma_update',
-            userId: userId,
-            action: action,
-            value: value,
-            newKarma: current
-        }));
-    }
+    // Karma is now stored locally - could be extended to Supabase in future
+    updateRoomUsers();
 }
 
 function awardKarma(userId, action) {
