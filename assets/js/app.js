@@ -20,7 +20,7 @@ async function callGroq(messages, options = {}) {
     return response.json();
 }
 
-let me = null, myName = null, myXP = 0, myRole = 'user', activeBug = null, activeCategory = 'all', bugToDelete = null;
+let me = null, myName = null, myXP = 0, activeBug = null, activeCategory = 'all', bugToDelete = null;
 let editSelectedColor = '#00ff88', editSelectedInterests = [], editingBugId = null, editBugTags = [];
 let currentProfileId = null, chatPartnerId = null, chatPartnerProfile = null, msgSubscription = null;
 let allFollowersList = [], unreadCheckInterval = null, currentTags = [], searchTimeout = null;
@@ -246,9 +246,6 @@ function getLevel(xp) { return LEVELS.find(l => xp >= l.min && xp <= l.max) || L
 function getLevelNum(xp) { return LEVELS.findIndex(l => xp >= l.min && xp <= l.max) + 1; }
 function getXPProgress(xp) { const l = getLevel(xp); if (l.max === Infinity) return 100; return Math.round(((xp - l.min) / (l.max - l.min + 1)) * 100); }
 function getXPToNext(xp) { const l = getLevel(xp); return l.max === Infinity ? 0 : l.max - xp + 1; }
-function isAdminUser() { return myRole === 'admin'; }
-function getRoleBadge(role) { return role === 'admin' ? '<span class="admin-role-badge">Admin</span>' : ''; }
-function canManageBug(bug) { return !!me && (isAdminUser() || bug?.user_id === me.id); }
 function makeAvatar(initial, color, size=80) { return `<div class="profile-avatar" style="background:${color||'#00ff88'};width:${size}px;height:${size}px;font-size:${size*0.4}px;">${initial}</div>`; }
 function parseSupabaseDate(value) {
     if (!value) return null;
@@ -312,24 +309,35 @@ async function readGroqError(response) {
 // ═══════════════════════════════════════════════════════════════
 //  🧠 AI MENTOR MODE
 // ═══════════════════════════════════════════════════════════════
-const MENTOR_SYSTEM = `You are BUGOUT AI Mentor — a friendly, knowledgeable mentor for the BUGOUT community (a platform where warriors help each other solve problems).
+const MENTOR_SYSTEM = `You are BUGOUT AI Mentor — a friendly, knowledgeable AI assistant for the BUGOUT community.
 
-You help with:
-- 💻 Coding (JavaScript, Python, C++, React, Node, etc.)
-- 🗺️ DSA (Data Structures & Algorithms) — explain concepts, solve problems step by step
-- 🎓 Career advice for CSE students (resume, projects, internships, placements)
-- 📚 Study strategies and roadmaps
-- 🌱 Life advice and motivation
-- 🐛 Debugging help
+You are a general-purpose AI assistant like ChatGPT. You help with ANY question the user asks, including but not limited to:
+- 💻 Coding and programming questions (JavaScript, Python, C++, React, Node, etc.)
+- 🗺️ Data Structures & Algorithms
+- 🎓 Career advice and education
+- 📚 General knowledge and learning
+- 🌱 Life advice, relationships, personal growth
+- 📝 Writing assistance
+- 🔬 Science, history, geography, and all academic subjects
+- 🎭 Entertainment, culture, arts
+- 💡 Creative ideas and brainstorming
+- 📊 Math, statistics, and problem-solving
+- 🌍 Current events and news
+- 🏃 Health, fitness, and wellness
+- 💼 Business, finance, and entrepreneurship
+- 🎮 Gaming, technology, and hobbies
 
 Your personality:
-- Friendly aur encouraging — "warrior" style 😈
+- Friendly, helpful, and conversational
+- Adapt your tone and language based on the question type
 - Mix of Hindi/English (Hinglish) allowed when user uses it
-- Give concrete, actionable advice
-- For code questions: always provide working code examples
-- Keep responses clear and well-structured
+- Give clear, well-structured, and accurate answers
+- For coding questions: provide working code examples
+- For academic questions: explain concepts thoroughly
+- For personal questions: be empathetic and thoughtful
+- Keep responses appropriate to the question's context
 
-Context: User is likely a CSE student from India, possibly 1st-2nd year, using BUGOUT platform.`;
+IMPORTANT: Answer each question naturally based on its topic. Do NOT force coding or CSE context into unrelated questions. If someone asks about English literature, answer about English literature. If someone asks about life advice, give life advice. If someone asks about cooking, help with cooking. Be a true general-purpose AI assistant.`;
 
 async function goMentor() {
     if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
@@ -1308,7 +1316,7 @@ function renderDailyQuests(progress, streak = 0) {
         { key: 'comments_posted', title: 'Comment Once', desc: 'Discussion ko alive rakho.', target: 1, icon: '💬' }
     ];
     const done = quests.every(q => (progress[q.key] || 0) >= q.target);
-    return `<div class="dash-section daily-quest-card">
+    return `<div class="dash-section">
         <div class="dash-section-title">🔥 Daily Quest <span class="streak-pill">🔥 ${streak || 0} day streak</span></div>
         ${progress.missingTable ? `<div class="empty" style="padding:1rem;"><h3>daily_quests table missing</h3><p>Supabase SQL run karne ke baad quests live ho jayenge.</p></div>` : ''}
         <div class="quest-grid">
@@ -1322,8 +1330,8 @@ function renderDailyQuests(progress, streak = 0) {
                 </div>`;
             }).join('')}
         </div>
-        <div class="dash-quest-footer">
-            <span class="dash-quest-note">All 3 complete karo aur +15 XP bonus claim karo.</span>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:1rem;">
+            <span style="color:var(--text2);font-size:0.85rem;">All 3 complete karo aur +15 XP bonus claim karo.</span>
             <button class="btn btn-sm ${done && !progress.quest_claimed && !progress.missingTable ? '' : 'btn-disabled'}" onclick="claimDailyQuest()">Claim +15 XP</button>
         </div>
     </div>`;
@@ -1435,14 +1443,14 @@ async function loadDashboard() {
                 ${renderXPChart(xpTimeline, color)}
             </div>
 
-            <div class="dash-section dashboard-full">
+            <div class="dash-section">
                 <div class="dash-section-title">🗓️ Activity Calendar (Last Year)</div>
                 <div class="calendar-grid">${calData.map(d => `<div class="cal-day level-${d.level}" title="${d.date}: ${d.count} activity"></div>`).join('')}</div>
                 <div class="cal-legend">Less <div class="cal-legend-squares">${[0,1,2,3,4].map(l => `<div class="cal-legend-sq cal-day level-${l}"></div>`).join('')}</div> More</div>
             </div>
 
-            <div class="dash-insight-grid">
-                <div class="dash-section">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
+                <div class="dash-section" style="margin-bottom:0;">
                     <div class="dash-section-title">🎯 Solution Win Rate</div>
                     <div class="win-ring-wrap">
                         <div class="win-ring">
@@ -1462,7 +1470,7 @@ async function loadDashboard() {
                         </div>
                     </div>
                 </div>
-                <div class="dash-section">
+                <div class="dash-section" style="margin-bottom:0;">
                     <div class="dash-section-title">👥 Community</div>
                     <div class="win-stats-list">
                         <div class="win-stat-row"><span class="win-stat-label">👥 Followers</span><span class="win-stat-val">${counts.followers}</span></div>
@@ -2123,7 +2131,6 @@ async function goProfile(userId, fromRoute = false) {
         const bugsPosted = bugs ? bugs.length : 0, solsPosted = solutions ? solutions.length : 0;
         const bestSols = solutions ? solutions.filter(s => s.is_best_solution).length : 0;
         const isMe = me && me.id === userId, displayName = profile.display_name || profile.username || 'Anonymous';
-        const role = profile.role || 'user';
         const color = profile.avatar_color || '#00ff88', interests = profile.interests || [], canMsg = me && !isMe;
         const badgesArr = Array.isArray(badges) ? badges : [];
         wrap.innerHTML = `
@@ -2132,11 +2139,10 @@ async function goProfile(userId, fromRoute = false) {
                 <div class="profile-top">
                     ${makeAvatar(displayName[0].toUpperCase(), color, 80)}
                     <div class="profile-info">
-                        <h2>${esc(displayName)} ${isMe ? '😈' : ''} ${getRoleBadge(role)}</h2>
+                        <h2>${esc(displayName)} ${isMe ? '😈' : ''}</h2>
                         <div class="username-tag">@${esc(profile.username || 'anonymous')}</div>
                         ${profile.bio ? `<div class="bio-text">${esc(profile.bio)}</div>` : ''}
                         <div class="level-badge">${lvl.emoji} Level ${lvlNum} — ${lvl.name}</div>
-                        ${role === 'admin' ? '<div class="admin-note">Platform admin - can moderate bugs and manage status</div>' : ''}
                         <div style="margin-top:8px;"><span class="streak-pill">🔥 ${profile.streak || 0} day streak</span></div>
                         ${interests.length > 0 ? `<div class="interests-wrap">${interests.map(i => `<span class="interest-tag">${esc(i)}</span>`).join('')}</div>` : ''}
                     </div>
@@ -2145,7 +2151,7 @@ async function goProfile(userId, fromRoute = false) {
                     <div class="follow-stat" onclick="showFollowList('${userId}','followers')"><div class="follow-count" id="profile-followers-count">${counts.followers}</div><div class="follow-label">Followers</div></div>
                     <div class="follow-stat" onclick="showFollowList('${userId}','following')"><div class="follow-count">${counts.following}</div><div class="follow-label">Following</div></div>
                 </div>
-                <div class="profile-actions">
+                <div style="display:flex;gap:10px;margin-top:1rem;flex-wrap:wrap;">
                     ${isMe
                         ? `<button class="btn btn-ghost btn-sm" onclick="openEditModal()">✏️ Edit Profile</button><button class="btn btn-ghost btn-sm" onclick="goDashboard()">📊 Dashboard</button><button class="btn btn-ghost btn-sm" onclick="goMentor()">🧠 AI Mentor</button><button class="btn btn-ghost btn-sm" onclick="goTeacher()">AI Teacher</button><button class="btn btn-ghost btn-sm" onclick="goAnalyzer()">🧪 Code Analyzer</button><button class="share-btn" onclick="copyShareLink('profile','${userId}')">🔗 Share</button>`
                         : me
@@ -2162,9 +2168,9 @@ async function goProfile(userId, fromRoute = false) {
                     <div class="profile-stat"><div class="profile-stat-num">${solsPosted}</div><div class="profile-stat-label">💡 Solutions</div></div>
                     <div class="profile-stat"><div class="profile-stat-num">${bestSols}</div><div class="profile-stat-label">✅ Best</div></div>
                 </div>
-                <div class="profile-badges-section"><h3 class="profile-badges-title">🏅 Badges</h3>${renderBadges(badgesArr)}</div>
+                <div style="margin-top:1.5rem;"><h3 style="font-size:0.9rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.75rem;">🏅 Badges</h3>${renderBadges(badgesArr)}</div>
             </div>
-            ${bugsPosted > 0 ? `<div class="profile-bugs"><h3>Recent Bugs</h3><div class="profile-recent-list">${bugs.slice(0, 6).map(b => `<div class="bug-card" onclick="openBug('${b.id}')"><div class="bug-card-head"><span class="bug-tag">${esc(b.category)}</span>${getStatusBadge(b.status || 'open')}</div><h3 style="font-size:1rem;">${esc(b.title)}</h3><div class="bug-footer" style="margin-top:0.5rem;"><span>${timeAgo(b.created_at)}</span><span>💡 ${b.solutions_count || 0} solutions</span></div></div>`).join('')}</div></div>` : ''}`;
+            ${bugsPosted > 0 ? `<div class="profile-bugs"><h3>Recent Bugs</h3><div style="display:flex;flex-direction:column;gap:0.75rem;">${bugs.slice(0, 5).map(b => `<div class="bug-card" onclick="openBug('${b.id}')"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><span class="bug-tag">${esc(b.category)}</span>${getStatusBadge(b.status || 'open')}</div><h3 style="font-size:1rem;">${esc(b.title)}</h3><div class="bug-footer" style="margin-top:0.5rem;"><span>${timeAgo(b.created_at)}</span><span>💡 ${b.solutions_count || 0} solutions</span></div></div>`).join('')}</div></div>` : ''}`;
     } catch(err) { wrap.innerHTML = `<button class="back-btn" onclick="goHome()">← Back</button><div class="empty"><h3>Profile nahi mila 😔</h3><p>${esc(err.message)}</p></div>`; }
 }
 
@@ -2207,15 +2213,15 @@ async function saveProfile() {
 async function setUser(user) {
     me = user;
     try {
-        const { data } = await db.from('profiles').select('*').eq('user_id', user.id).maybeSingle();
-        if (data) { myName = data.display_name || data.username || user.email.split('@')[0]; myXP = data.xp || 0; myRole = data.role || 'user'; }
-        else { myName = user.email.split('@')[0]; myXP = 0; myRole = 'user'; }
-    } catch(e) { myName = user.email.split('@')[0]; myXP = 0; myRole = 'user'; }
+        const { data } = await db.from('profiles').select('username,display_name,xp').eq('user_id', user.id).maybeSingle();
+        if (data) { myName = data.display_name || data.username || user.email.split('@')[0]; myXP = data.xp || 0; }
+        else { myName = user.email.split('@')[0]; myXP = 0; }
+    } catch(e) { myName = user.email.split('@')[0]; myXP = 0; }
     renderUserUI(); startUnreadCheck(); startNotifCheck(); await loadMyBookmarks();
 }
 
 function clearUser() {
-    me = null; myName = null; myXP = 0; myRole = 'user'; myBookmarks = new Set(); mentorHistory = []; teacherProgress = []; currentTeacherLesson = null;
+    me = null; myName = null; myXP = 0; myBookmarks = new Set(); mentorHistory = []; teacherProgress = []; currentTeacherLesson = null;
     if (unreadCheckInterval) { clearInterval(unreadCheckInterval); unreadCheckInterval = null; }
     if (notifCheckInterval) { clearInterval(notifCheckInterval); notifCheckInterval = null; }
     if (msgSubscription) { msgSubscription.unsubscribe(); msgSubscription = null; }
@@ -2226,7 +2232,6 @@ function renderUserUI() {
     const on = !!me;
     document.getElementById('authBtn').textContent = on ? 'Sign Out' : 'Sign In';
     document.getElementById('userPill').style.display = on ? 'flex' : 'none';
-    document.getElementById('userPill').classList.toggle('admin', on && isAdminUser());
     document.getElementById('postBtn').style.display = on ? 'inline-flex' : 'none';
     document.getElementById('msgBell').style.display = on ? 'flex' : 'none';
     document.getElementById('bookmarkNavBtn').style.display = on ? 'inline-flex' : 'none';
@@ -2235,10 +2240,8 @@ function renderUserUI() {
     document.getElementById('mentorNavBtn').style.display = on ? 'inline-flex' : 'none';
     document.getElementById('teacherNavBtn').style.display = on ? 'inline-flex' : 'none';
     document.getElementById('analyzerNavBtn').style.display = on ? 'inline-flex' : 'none';
-    document.getElementById('collabNavBtn').style.display = on ? 'inline-flex' : 'none';
     document.getElementById('notifBellWrap').classList.toggle('show', on);
-    if (on && typeof initCollaboration === 'function') initCollaboration();
-    if (on) { const lvl = getLevel(myXP); document.getElementById('userName').textContent = lvl.emoji + ' ' + myName; document.getElementById('userXP').textContent = (isAdminUser() ? 'ADMIN - ' : '') + myXP + ' XP'; }
+    if (on) { const lvl = getLevel(myXP); document.getElementById('userName').textContent = lvl.emoji + ' ' + myName; document.getElementById('userXP').textContent = myXP + ' XP'; }
 }
 
 async function addXP(amount) {
@@ -2247,7 +2250,7 @@ async function addXP(amount) {
         const oldLvl = getLevelNum(myXP); myXP += amount;
         await db.from('profiles').update({ xp: myXP }).eq('user_id', me.id);
         const newLvl = getLevelNum(myXP), lvl = getLevel(myXP);
-        document.getElementById('userXP').textContent = (isAdminUser() ? 'ADMIN - ' : '') + myXP + ' XP';
+        document.getElementById('userXP').textContent = myXP + ' XP';
         document.getElementById('userName').textContent = lvl.emoji + ' ' + myName;
         if (newLvl > oldLvl) toast(`🎉 Level Up! Tu ab ${lvl.emoji} ${lvl.name} hai!`, 'ok');
         await checkAndAwardBadges();
@@ -2311,11 +2314,6 @@ function goPost() {
     lastTriageSuggestion = null;
     showPage('postPage');
 }
-
-function showPostModal() {
-    goPost();
-}
-
 async function goArena() {
     if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
     showPage('arenaPage');
@@ -2601,7 +2599,7 @@ function renderBugCard(b, searchQuery) {
     const bookmarkBtn = me ? `<button class="bookmark-btn-card ${isSaved ? 'saved' : ''}" data-bookmark="${b.id}" onclick="toggleBookmark('${b.id}',event)" title="${isSaved ? 'Bookmarked!' : 'Bookmark'}">🔖</button>` : '';
     return `<div class="bug-card" onclick="openBug('${b.id}')">
         ${bookmarkBtn}
-        <div class="bug-card-head"><span class="bug-tag">${esc(b.category)}</span>${getStatusBadge(b.status || 'open')}</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;"><span class="bug-tag" style="margin-bottom:0;">${esc(b.category)}</span>${getStatusBadge(b.status || 'open')}</div>
         ${tagsHTML}
         <h3>${searchQuery ? highlightMatch(b.title, searchQuery) : esc(b.title)}</h3>
         <p>${searchQuery ? highlightMatch(b.description, searchQuery) : esc(b.description)}</p>
@@ -2652,7 +2650,7 @@ async function submitBug() {
 }
 
 function openEditBugModal() {
-    if (!canManageBug(activeBug)) { toast('Sirf owner ya admin edit kar sakta hai!', 'err'); return; }
+    if (!me || !activeBug || activeBug.user_id !== me.id) { toast('Sirf owner edit kar sakta hai!', 'err'); return; }
     editingBugId = activeBug.id;
     editBugTags = Array.isArray(activeBug.tags) ? [...activeBug.tags] : [];
     document.getElementById('editBugTitle').value = activeBug.title || '';
@@ -2709,9 +2707,7 @@ async function saveBugEdit() {
     btn.textContent = 'Saving...';
     btn.classList.add('btn-disabled');
     try {
-        let query = db.from('bugs').update({ title, category, description, tags: editBugTags }).eq('id', editingBugId);
-        if (!isAdminUser()) query = query.eq('user_id', me.id);
-        const { error } = await query;
+        const { error } = await db.from('bugs').update({ title, category, description, tags: editBugTags }).eq('id', editingBugId).eq('user_id', me.id);
         if (error) throw error;
         const id = editingBugId;
         closeEditBugModal();
@@ -2725,9 +2721,7 @@ async function saveBugEdit() {
 function askDelete(bugId, e) { e.stopPropagation(); bugToDelete = bugId; document.getElementById('confirmDialog').classList.add('show'); }
 function closeConfirm() { document.getElementById('confirmDialog').classList.remove('show'); bugToDelete = null; }
 async function confirmDelete() {
-    if (!bugToDelete) return;
-    if (!canManageBug(activeBug)) { closeConfirm(); bugToDelete = null; toast('Sirf owner ya admin delete kar sakta hai!', 'err'); return; }
-    closeConfirm();
+    if (!bugToDelete) return; closeConfirm();
     try {
         await db.from('solutions').delete().eq('bug_id', bugToDelete);
         await db.from('bookmarks').delete().eq('bug_id', bugToDelete);
@@ -2747,22 +2741,22 @@ async function openBug(id, fromRoute = false) {
             db.from('solutions').select('*').eq('bug_id', id).order('upvotes', { ascending: false })
         ]);
         if (e1) throw e1;
-        activeBug = bug; const solutions = sols || [], isOwner = me && bug.user_id === me.id, canManage = canManageBug(bug);
+        activeBug = bug; const solutions = sols || [], isOwner = me && bug.user_id === me.id;
         const tags = bug.tags && bug.tags.length ? bug.tags : [];
         const tagsHTML = tags.length ? `<div class="bug-tags-wrap" style="margin-top:8px;">${tags.map(t => `<span class="bug-tag-pill" onclick="filterByTagFromDetail('${esc(t)}')">#${esc(t)}</span>`).join('')}</div>` : '';
         const currentStatus = bug.status || 'open';
-        const statusHTML = canManage ? `<div class="status-select-wrap"><label>📊 Status:</label><select class="status-select" onchange="updateBugStatus('${bug.id}',this.value)"><option value="open" ${currentStatus === 'open' ? 'selected' : ''}>🔴 Open</option><option value="in_progress" ${currentStatus === 'in_progress' ? 'selected' : ''}>🟡 In Progress</option><option value="solved" ${currentStatus === 'solved' ? 'selected' : ''}>🟢 Solved</option></select></div>` : '';
+        const statusHTML = isOwner ? `<div class="status-select-wrap"><label>📊 Status:</label><select class="status-select" onchange="updateBugStatus('${bug.id}',this.value)"><option value="open" ${currentStatus === 'open' ? 'selected' : ''}>🔴 Open</option><option value="in_progress" ${currentStatus === 'in_progress' ? 'selected' : ''}>🟡 In Progress</option><option value="solved" ${currentStatus === 'solved' ? 'selected' : ''}>🟢 Solved</option></select></div>` : '';
         wrap.innerHTML = `
             <button class="back-btn" onclick="goHome()">← Back to bugs</button>
             <div class="detail-card">
-                <div class="detail-tag-row"><span class="bug-tag">${esc(bug.category)}</span>${getStatusBadge(currentStatus)}</div>
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span class="bug-tag">${esc(bug.category)}</span>${getStatusBadge(currentStatus)}</div>
                 <h2>${esc(bug.title)}</h2>${tagsHTML}
                 <p class="desc" style="margin-top:12px;">${esc(bug.description)}</p>
                 ${statusHTML}
                 <div class="detail-meta">
                     <span>by <strong style="cursor:pointer;color:var(--accent);" onclick="goProfile('${bug.user_id}')">${esc(bug.username || 'Anonymous')}</strong></span>
                     <span>${timeAgo(bug.created_at)}</span><span>💡 ${solutions.length} solutions</span>
-                    <span class="detail-actions"><button class="share-btn" onclick="copyShareLink('bug','${bug.id}')">🔗 Share</button>${canManage ? `<button class="btn btn-ghost btn-sm" onclick="openEditBugModal()">✏️ Edit</button><button class="btn btn-danger btn-sm" onclick="askDelete('${bug.id}',event)">🗑️ Delete</button>` : ''}</span>
+                    <span style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;"><button class="share-btn" onclick="copyShareLink('bug','${bug.id}')">🔗 Share</button>${isOwner ? `<button class="btn btn-ghost btn-sm" onclick="openEditBugModal()">✏️ Edit</button><button class="btn btn-danger btn-sm" onclick="askDelete('${bug.id}',event)">🗑️ Delete</button>` : ''}</span>
                 </div>
             </div>
             <div class="ai-box show related-bug-box" id="relatedBugBox">
@@ -2771,10 +2765,10 @@ async function openBug(id, fromRoute = false) {
             </div>
             <div class="solutions-header">Solutions (${solutions.length})</div>
             ${me ? `<div class="solution-input-box"><h4>Post your solution 💡</h4><div class="field"><textarea id="solText" placeholder="Share your solution..." rows="4"></textarea></div>
-                <div class="solution-action-row">
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
                     <button class="btn btn-sm" id="solBtn" onclick="submitSolution()">Post Solution</button>
                     <button class="btn btn-sm btn-ghost" onclick="reviewSolutionWithAI()">Review Solution</button>
-                    <button class="ai-solver-btn ai-compact-btn" onclick="getAISolutionsForDetail('${bug.id}')">🤖 Ask AI</button>
+                    <button class="ai-solver-btn" style="width:auto;padding:6px 14px;font-size:0.82rem;" onclick="getAISolutionsForDetail('${bug.id}')">🤖 Ask AI</button>
                 </div>
                 <div class="ai-box" id="solutionCoachBox" style="margin-top:0.75rem;">
                     <div class="ai-box-header"><span>Coach</span><span class="ai-box-title">Solution Quality Coach</span><span class="ai-box-subtitle">Before posting</span></div>
@@ -2785,8 +2779,8 @@ async function openBug(id, fromRoute = false) {
                     <div id="aiDetailContent"></div>
                     <div class="ai-footer-note">⚡ "↗ Use as my solution" click karo!</div>
                 </div>
-            </div>` : `<div class="solution-signin-card"><p>Solution post karne ke liye Sign In karo</p><button class="btn btn-sm" onclick="openModal()">Sign In</button></div>`}
-            <div class="solutions-list">${solutions.length === 0 ? '<div class="empty" style="grid-column:unset;"><p>Koi solution nahi abhi 💪<br>Pehle warrior bano!</p></div>' : solutions.map(s => renderSolutionCard(s, canManage, bug.id)).join('')}</div>`;
+            </div>` : `<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;text-align:center;"><p style="color:var(--text2);margin-bottom:1rem;">Solution post karne ke liye Sign In karo</p><button class="btn btn-sm" onclick="openModal()">Sign In</button></div>`}
+            <div class="solutions-list">${solutions.length === 0 ? '<div class="empty" style="grid-column:unset;"><p>Koi solution nahi abhi 💪<br>Pehle warrior bano!</p></div>' : solutions.map(s => renderSolutionCard(s, isOwner, bug.id)).join('')}</div>`;
         loadRelatedBugsForActive();
     } catch(err) { wrap.innerHTML = `<button class="back-btn" onclick="goHome()">← Back</button><div class="empty"><h3>Error 😔</h3><p>${esc(err.message)}</p></div>`; }
 }
@@ -3084,9 +3078,8 @@ function updateAuthUI() {
         authBtn.textContent = 'Sign Out';
         authBtn.onclick = handleSignOut;
         userPill.style.display = 'flex';
-        userPill.classList.toggle('admin', isAdminUser());
         document.getElementById('userName').textContent = myName || 'User';
-        document.getElementById('userXP').textContent = (isAdminUser() ? 'ADMIN - ' : '') + myXP + ' XP';
+        document.getElementById('userXP').textContent = myXP + ' XP';
         postBtn.style.display = 'inline-flex';
         msgBell.style.display = 'inline-flex';
         notifBellWrap.style.display = 'block';
@@ -3103,7 +3096,7 @@ function updateAuthUI() {
         if (analyzerNavBtn) analyzerNavBtn.style.display = 'none';
         if (collabNavBtn) collabNavBtn.style.display = 'none';
         if (bookmarkNavBtn) bookmarkNavBtn.style.display = 'none';
-        if (userPill) { userPill.style.display = 'none'; userPill.classList.remove('admin'); }
+        if (userPill) userPill.style.display = 'none';
         if (notifBell) notifBell.style.display = 'none';
         if (msgBell) msgBell.style.display = 'none';
     }
