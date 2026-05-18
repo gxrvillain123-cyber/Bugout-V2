@@ -473,6 +473,9 @@ function buildMentorModelMessage(text, images = []) {
 function detectMentorImageGenerationRequest(text) {
     const raw = String(text || '').trim();
     const lower = raw.toLowerCase();
+    if (/^(can|could|will|do)\s+you\s+(generate|create|make|draw|design)\s+(images?|pictures?|pics?|photos?|art|visuals?)\??$/i.test(raw)) {
+        return null;
+    }
     const hasGenerateVerb = /\b(generate|create|make|draw|design|render|imagine|banao|banado|bana)\b/i.test(raw);
     const hasImageNoun = /\b(image|picture|pic|photo|poster|logo|illustration|wallpaper|thumbnail|artwork|visual|sticker|banner)\b/i.test(raw);
     if (!hasGenerateVerb || !hasImageNoun) return null;
