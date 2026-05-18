@@ -8,9 +8,14 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = String(process.env.OPENAI_API_KEY || '').trim();
   if (!apiKey) {
     return res.status(500).json({ error: 'OPENAI_API_KEY is not configured on the server.' });
+  }
+  if (apiKey === 'your_openai_api_key_here' || apiKey.includes('OPENAI_API_KEY=')) {
+    return res.status(500).json({
+      error: 'OPENAI_API_KEY is set incorrectly. In Vercel, use name OPENAI_API_KEY and value only the secret key, like sk-proj-...'
+    });
   }
 
   try {
@@ -41,6 +46,11 @@ export default async function handler(req, res) {
 
     const data = await upstream.json().catch(() => ({}));
     if (!upstream.ok) {
+      if (upstream.status === 401) {
+        return res.status(401).json({
+          error: 'OpenAI authentication failed. Check that Vercel OPENAI_API_KEY is a real OpenAI API key, not the placeholder, then redeploy.'
+        });
+      }
       return res.status(upstream.status).json({
         error: data.error?.message || `Image generation failed (${upstream.status})`
       });
