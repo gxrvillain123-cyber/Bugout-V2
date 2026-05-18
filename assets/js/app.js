@@ -2,6 +2,7 @@ const SB_URL = 'https://ufybyvufusswyswoxjra.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmeWJ5dnVmdXNzd3lzd294anJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MDUyOTMsImV4cCI6MjA5MzM4MTI5M30.A-3RT1B5MjSLaX7SpHpyh1IVuYmHzW8Puy8lI3paVA0';
 const db = window.supabase.createClient(SB_URL, SB_KEY);
 const GROQ_API_URL = '/api/groq';
+const IMAGE_API_URL = '/api/image';
 const GROQ_MODEL = 'llama-3.3-70b-versatile';
 const GROQ_VISION_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
 
@@ -15,6 +16,22 @@ async function callGroq(messages, options = {}) {
             max_tokens: options.max_tokens || 1000,
             temperature: typeof options.temperature === 'number' ? options.temperature : 0.7,
             ...(options.response_format ? { response_format: options.response_format } : {})
+        })
+    });
+    if (!response.ok) throw new Error(await readGroqError(response));
+    return response.json();
+}
+
+async function callImageGenerator(prompt, options = {}) {
+    const response = await fetch(IMAGE_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            prompt,
+            ...(options.model ? { model: options.model } : {}),
+            ...(options.size ? { size: options.size } : {}),
+            ...(options.quality ? { quality: options.quality } : {}),
+            ...(options.background ? { background: options.background } : {})
         })
     });
     if (!response.ok) throw new Error(await readGroqError(response));
@@ -331,6 +348,7 @@ Your personality:
 - For code questions: always provide working code examples
 - If the user uploads an image, inspect it carefully and answer from the visual evidence.
 - If the user asks for a curve, graph, or plotted math function, explain it briefly in text. Do not draw ASCII art.
+- If the user asks to generate a poster, logo, illustration, thumbnail, wallpaper, or other creative image, the app can generate an actual image instead of text.
 - Keep responses clear and well-structured
 
 Context: User is likely a CSE student from India, possibly 1st-2nd year, using BUGOUT platform.`;
@@ -369,6 +387,35 @@ async function sendMentorMessage() {
 
     try {
         await db.from('mentor_chats').insert({ user_id: me.id, message: historyText, is_user: true });
+
+        const requestedGraph = createMentorGraphFromText(visibleText);
+        const imageRequest = requestedGraph ? null : detectMentorImageGenerationRequest(visibleText);
+        if (imageRequest) {
+            const imagePrompt = attachments.length
+                ? await buildMentorImagePromptFromAttachments(visibleText, attachments)
+                : imageRequest.prompt;
+            const generated = await callImageGenerator(imagePrompt, {
+                size: imageRequest.size,
+                quality: imageRequest.quality
+            });
+            const aiReply = generated.revised_prompt
+                ? `Image ready! Prompt refined to: ${generated.revised_prompt}`
+                : 'Image ready!';
+
+            removeTyping(typingId);
+            appendMentorMessage(aiReply, false, { generatedImage: generated });
+            mentorHistory.push({ role: 'assistant', content: `${aiReply}\n[Generated image: ${imagePrompt}]` });
+
+            await db.from('mentor_chats').insert({
+                user_id: me.id,
+                message: `${aiReply}\n\n[Generated image prompt: ${imagePrompt}]`,
+                is_user: false
+            });
+
+            setMentorBusy(false);
+            input.focus();
+            return;
+        }
 
         const messages = [
             { role: 'system', content: MENTOR_SYSTEM },
@@ -421,6 +468,47 @@ function buildMentorModelMessage(text, images = []) {
             }))
         ]
     };
+}
+
+function detectMentorImageGenerationRequest(text) {
+    const raw = String(text || '').trim();
+    const lower = raw.toLowerCase();
+    const hasGenerateVerb = /\b(generate|create|make|draw|design|render|imagine|banao|banado|bana)\b/i.test(raw);
+    const hasImageNoun = /\b(image|picture|pic|photo|poster|logo|illustration|wallpaper|thumbnail|artwork|visual|sticker|banner)\b/i.test(raw);
+    if (!hasGenerateVerb || !hasImageNoun) return null;
+
+    const prompt = normalizeMentorImagePrompt(raw);
+    const wide = /\b(wide|landscape|banner|cover|youtube|thumbnail|16:9)\b/i.test(lower);
+    const tall = /\b(portrait|story|poster|vertical|phone|wallpaper|9:16)\b/i.test(lower);
+    return {
+        prompt,
+        size: wide ? '1536x1024' : tall ? '1024x1536' : '1024x1024',
+        quality: /\b(high|hd|detailed|premium)\b/i.test(lower) ? 'high' : 'medium'
+    };
+}
+
+function normalizeMentorImagePrompt(text) {
+    const cleaned = String(text || '')
+        .replace(/^(please\s+)?(can\s+you\s+)?(generate|create|make|draw|design|render|imagine|banao|banado|bana)\s+(me\s+)?(an?\s+)?/i, '')
+        .replace(/^(image|picture|pic|photo|poster|logo|illustration|wallpaper|thumbnail|artwork|visual|sticker|banner)\s+(of|for)?\s*/i, '')
+        .trim();
+    return cleaned || text;
+}
+
+async function buildMentorImagePromptFromAttachments(text, attachments) {
+    const promptBuilder = `Convert the user's request and uploaded reference image(s) into one polished image-generation prompt.
+Use the images as visual references when relevant. Include style, subject, composition, colors, and important constraints.
+Return only the final prompt. Do not add quotes, markdown, or commentary.`;
+    const data = await callGroq([
+        { role: 'system', content: promptBuilder },
+        buildMentorModelMessage(text, attachments)
+    ], {
+        model: GROQ_VISION_MODEL,
+        max_tokens: 500,
+        temperature: 0.45
+    });
+    const prompt = data.choices?.[0]?.message?.content?.trim();
+    return prompt || normalizeMentorImagePrompt(text);
 }
 
 function setMentorBusy(isBusy) {
@@ -587,7 +675,8 @@ function appendMentorMessage(text, isUser, options = {}) {
     const formattedText = formatMentorText(text);
     const imageHTML = options.images?.length ? `<div class="mentor-bubble-media">${options.images.map(img => `<img src="${img.dataUrl}" alt="${esc(img.name)}">`).join('')}</div>` : '';
     const graphHTML = options.graph ? renderMentorGraphCard(options.graph) : '';
-    wrap.innerHTML = `${avatarHTML}<div><div class="mentor-bubble">${imageHTML}${formattedText}${graphHTML}</div><div class="mentor-time">${timeStr}</div></div>`;
+    const generatedImageHTML = options.generatedImage ? renderMentorGeneratedImageCard(options.generatedImage) : '';
+    wrap.innerHTML = `${avatarHTML}<div><div class="mentor-bubble">${imageHTML}${formattedText}${graphHTML}${generatedImageHTML}</div><div class="mentor-time">${timeStr}</div></div>`;
     container.appendChild(wrap);
     container.scrollTop = container.scrollHeight;
 }
@@ -845,6 +934,22 @@ function renderMentorGraphCard(graph) {
     </div>`;
 }
 
+function renderMentorGeneratedImageCard(result) {
+    if (!result?.image) return '';
+    const label = result.model ? `${result.model} · ${result.size || 'image'}` : 'Generated image';
+    const prompt = result.revised_prompt || result.prompt || '';
+    return `<div class="mentor-generated-image-card">
+        <div class="mentor-generated-image-head">
+            <strong>Generated image</strong>
+            <span>${esc(label)}</span>
+        </div>
+        <img src="${result.image}" alt="${esc(prompt || 'Generated image')}">
+        <div class="mentor-generated-image-actions">
+            <a class="mentor-image-download" href="${result.image}" download="bugout-mentor-image.png">Download</a>
+        </div>
+    </div>`;
+}
+
 function showMentorTyping() {
     const container = document.getElementById('mentorMessages');
     const wrap = document.createElement('div');
@@ -875,6 +980,7 @@ async function clearMentorChat() {
                 <button class="mentor-suggest-btn" onclick="sendMentorSuggestion('Resume mein projects kaise likhein?')">📄 Resume tips</button>
                 <button class="mentor-suggest-btn" onclick="sendMentorSuggestion('DSA ke liye roadmap batao beginner ke liye')">🗺️ DSA Roadmap</button>
                 <button class="mentor-suggest-btn" onclick="sendMentorSuggestion('1st year CSE student ko kya karna chahiye?')">🎓 1st year advice</button>
+                <button class="mentor-suggest-btn" onclick="sendMentorSuggestion('Generate an image of a futuristic coding study desk for a CSE student')">🖼️ Generate image</button>
             </div>
         </div>`;
     toast('Chat clear ho gaya! 🗑️', 'ok');
