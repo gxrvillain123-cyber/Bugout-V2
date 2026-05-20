@@ -531,7 +531,12 @@
         .mentor-generated-image-card { width: min(100%, 520px); margin-top: 0.85rem; background: #070707; border: 1px solid rgba(0,255,136,0.24); border-radius: 12px; overflow: hidden; }
         .mentor-generated-image-head { display: flex; justify-content: space-between; gap: 12px; align-items: center; border-bottom: 1px solid var(--border); padding: 0.75rem 0.9rem; color: var(--text2); font-size: 0.78rem; flex-wrap: wrap; }
         .mentor-generated-image-head strong { color: var(--accent); font-size: 0.85rem; }
-        .mentor-generated-image-card img { display: block; width: 100%; height: auto; max-height: 580px; object-fit: contain; background: #050505; }
+        .mentor-image-frame { position: relative; min-height: 260px; display: grid; place-items: center; background: #050505; }
+        .mentor-image-status { position: absolute; inset: 0; display: grid; place-items: center; padding: 1rem; color: var(--text2); font-size: 0.82rem; text-align: center; }
+        .mentor-image-frame.loaded { min-height: 0; }
+        .mentor-image-frame.loaded .mentor-image-status { display: none; }
+        .mentor-generated-image-card img { display: block; width: 100%; min-height: 260px; height: auto; max-height: 580px; object-fit: contain; background: #050505; }
+        .mentor-image-frame.loaded img { min-height: 0; }
         .mentor-generated-image-actions { display: flex; justify-content: flex-end; border-top: 1px solid var(--border); padding: 0.7rem 0.9rem; }
         .mentor-image-download { color: var(--bg); background: var(--accent); border-radius: 8px; padding: 6px 12px; font-size: 0.78rem; font-weight: 900; text-decoration: none; }
         .mentor-suggestions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 0.75rem; }

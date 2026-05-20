@@ -950,16 +950,47 @@ function renderMentorGeneratedImageCard(result) {
     if (!result?.image) return '';
     const label = result.model ? `${result.model} · ${result.size || 'image'}` : 'Generated image';
     const prompt = result.revised_prompt || result.prompt || '';
+    const imageSrc = esc(result.image);
     return `<div class="mentor-generated-image-card">
         <div class="mentor-generated-image-head">
             <strong>Generated image</strong>
             <span>${esc(label)}</span>
         </div>
-        <img src="${result.image}" alt="${esc(prompt || 'Generated image')}">
+        <div class="mentor-image-frame">
+            <div class="mentor-image-status">Generating image...</div>
+            <img src="${imageSrc}" data-src-base="${imageSrc}" data-retry="0" alt="${esc(prompt || 'Generated image')}" loading="lazy" onload="markMentorGeneratedImageLoaded(this)" onerror="retryMentorGeneratedImage(this)">
+        </div>
         <div class="mentor-generated-image-actions">
-            <a class="mentor-image-download" href="${result.image}" download="bugout-mentor-image.png">Download</a>
+            <a class="mentor-image-download" href="${imageSrc}" download="bugout-mentor-image.png">Download</a>
         </div>
     </div>`;
+}
+
+function markMentorGeneratedImageLoaded(img) {
+    const frame = img.closest('.mentor-image-frame');
+    if (!frame) return;
+    frame.classList.add('loaded');
+    const status = frame.querySelector('.mentor-image-status');
+    if (status) status.remove();
+}
+
+function retryMentorGeneratedImage(img) {
+    const frame = img.closest('.mentor-image-frame');
+    const status = frame?.querySelector('.mentor-image-status');
+    const attempts = Number(img.dataset.retry || '0') + 1;
+    img.dataset.retry = String(attempts);
+
+    if (attempts > 8) {
+        if (status) status.textContent = 'Free image server is slow. Retry from prompt or use Download after a minute.';
+        return;
+    }
+
+    if (status) status.textContent = attempts < 3 ? 'Still generating image...' : 'Free image server is warming up...';
+    const base = img.dataset.srcBase || img.src;
+    const separator = base.includes('?') ? '&' : '?';
+    setTimeout(() => {
+        img.src = `${base}${separator}retry=${attempts}&t=${Date.now()}`;
+    }, Math.min(2500 + attempts * 1500, 10000));
 }
 
 function showMentorTyping() {

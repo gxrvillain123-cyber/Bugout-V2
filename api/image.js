@@ -8,7 +8,15 @@ const DEFAULT_IMAGE_QUALITY = 'medium';
 const DALLE_3_MODEL = 'dall-e-3';
 const DALLE_2_MODEL = 'dall-e-2';
 
+export const config = {
+  maxDuration: 60
+};
+
 export default async function handler(req, res) {
+  if (req.method === 'GET') {
+    return proxyPollinationsImage(req, res);
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -120,15 +128,10 @@ function buildPollinationsImageResult(prompt, body) {
   const seed = Number.isInteger(Number(body.seed))
     ? Math.abs(Number(body.seed))
     : Math.floor(Math.random() * 1000000000);
-  const params = new URLSearchParams({
-    width: String(dimensions.width),
-    height: String(dimensions.height),
-    seed: String(seed),
-    nologo: 'true'
-  });
+  const image = buildLocalPollinationsUrl(prompt, dimensions, seed);
 
   return {
-    image: `${POLLINATIONS_IMAGE_URL}/${encodeURIComponent(prompt.slice(0, 1200))}?${params.toString()}`,
+    image,
     prompt,
     revised_prompt: null,
     model: 'pollinations-free',
@@ -136,6 +139,66 @@ function buildPollinationsImageResult(prompt, body) {
     size: `${dimensions.width}x${dimensions.height}`,
     quality: 'free'
   };
+}
+
+function buildLocalPollinationsUrl(prompt, dimensions, seed) {
+  const params = new URLSearchParams({
+    prompt: prompt.slice(0, 1200),
+    width: String(dimensions.width),
+    height: String(dimensions.height),
+    seed: String(seed)
+  });
+  return `/api/image?${params.toString()}`;
+}
+
+async function proxyPollinationsImage(req, res) {
+  const url = new URL(req.url, `https://${req.headers.host || 'localhost'}`);
+  const prompt = String(url.searchParams.get('prompt') || '').trim();
+  if (!prompt) {
+    return res.status(400).json({ error: 'prompt is required.' });
+  }
+
+  const width = clampImageDimension(url.searchParams.get('width'), 512, 1024);
+  const height = clampImageDimension(url.searchParams.get('height'), 512, 1024);
+  const seed = Number.isInteger(Number(url.searchParams.get('seed')))
+    ? Math.abs(Number(url.searchParams.get('seed')))
+    : 1;
+  const upstreamUrl = buildPollinationsFetchUrl(prompt, { width, height }, seed);
+  const upstream = await fetch(upstreamUrl, {
+    headers: {
+      Accept: 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8'
+    }
+  });
+
+  if (!upstream.ok) {
+    return res.status(upstream.status).json({ error: `Free image server failed (${upstream.status}).` });
+  }
+
+  const contentType = upstream.headers.get('content-type') || '';
+  if (!contentType.startsWith('image/')) {
+    return res.status(502).json({ error: 'Free image server returned a non-image response.' });
+  }
+
+  const bytes = Buffer.from(await upstream.arrayBuffer());
+  res.setHeader('Content-Type', contentType);
+  res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+  return res.status(200).send(bytes);
+}
+
+function buildPollinationsFetchUrl(prompt, dimensions, seed) {
+  const params = new URLSearchParams({
+    width: String(dimensions.width),
+    height: String(dimensions.height),
+    seed: String(seed),
+    nologo: 'true'
+  });
+  return `${POLLINATIONS_IMAGE_URL}/${encodeURIComponent(prompt.slice(0, 1200))}?${params.toString()}`;
+}
+
+function clampImageDimension(value, min, max) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return max;
+  return Math.max(min, Math.min(max, Math.round(parsed)));
 }
 
 function pollinationsDimensions(size) {
