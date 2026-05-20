@@ -676,13 +676,21 @@ function appendMentorMessage(text, isUser, options = {}) {
     const avatarHTML = isUser
         ? `<div class="mentor-av user-av">${(myName||'U')[0].toUpperCase()}</div>`
         : `<div class="mentor-av ai">🧠</div>`;
-    const formattedText = formatMentorText(text);
+    const formattedText = formatMentorText(normalizeMentorErrorText(text));
     const imageHTML = options.images?.length ? `<div class="mentor-bubble-media">${options.images.map(img => `<img src="${img.dataUrl}" alt="${esc(img.name)}">`).join('')}</div>` : '';
     const graphHTML = options.graph ? renderMentorGraphCard(options.graph) : '';
     const generatedImageHTML = options.generatedImage ? renderMentorGeneratedImageCard(options.generatedImage) : '';
     wrap.innerHTML = `${avatarHTML}<div><div class="mentor-bubble">${imageHTML}${formattedText}${graphHTML}${generatedImageHTML}</div><div class="mentor-time">${timeStr}</div></div>`;
     container.appendChild(wrap);
     container.scrollTop = container.scrollHeight;
+}
+
+function normalizeMentorErrorText(text) {
+    const message = String(text || '');
+    if (/\b(billing|hard limit|quota|usage limit|insufficient_quota)\b/i.test(message)) {
+        return `Image generation blocked: OpenAI billing limit reached. Admin ko OpenAI billing limit increase karna hoga ya working OPENAI_API_KEY lagani hogi. (${message.replace(/\s*Dobara try karo!?\s*/i, '').trim()})`;
+    }
+    return message;
 }
 
 function formatMentorText(text) {

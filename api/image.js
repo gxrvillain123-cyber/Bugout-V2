@@ -1,4 +1,6 @@
 const OPENAI_IMAGE_URL = 'https://api.openai.com/v1/images/generations';
+const POLLINATIONS_IMAGE_URL = 'https://image.pollinations.ai/prompt';
+const DEFAULT_IMAGE_PROVIDER = 'pollinations';
 const DEFAULT_IMAGE_MODEL = 'gpt-image-1';
 const DEFAULT_FALLBACK_IMAGE_MODEL = 'dall-e-3';
 const DEFAULT_IMAGE_SIZE = '1024x1024';
@@ -11,21 +13,26 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const apiKey = String(process.env.OPENAI_API_KEY || '').trim();
-  if (!apiKey) {
-    return res.status(500).json({ error: 'OPENAI_API_KEY is not configured on the server.' });
-  }
-  if (apiKey === 'your_openai_api_key_here' || apiKey.includes('OPENAI_API_KEY=')) {
-    return res.status(500).json({
-      error: 'OPENAI_API_KEY is set incorrectly. In Vercel, use name OPENAI_API_KEY and value only the secret key, like sk-proj-...'
-    });
-  }
-
   try {
     const body = req.body || {};
     const prompt = String(body.prompt || '').trim();
     if (!prompt) {
       return res.status(400).json({ error: 'prompt is required.' });
+    }
+
+    const provider = String(body.provider || process.env.IMAGE_PROVIDER || DEFAULT_IMAGE_PROVIDER).trim().toLowerCase();
+    if (provider !== 'openai') {
+      return res.status(200).json(buildPollinationsImageResult(prompt, body));
+    }
+
+    const apiKey = String(process.env.OPENAI_API_KEY || '').trim();
+    if (!apiKey) {
+      return res.status(500).json({ error: 'OPENAI_API_KEY is not configured on the server.' });
+    }
+    if (apiKey === 'your_openai_api_key_here' || apiKey.includes('OPENAI_API_KEY=')) {
+      return res.status(500).json({
+        error: 'OPENAI_API_KEY is set incorrectly. In Vercel, use name OPENAI_API_KEY and value only the secret key, like sk-proj-...'
+      });
     }
 
     const primaryModel = normalizeImageModel(body.model || process.env.OPENAI_IMAGE_MODEL || DEFAULT_IMAGE_MODEL);
@@ -61,8 +68,10 @@ export default async function handler(req, res) {
             error: 'OpenAI authentication failed. Check that Vercel OPENAI_API_KEY is a real OpenAI API key, not the placeholder, then redeploy.'
           });
         }
-        return res.status(upstream.status).json({
-          error: addModelContext(lastFailure.message, model)
+        const billingLimited = isBillingLimitError(lastFailure.message);
+        return res.status(billingLimited ? 402 : upstream.status).json({
+          error: addModelContext(lastFailure.message, model),
+          code: billingLimited ? 'openai_billing_limit' : 'openai_image_error'
         });
       }
     }
@@ -104,6 +113,35 @@ function uniqueModels(models) {
     seen.add(key);
     return true;
   });
+}
+
+function buildPollinationsImageResult(prompt, body) {
+  const dimensions = pollinationsDimensions(body.size || DEFAULT_IMAGE_SIZE);
+  const seed = Number.isInteger(Number(body.seed))
+    ? Math.abs(Number(body.seed))
+    : Math.floor(Math.random() * 1000000000);
+  const params = new URLSearchParams({
+    width: String(dimensions.width),
+    height: String(dimensions.height),
+    seed: String(seed),
+    nologo: 'true'
+  });
+
+  return {
+    image: `${POLLINATIONS_IMAGE_URL}/${encodeURIComponent(prompt.slice(0, 1200))}?${params.toString()}`,
+    prompt,
+    revised_prompt: null,
+    model: 'pollinations-free',
+    provider: 'pollinations',
+    size: `${dimensions.width}x${dimensions.height}`,
+    quality: 'free'
+  };
+}
+
+function pollinationsDimensions(size) {
+  if (size === '1536x1024') return { width: 1024, height: 768 };
+  if (size === '1024x1536') return { width: 768, height: 1024 };
+  return { width: 1024, height: 1024 };
 }
 
 function buildImagePayload(body, prompt, model) {
@@ -165,6 +203,10 @@ function readOpenAIError(data, status) {
   return error?.message || data?.message || `Image generation failed (${status})`;
 }
 
+function isBillingLimitError(message) {
+  return /\b(billing|hard limit|quota|usage limit|insufficient_quota)\b/i.test(String(message || ''));
+}
+
 function addModelContext(message, model) {
   return message && message.includes(model) ? message : `${message} [model: ${model}]`;
 }
@@ -173,7 +215,7 @@ function shouldTryFallback(failure, attempts, model) {
   const isLastAttempt = attempts[attempts.length - 1].toLowerCase() === model.toLowerCase();
   if (isLastAttempt || !failure) return false;
   const message = String(failure.message || '').toLowerCase();
-  if (message.includes('billing') || message.includes('quota') || message.includes('rate limit')) return false;
+  if (isBillingLimitError(message) || message.includes('rate limit')) return false;
   if (message.includes('content') || message.includes('policy') || message.includes('safety')) return false;
   return [400, 403, 404].includes(failure.status) && (
     message.includes('model') ||
