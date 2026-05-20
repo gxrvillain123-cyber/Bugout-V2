@@ -322,7 +322,8 @@ async function updateBugStatus(bugId, newStatus) {
 async function readGroqError(response) {
     try {
         const data = await response.json();
-        return data.error?.message || `AI request failed (${response.status})`;
+        if (typeof data.error === 'string') return data.error;
+        return data.error?.message || data.message || `AI request failed (${response.status})`;
     } catch(e) {
         return `AI request failed (${response.status})`;
     }
