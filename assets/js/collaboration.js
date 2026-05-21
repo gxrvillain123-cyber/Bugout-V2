@@ -205,7 +205,8 @@ async function joinRoomViaSupabase(roomId) {
         
         // Setup realtime subscriptions for this room
         setupRoomRealtime(roomId);
-        
+        await setupVoiceRealtime(roomId);
+
         toast('Joined room successfully', 'success');
     } catch (error) {
         console.error('Error joining room:', error);
@@ -721,6 +722,13 @@ function downloadWhiteboard() {
 
 // Leave collaboration room
 async function leaveCollabRoom() {
+    if (voiceChatActive) {
+        await stopVoiceChat({ silent: true });
+    } else {
+        closeAllVoiceConnections();
+    }
+    teardownVoiceRealtime();
+
     // Cleanup subscriptions
     if (participantsSubscription) {
         participantsSubscription.unsubscribe();
@@ -1005,8 +1013,17 @@ let mediaRecorder = null;
 let recordedChunks = [];
 let localStream = null;
 let peerConnections = new Map();
+let voiceRealtimeChannel = null;
+let voiceRoomId = null;
+let voiceChannelReady = false;
+let voiceChannelPromise = null;
+let pendingVoiceCandidates = new Map();
 let sharedFiles = new Map();
 let aiChatHistory = [];
+const VOICE_ICE_SERVERS = [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:global.stun.twilio.com:3478' }
+];
 
 // Voice Chat Functions
 async function toggleVoiceChat() {
@@ -1015,16 +1032,37 @@ async function toggleVoiceChat() {
     
     if (!voiceChatActive) {
         try {
-            localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+            if (!currentRoomId) {
+                toast('Join a room before starting voice chat', 'error');
+                return;
+            }
+            if (!navigator.mediaDevices?.getUserMedia) {
+                toast('Microphone is not supported in this browser', 'error');
+                return;
+            }
+
+            const voiceReady = await setupVoiceRealtime(currentRoomId);
+            if (!voiceReady) throw new Error('Voice signaling failed to connect');
+            localStream = await navigator.mediaDevices.getUserMedia({
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true
+                },
+                video: false
+            });
             voiceChatActive = true;
             voiceBtn.classList.add('active');
             voiceIcon.textContent = '🔊';
             toast('Voice chat enabled', 'success');
             
-            // Broadcast to room
-            broadcastVoiceState(true);
+            await broadcastVoiceState(true);
         } catch (error) {
-            toast('Microphone access denied', 'error');
+            stopLocalVoiceTracks();
+            voiceChatActive = false;
+            if (voiceBtn) voiceBtn.classList.remove('active');
+            if (voiceIcon) voiceIcon.textContent = '🎤';
+            toast(error.name === 'NotAllowedError' ? 'Microphone access denied' : 'Voice chat failed: ' + error.message, 'error');
             console.error('Voice chat error:', error);
         }
     } else {
@@ -1032,30 +1070,279 @@ async function toggleVoiceChat() {
     }
 }
 
-function stopVoiceChat() {
-    if (localStream) {
-        localStream.getTracks().forEach(track => track.stop());
-        localStream = null;
-    }
-    
+async function stopVoiceChat(options = {}) {
+    stopLocalVoiceTracks();
+    closeAllVoiceConnections();
     voiceChatActive = false;
     const voiceBtn = document.getElementById('voiceBtn');
     const voiceIcon = document.getElementById('voiceIcon');
-    voiceBtn.classList.remove('active');
+    if (voiceBtn) voiceBtn.classList.remove('active');
     voiceIcon.textContent = '🎤';
     
-    broadcastVoiceState(false);
-    toast('Voice chat disabled', 'info');
+    await broadcastVoiceState(false);
+    if (!options.silent) toast('Voice chat disabled', 'info');
 }
 
 function broadcastVoiceState(enabled) {
-    if (collabWebSocket && collabWebSocket.readyState === 1) {
-        collabWebSocket.send(JSON.stringify({
-            type: 'voice_state',
-            userId: collabUserId,
-            enabled: enabled
-        }));
+    return sendVoiceBroadcast('voice_state', { enabled }).catch(error => {
+        console.error('Voice state broadcast failed:', error);
+        return false;
+    });
+}
+
+function stopLocalVoiceTracks() {
+    if (!localStream) return;
+    localStream.getTracks().forEach(track => track.stop());
+    localStream = null;
+}
+
+function getLocalCollabUserId() {
+    return me?.id || 'anonymous';
+}
+
+async function setupVoiceRealtime(roomId) {
+    if (voiceRealtimeChannel && voiceRoomId === roomId) {
+        if (!voiceChannelReady && voiceChannelPromise) await waitForVoiceChannel();
+        return voiceChannelReady;
     }
+
+    teardownVoiceRealtime();
+    voiceRoomId = roomId;
+    voiceChannelReady = false;
+    voiceRealtimeChannel = db
+        .channel(`collab_voice_${roomId}`, { config: { broadcast: { self: false } } })
+        .on('broadcast', { event: 'voice_state' }, ({ payload }) => handleVoiceState(payload))
+        .on('broadcast', { event: 'voice_signal' }, ({ payload }) => handleVoiceSignal(payload));
+
+    voiceChannelPromise = new Promise(resolve => {
+        voiceRealtimeChannel.subscribe(status => {
+            if (status === 'SUBSCRIBED') {
+                voiceChannelReady = true;
+                resolve(true);
+            } else if (['CHANNEL_ERROR', 'TIMED_OUT', 'CLOSED'].includes(status)) {
+                voiceChannelReady = false;
+                resolve(false);
+            }
+        });
+    });
+
+    return waitForVoiceChannel();
+}
+
+function waitForVoiceChannel() {
+    return Promise.race([
+        voiceChannelPromise,
+        new Promise(resolve => setTimeout(() => resolve(false), 5000))
+    ]);
+}
+
+function teardownVoiceRealtime() {
+    if (voiceRealtimeChannel) {
+        voiceRealtimeChannel.unsubscribe();
+        voiceRealtimeChannel = null;
+    }
+    voiceRoomId = null;
+    voiceChannelReady = false;
+    voiceChannelPromise = null;
+}
+
+async function sendVoiceBroadcast(event, payload) {
+    if (!currentRoomId) return false;
+    const ready = await setupVoiceRealtime(currentRoomId);
+    if (!ready || !voiceRealtimeChannel) return false;
+
+    await voiceRealtimeChannel.send({
+        type: 'broadcast',
+        event,
+        payload: {
+            roomId: currentRoomId,
+            from: getLocalCollabUserId(),
+            ...payload
+        }
+    });
+    return true;
+}
+
+function sendVoiceSignal(to, signal) {
+    return sendVoiceBroadcast('voice_signal', { to, ...signal }).catch(error => {
+        console.error('Voice signal failed:', error);
+        return false;
+    });
+}
+
+function handleVoiceState(payload) {
+    if (!isValidVoicePayload(payload)) return;
+    const peerId = payload.from;
+
+    if (!payload.enabled) {
+        closeVoiceConnection(peerId);
+        return;
+    }
+
+    if (voiceChatActive && localStream) {
+        startVoiceOffer(peerId).catch(error => console.error('Voice offer failed:', error));
+    }
+}
+
+async function startVoiceOffer(peerId) {
+    const pc = createVoicePeerConnection(peerId);
+    if (pc.signalingState !== 'stable') return;
+
+    const offer = await pc.createOffer({ offerToReceiveAudio: true });
+    await pc.setLocalDescription(offer);
+    await sendVoiceSignal(peerId, {
+        signalType: 'offer',
+        sdp: pc.localDescription.sdp
+    });
+}
+
+async function handleVoiceSignal(payload) {
+    if (!isValidVoicePayload(payload) || payload.to !== getLocalCollabUserId()) return;
+    if (!voiceChatActive || !localStream) return;
+
+    const peerId = payload.from;
+    let pc = createVoicePeerConnection(peerId);
+
+    try {
+        if (payload.signalType === 'offer') {
+            if (pc.signalingState !== 'stable') {
+                await pc.setLocalDescription({ type: 'rollback' }).catch(() => {
+                    closeVoiceConnection(peerId);
+                    pc = createVoicePeerConnection(peerId);
+                });
+            }
+            await pc.setRemoteDescription({ type: 'offer', sdp: payload.sdp });
+            await flushPendingVoiceCandidates(peerId);
+            const answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
+            await sendVoiceSignal(peerId, {
+                signalType: 'answer',
+                sdp: pc.localDescription.sdp
+            });
+            return;
+        }
+
+        if (payload.signalType === 'answer') {
+            if (pc.signalingState === 'have-local-offer') {
+                await pc.setRemoteDescription({ type: 'answer', sdp: payload.sdp });
+                await flushPendingVoiceCandidates(peerId);
+            }
+            return;
+        }
+
+        if (payload.signalType === 'candidate' && payload.candidate) {
+            await addVoiceCandidate(peerId, payload.candidate);
+        }
+    } catch (error) {
+        console.error('Voice signal handling failed:', error);
+    }
+}
+
+function isValidVoicePayload(payload) {
+    return !!payload
+        && payload.roomId === currentRoomId
+        && payload.from
+        && payload.from !== getLocalCollabUserId();
+}
+
+function createVoicePeerConnection(peerId) {
+    const existing = peerConnections.get(peerId);
+    if (existing && existing.connectionState !== 'closed') return existing;
+
+    const pc = new RTCPeerConnection({ iceServers: VOICE_ICE_SERVERS });
+    peerConnections.set(peerId, pc);
+
+    if (localStream) {
+        localStream.getAudioTracks().forEach(track => pc.addTrack(track, localStream));
+    }
+
+    pc.onicecandidate = event => {
+        if (event.candidate) {
+            sendVoiceSignal(peerId, {
+                signalType: 'candidate',
+                candidate: event.candidate.toJSON ? event.candidate.toJSON() : event.candidate
+            });
+        }
+    };
+
+    pc.ontrack = event => {
+        const stream = event.streams?.[0] || new MediaStream([event.track]);
+        attachRemoteVoice(peerId, stream);
+    };
+
+    pc.onconnectionstatechange = () => {
+        if (['failed', 'closed', 'disconnected'].includes(pc.connectionState)) {
+            closeVoiceConnection(peerId);
+        }
+    };
+
+    return pc;
+}
+
+async function addVoiceCandidate(peerId, candidate) {
+    const pc = createVoicePeerConnection(peerId);
+    if (!pc.remoteDescription) {
+        const queued = pendingVoiceCandidates.get(peerId) || [];
+        queued.push(candidate);
+        pendingVoiceCandidates.set(peerId, queued);
+        return;
+    }
+    await pc.addIceCandidate(candidate);
+}
+
+async function flushPendingVoiceCandidates(peerId) {
+    const pc = peerConnections.get(peerId);
+    const queued = pendingVoiceCandidates.get(peerId) || [];
+    if (!pc || !pc.remoteDescription || !queued.length) return;
+
+    pendingVoiceCandidates.delete(peerId);
+    for (const candidate of queued) {
+        await pc.addIceCandidate(candidate).catch(error => console.error('Queued ICE candidate failed:', error));
+    }
+}
+
+function attachRemoteVoice(peerId, stream) {
+    const audioId = `collabRemoteAudio_${String(peerId).replace(/[^a-z0-9_-]/gi, '_')}`;
+    let audio = document.getElementById(audioId);
+    if (!audio) {
+        audio = document.createElement('audio');
+        audio.id = audioId;
+        audio.autoplay = true;
+        audio.playsInline = true;
+        audio.style.display = 'none';
+        document.body.appendChild(audio);
+    }
+    audio.srcObject = stream;
+    audio.play().catch(() => {
+        if (!audio.dataset.playBlocked) {
+            audio.dataset.playBlocked = '1';
+            toast('Click the mic button again if browser blocks remote audio playback', 'info');
+        }
+    });
+}
+
+function closeVoiceConnection(peerId) {
+    const pc = peerConnections.get(peerId);
+    if (pc) {
+        pc.onicecandidate = null;
+        pc.ontrack = null;
+        pc.onconnectionstatechange = null;
+        pc.close();
+        peerConnections.delete(peerId);
+    }
+    pendingVoiceCandidates.delete(peerId);
+
+    const audioId = `collabRemoteAudio_${String(peerId).replace(/[^a-z0-9_-]/gi, '_')}`;
+    const audio = document.getElementById(audioId);
+    if (audio) {
+        audio.srcObject = null;
+        audio.remove();
+    }
+}
+
+function closeAllVoiceConnections() {
+    Array.from(peerConnections.keys()).forEach(closeVoiceConnection);
+    pendingVoiceCandidates.clear();
 }
 
 // Screen Sharing Functions
@@ -1133,7 +1420,7 @@ function removeScreenShareVideo() {
 }
 
 function broadcastScreenShareState(sharing) {
-    if (collabWebSocket && collabWebSocket.readyState === 1) {
+    if (typeof collabWebSocket !== 'undefined' && collabWebSocket && collabWebSocket.readyState === 1) {
         collabWebSocket.send(JSON.stringify({
             type: 'screen_share',
             userId: collabUserId,
@@ -1628,7 +1915,7 @@ function setupCollaborativeCursors() {
                 const y = e.clientY - rect.top;
                 
                 // Broadcast cursor position
-                if (collabWebSocket && collabWebSocket.readyState === 1) {
+                if (typeof collabWebSocket !== 'undefined' && collabWebSocket && collabWebSocket.readyState === 1) {
                     collabWebSocket.send(JSON.stringify({
                         type: 'cursor_update',
                         userId: collabUserId,
