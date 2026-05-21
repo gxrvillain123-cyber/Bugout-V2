@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BUGOUT by MindForgers - Post your problem. World solves it.</title>
     <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="stylesheet" href="assets/css/missions.css">
     <link rel="stylesheet" href="assets/css/collaboration.css">
     <link rel="stylesheet" href="assets/css/onboarding.css">
     <link rel="stylesheet" href="assets/css/loading-screen.css">
@@ -24,6 +25,7 @@
             <button class="nav-btn" id="homeNavBtn" onclick="goHome()">🏠 Home</button>
             <button class="nav-btn" id="dashboardNavBtn" onclick="goDashboard()" style="display:none;">📊 Dashboard</button>
             <button class="nav-btn" id="arenaNavBtn" onclick="goArena()" style="display:none;">⚔️ Arena</button>
+            <button class="nav-btn" id="missionsNavBtn" onclick="goMissions()" style="display:none;">🚀 Missions</button>
             <button class="nav-btn" id="mentorNavBtn" onclick="goMentor()" style="display:none;">🧠 Mentor</button>
             <button class="nav-btn" id="teacherNavBtn" onclick="goTeacher()" style="display:none;">🎓 Teacher</button>
             <button class="nav-btn" id="analyzerNavBtn" onclick="goAnalyzer()" style="display:none;">🔍 Analyzer</button>
@@ -320,6 +322,42 @@
                 <div class="arena-board-list" id="arenaLeaderboard"><div class="arena-empty">Leaderboard loading...</div></div>
             </div>
         </div>
+    </div>
+
+    <!-- LEADERBOARD -->
+    <div class="page" id="missionsPage">
+        <div class="missions-wrap">
+            <div class="missions-hero">
+                <div>
+                    <button class="back-btn" onclick="goHome()">← Back</button>
+                    <p class="missions-kicker">BUGOUT Missions</p>
+                    <h2>Build, compete, ship, and earn proof.</h2>
+                    <p>Join structured missions with tasks, teams, submissions, AI judging, leaderboards, XP rewards, showcases, and downloadable certificates.</p>
+                </div>
+                <div class="missions-hero-panel">
+                    <div><strong id="missionsActiveCount">0</strong><span>Live missions</span></div>
+                    <div><strong id="missionsJoinedCount">0</strong><span>Joined by you</span></div>
+                    <div><strong id="missionsCertCount">0</strong><span>Certificates</span></div>
+                </div>
+            </div>
+            <div class="missions-toolbar">
+                <div class="missions-filter-row">
+                    <button class="mission-filter active" data-filter="all" onclick="filterMissions('all', this)">All</button>
+                    <button class="mission-filter" data-filter="live" onclick="filterMissions('live', this)">Live</button>
+                    <button class="mission-filter" data-filter="joined" onclick="filterMissions('joined', this)">Joined</button>
+                    <button class="mission-filter" data-filter="showcase" onclick="filterMissions('showcase', this)">Showcase</button>
+                </div>
+                <div class="missions-actions">
+                    <button class="btn btn-ghost btn-sm" onclick="loadMissions()">Refresh</button>
+                    <button class="btn btn-sm mission-admin-only" onclick="openMissionCreateModal()">Create Mission</button>
+                </div>
+            </div>
+            <div class="missions-grid" id="missionsGrid"><div class="loading"><div class="spinner"></div><p>Loading missions...</p></div></div>
+        </div>
+    </div>
+
+    <div class="page" id="missionDetailPage">
+        <div class="mission-detail-wrap" id="missionDetailWrap"><div class="loading"><div class="spinner"></div><p>Loading mission...</p></div></div>
     </div>
 
     <!-- LEADERBOARD -->
@@ -735,6 +773,93 @@
     </div>
 </div>
 
+<!-- CREATE / EDIT MISSION -->
+<div class="new-msg-overlay" id="missionCreateModal">
+    <div class="new-msg-modal mission-modal-wide">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;">
+            <h2>🚀 Create Mission</h2>
+            <button class="close-x" onclick="closeMissionCreateModal()">&times;</button>
+        </div>
+        <div class="mission-form-grid">
+            <div class="field"><label>Title</label><input type="text" id="missionTitleInput" placeholder="Build a Portfolio Website in 48 Hours"></div>
+            <div class="field"><label>Category</label><input type="text" id="missionCategoryInput" placeholder="Build / DSA / Bug Hunt / AI"></div>
+            <div class="field"><label>Type</label><select id="missionTypeInput"><option value="solo">Solo</option><option value="team">Team</option><option value="bug_hunt">Bug Hunt</option><option value="learning_sprint">Learning Sprint</option><option value="arena">Arena</option><option value="campus">Campus League</option></select></div>
+            <div class="field"><label>Difficulty</label><select id="missionDifficultyInput"><option>Beginner</option><option selected>Intermediate</option><option>Advanced</option><option>Elite</option></select></div>
+            <div class="field"><label>Starts At</label><input type="datetime-local" id="missionStartsInput"></div>
+            <div class="field"><label>Ends At</label><input type="datetime-local" id="missionEndsInput"></div>
+            <div class="field"><label>Reward XP</label><input type="number" id="missionRewardInput" min="10" max="2000" value="250"></div>
+            <div class="field"><label>Max Team Size</label><input type="number" id="missionTeamSizeInput" min="1" max="10" value="4"></div>
+        </div>
+        <div class="field"><label>Brief</label><input type="text" id="missionBriefInput" placeholder="A short one-line hook for the card"></div>
+        <div class="field"><label>Description</label><textarea id="missionDescInput" placeholder="Explain the mission, outcome, and success criteria." style="min-height:100px;"></textarea></div>
+        <div class="mission-form-grid">
+            <div class="field"><label>Tasks (one per line)</label><textarea id="missionTasksInput" placeholder="Pick stack|20&#10;Build MVP|40&#10;Deploy and submit|60" style="min-height:140px;"></textarea><div class="tag-hint">Optional XP: Task title|XP</div></div>
+            <div class="field"><label>Deliverables (one per line)</label><textarea id="missionDeliverablesInput" placeholder="Live project URL&#10;GitHub repository&#10;Short build explanation" style="min-height:140px;"></textarea></div>
+            <div class="field"><label>Rules (one per line)</label><textarea id="missionRulesInput" placeholder="Original work only&#10;Submit before deadline&#10;Team members must be listed" style="min-height:140px;"></textarea></div>
+            <div class="field"><label>Judging Criteria (one per line)</label><textarea id="missionCriteriaInput" placeholder="Functionality&#10;Code quality&#10;UI/UX&#10;Creativity&#10;Explanation clarity" style="min-height:140px;"></textarea></div>
+        </div>
+        <div class="form-actions" style="margin-top:1.5rem;">
+            <button class="btn" id="missionCreateBtn" onclick="createMission()">Create Mission</button>
+            <button class="btn btn-ghost" onclick="fillMissionTemplate()">Use Template</button>
+            <button class="btn btn-ghost" onclick="closeMissionCreateModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- MISSION TEAM -->
+<div class="new-msg-overlay" id="missionTeamModal">
+    <div class="new-msg-modal">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+            <h2>👥 Mission Team</h2>
+            <button class="close-x" onclick="closeMissionTeamModal()">&times;</button>
+        </div>
+        <div class="field"><label>Team Name</label><input type="text" id="missionTeamNameInput" placeholder="Code Spartans"></div>
+        <div class="field"><label>Tagline</label><input type="text" id="missionTeamTaglineInput" placeholder="We ship before midnight."></div>
+        <div class="form-actions" style="margin-top:1rem;">
+            <button class="btn" id="missionTeamCreateBtn" onclick="createMissionTeam()">Create Team</button>
+            <button class="btn btn-ghost" onclick="closeMissionTeamModal()">Cancel</button>
+        </div>
+        <div id="missionTeamList" class="mission-team-list"></div>
+    </div>
+</div>
+
+<!-- MISSION SUBMISSION -->
+<div class="new-msg-overlay" id="missionSubmissionModal">
+    <div class="new-msg-modal mission-modal-wide">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;">
+            <h2>📦 Submit Mission</h2>
+            <button class="close-x" onclick="closeMissionSubmissionModal()">&times;</button>
+        </div>
+        <div class="mission-form-grid">
+            <div class="field"><label>Submission Title</label><input type="text" id="missionSubmissionTitle" placeholder="My shipped project"></div>
+            <div class="field"><label>Live URL</label><input type="url" id="missionSubmissionLive" placeholder="https://..."></div>
+            <div class="field"><label>GitHub URL</label><input type="url" id="missionSubmissionRepo" placeholder="https://github.com/..."></div>
+            <div class="field"><label>Demo Video URL</label><input type="url" id="missionSubmissionDemo" placeholder="https://..."></div>
+        </div>
+        <div class="field"><label>Build Summary</label><textarea id="missionSubmissionSummary" placeholder="What did you build, what works, what was hard, and what should judges notice?" style="min-height:130px;"></textarea></div>
+        <div class="field"><label>Screenshots (one URL per line)</label><textarea id="missionSubmissionScreens" placeholder="https://..." style="min-height:80px;"></textarea></div>
+        <div class="form-actions" style="margin-top:1.5rem;">
+            <button class="btn" id="missionSubmitBtn" onclick="submitMissionWork()">Submit + AI Judge</button>
+            <button class="btn btn-ghost" onclick="closeMissionSubmissionModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- MISSION CERTIFICATE -->
+<div class="new-msg-overlay" id="missionCertificateModal">
+    <div class="new-msg-modal mission-certificate-modal">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+            <h2>🏅 Mission Certificate</h2>
+            <button class="close-x" onclick="closeMissionCertificateModal()">&times;</button>
+        </div>
+        <div id="missionCertificatePreview"></div>
+        <div class="form-actions" style="margin-top:1rem;">
+            <button class="btn" onclick="downloadMissionCertificate()">Download PNG</button>
+            <button class="btn btn-ghost" onclick="closeMissionCertificateModal()">Close</button>
+        </div>
+    </div>
+</div>
+
 <!-- CREATE ROOM -->
 <div class="new-msg-overlay" id="createRoomModal">
     <div class="new-msg-modal">
@@ -786,6 +911,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/js/app.js"></script>
+<script src="assets/js/missions.js"></script>
 <script src="assets/js/loading-screen.js"></script>
 <script src="assets/js/onboarding.js"></script>
 <script src="assets/js/collaboration.js"></script>

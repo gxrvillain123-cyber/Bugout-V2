@@ -279,13 +279,13 @@ function parseSupabaseDate(value) {
 }
 function setRoute(params = {}) {
     const url = new URL(window.location.href);
-    ['bug','profile'].forEach(k => url.searchParams.delete(k));
+    ['bug','profile','mission'].forEach(k => url.searchParams.delete(k));
     Object.entries(params).forEach(([k, v]) => { if (v) url.searchParams.set(k, v); });
     history.pushState({}, '', url);
 }
 function clearRoute() {
     const url = new URL(window.location.href);
-    ['bug','profile'].forEach(k => url.searchParams.delete(k));
+    ['bug','profile','mission'].forEach(k => url.searchParams.delete(k));
     history.pushState({}, '', url);
 }
 async function copyShareLink(type, id) {
@@ -301,9 +301,10 @@ async function copyShareLink(type, id) {
 }
 async function openInitialRoute() {
     const params = new URLSearchParams(window.location.search);
-    const bugId = params.get('bug'), profileId = params.get('profile');
+    const bugId = params.get('bug'), profileId = params.get('profile'), missionId = params.get('mission');
     if (bugId) { await openBug(bugId, true); return true; }
     if (profileId) { await goProfile(profileId, true); return true; }
+    if (missionId && typeof openMissionDetail === 'function') { await openMissionDetail(missionId, true); return true; }
     return false;
 }
 function getStatusBadge(status) {
@@ -2827,6 +2828,7 @@ function renderUserUI() {
     document.getElementById('bookmarkNavBtn').style.display = on ? 'inline-flex' : 'none';
     document.getElementById('dashboardNavBtn').style.display = on ? 'inline-flex' : 'none';
     document.getElementById('arenaNavBtn').style.display = on ? 'inline-flex' : 'none';
+    document.getElementById('missionsNavBtn').style.display = on ? 'inline-flex' : 'none';
     document.getElementById('mentorNavBtn').style.display = on ? 'inline-flex' : 'none';
     document.getElementById('teacherNavBtn').style.display = on ? 'inline-flex' : 'none';
     document.getElementById('analyzerNavBtn').style.display = on ? 'inline-flex' : 'none';
@@ -3685,7 +3687,8 @@ function updateAuthUI() {
         postBtn.style.display = 'inline-flex';
         msgBell.style.display = 'inline-flex';
         notifBellWrap.style.display = 'block';
-        
+        if (missionsNavBtn) missionsNavBtn.style.display = 'inline-flex';
+
         initCollaboration();
     } else {
         authBtn.textContent = 'Sign In';
@@ -3693,6 +3696,7 @@ function updateAuthUI() {
         postBtn.style.display = 'none';
         if (dashboardNavBtn) dashboardNavBtn.style.display = 'none';
         if (arenaNavBtn) arenaNavBtn.style.display = 'none';
+        if (missionsNavBtn) missionsNavBtn.style.display = 'none';
         if (mentorNavBtn) mentorNavBtn.style.display = 'none';
         if (teacherNavBtn) teacherNavBtn.style.display = 'none';
         if (analyzerNavBtn) analyzerNavBtn.style.display = 'none';

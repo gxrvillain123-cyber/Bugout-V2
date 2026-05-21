@@ -10,6 +10,7 @@ Required files/folders:
 - `api/groq.js`
 - `supabase-arena-schema.sql` is not deployed by Vercel, but keep it in the repo as setup documentation.
 - `supabase-admin-schema.sql` is not deployed by Vercel, but run it once to enable admin roles.
+- `supabase-missions-schema.sql` is not deployed by Vercel, but run it once to enable BUGOUT Missions.
 - `supabase-teacher-schema.sql` is not deployed by Vercel, but run it once for AI Teacher progress.
 
 ## Vercel Environment Variable
@@ -31,6 +32,10 @@ Run `supabase-arena-schema.sql` once in Supabase SQL Editor if Coding Arena tabl
 ## Supabase Admin SQL
 
 Run `supabase-admin-schema.sql` once in Supabase SQL Editor. Before running, replace `YOUR_EMAIL_HERE` with the email of the account that should become admin.
+
+## Supabase Missions SQL
+
+Run `supabase-missions-schema.sql` once in Supabase SQL Editor so BUGOUT Missions can save missions, teams, task progress, judged submissions, votes, and certificates.
 
 ## Supabase AI Teacher SQL
 
