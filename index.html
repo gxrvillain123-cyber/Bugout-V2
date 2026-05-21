@@ -9,6 +9,18 @@
     <link rel="stylesheet" href="assets/css/collaboration.css">
     <link rel="stylesheet" href="assets/css/onboarding.css">
     <link rel="stylesheet" href="assets/css/loading-screen.css">
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: { fontCache: 'global' },
+            options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] }
+        };
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 </head>
 <body>
 
@@ -118,7 +130,7 @@
                 <div class="mentor-avatar">🧠</div>
                 <div class="mentor-info">
                     <div class="mentor-name">BUGOUT AI Mentor</div>
-                    <div class="mentor-desc">Coding · Career · DSA · Life Advice · Kuch bhi pucho! 😈</div>
+                    <div class="mentor-desc">All subjects · Research · Hard math · Writing · Coding · Life</div>
                 </div>
                 <div class="mentor-status"><div class="mentor-dot"></div> Online</div>
                 <button class="mentor-clear-btn" onclick="clearMentorChat()">🗑️ Clear</button>
@@ -127,13 +139,13 @@
                 <div class="mentor-welcome">
                     <div class="mentor-welcome-icon">🧠</div>
                     <h3>BUGOUT AI Mentor</h3>
-                    <p>Main tera personal AI mentor hoon! Coding doubts, DSA problems, career advice, life decisions — kuch bhi pucho. Main MindForgers community ke context mein help karunga! 💪</p>
+                    <p>Ask anything from school basics to PhD-level research. I can solve equations, derive formulas, explain biology, write social science answers, review essays, debug code, and help you study deeply.</p>
                     <div class="mentor-suggestions">
-                        <button class="mentor-suggest-btn" onclick="sendMentorSuggestion('JavaScript mein async/await kaise kaam karta hai?')">🤔 async/await explain karo</button>
-                        <button class="mentor-suggest-btn" onclick="sendMentorSuggestion('Resume mein projects kaise likhein?')">📄 Resume tips</button>
-                        <button class="mentor-suggest-btn" onclick="sendMentorSuggestion('DSA ke liye roadmap batao beginner ke liye')">🗺️ DSA Roadmap</button>
-                        <button class="mentor-suggest-btn" onclick="sendMentorSuggestion('1st year CSE student ko kya karna chahiye?')">🎓 1st year advice</button>
-                        <button class="mentor-suggest-btn" onclick="sendMentorSuggestion('Generate an image of a futuristic coding study desk for a CSE student')">🖼️ Generate image</button>
+                        <button class="mentor-suggest-btn" onclick="sendMentorSuggestion('Solve this step by step: integrate x^2 sin(x) dx')">Math derivation</button>
+                        <button class="mentor-suggest-btn" onclick="sendMentorSuggestion('Explain photosynthesis at NEET level with equations and key terms')">Biology answer</button>
+                        <button class="mentor-suggest-btn" onclick="sendMentorSuggestion('Write a UPSC-style answer on federalism in India with examples')">Social science</button>
+                        <button class="mentor-suggest-btn" onclick="sendMentorSuggestion('Explain quantum entanglement at undergraduate level')">Physics concept</button>
+                        <button class="mentor-suggest-btn" onclick="sendMentorSuggestion('Help me frame a research question and methodology for a thesis topic')">Research help</button>
                     </div>
                 </div>
             </div>
@@ -143,7 +155,7 @@
                     <div class="mentor-input-row">
                         <button class="mentor-upload-btn" id="mentorUploadBtn" onclick="openMentorImagePicker()" title="Upload image" aria-label="Upload image">+</button>
                         <input type="file" id="mentorImageInput" accept="image/*" multiple hidden onchange="handleMentorImageFiles(this.files)">
-                        <textarea class="mentor-input" id="mentorInput" placeholder="Kuch bhi pucho — coding, career, life... 😈" rows="1"
+                        <textarea class="mentor-input" id="mentorInput" placeholder="Ask anything: math derivations, biology, social science, research, coding..." rows="1"
                             onkeydown="handleMentorKey(event)" oninput="autoResizeMentorInput(this)"></textarea>
                         <button class="mentor-send-btn" id="mentorSendBtn" onclick="sendMentorMessage()">➤</button>
                     </div>

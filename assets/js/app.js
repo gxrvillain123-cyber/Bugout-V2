@@ -333,27 +333,45 @@ async function readGroqError(response) {
 // ═══════════════════════════════════════════════════════════════
 //  🧠 AI MENTOR MODE
 // ═══════════════════════════════════════════════════════════════
-const MENTOR_SYSTEM = `You are BUGOUT AI Mentor — a friendly, knowledgeable mentor for the BUGOUT community (a platform where warriors help each other solve problems).
+const MENTOR_SYSTEM = `You are BUGOUT AI Mentor, a universal academic and research mentor for students from every field.
 
-You help with:
-- 💻 Coding (JavaScript, Python, C++, React, Node, etc.)
-- 🗺️ DSA (Data Structures & Algorithms) — explain concepts, solve problems step by step
-- 🎓 Career advice for CSE students (resume, projects, internships, placements)
-- 📚 Study strategies and roadmaps
-- 🌱 Life advice and motivation
-- 🐛 Debugging help
+Core identity:
+- Help any learner: school, college, competitive exams, undergraduate, postgraduate, PhD, and research-level users.
+- Cover all domains: mathematics, physics, chemistry, biology, medicine, commerce, economics, law, psychology, sociology, political science, history, geography, literature, writing, design, coding, engineering, management, career, and general life/study decisions.
+- Do not assume the user is a coder. Adapt to the user's field, level, language, and goal.
+- If the user writes in Hindi/Hinglish, reply naturally in Hinglish. Otherwise use clear English.
 
-Your personality:
-- Friendly aur encouraging — "warrior" style 😈
-- Mix of Hindi/English (Hinglish) allowed when user uses it
-- Give concrete, actionable advice
-- For code questions: always provide working code examples
+For mathematics, physics, engineering, statistics, economics, and any equation-heavy subject:
+- Solve like a serious student would write in an exam or notebook.
+- Show definitions, assumptions, formulas used, substitutions, derivations, intermediate steps, and the final answer.
+- Use LaTeX for equations. Use inline math with $...$ and display math with $$...$$ or \\[...\\].
+- For long derivations, use aligned equations such as:
+  $$
+  \\begin{aligned}
+  ...
+  \\end{aligned}
+  $$
+- Check units, domains, boundary conditions, edge cases, and reasonableness when relevant.
+- For proofs, state the claim, givens, proof method, logical steps, and conclusion.
+- For research-level topics, explain intuition first, then formalism, then caveats/open problems if useful.
+
+For humanities, social sciences, commerce, law, literature, and biology:
+- Give structured, high-quality answers with concepts, examples, diagrams/tables in text when useful, counterpoints, and exam-ready phrasing.
+- For essays/long answers, include thesis, arguments, evidence/examples, and conclusion.
+- For biology/medicine, be careful and educational; suggest professional consultation for personal medical decisions.
+- For law/finance, explain generally and mention jurisdiction/context limits when relevant.
+
+For coding and technical questions:
+- Provide working code when asked, explain bugs clearly, and include complexity/security notes when useful.
+
+General answer style:
+- Be precise, honest, and rigorous. If information is missing, state assumptions or ask a focused question.
+- Do not hallucinate citations or facts. Say when something depends on syllabus, jurisdiction, dataset, or latest research.
+- Prefer complete answers over vague advice. Give formulas, examples, tables, and final takeaways.
+- Keep the tone friendly and motivating without becoming childish.
 - If the user uploads an image, inspect it carefully and answer from the visual evidence.
-- If the user asks for a curve, graph, or plotted math function, explain it briefly in text. Do not draw ASCII art.
-- If the user asks to generate a poster, logo, illustration, thumbnail, wallpaper, or other creative image, the app can generate an actual image instead of text.
-- Keep responses clear and well-structured
-
-Context: User is likely a CSE student from India, possibly 1st-2nd year, using BUGOUT platform.`;
+- If the user asks for a curve, graph, or plotted math function, explain it briefly in text; the app can also show a generated graph when possible.
+- If the user asks to generate a poster, logo, illustration, thumbnail, wallpaper, or other creative image, the app can generate an actual image instead of text.`;
 
 const MENTOR_IMAGE_LIMIT = 5;
 const MENTOR_IMAGE_PER_IMAGE_LIMIT = 3.4 * 1024 * 1024;
@@ -425,10 +443,11 @@ async function sendMentorMessage() {
             buildMentorModelMessage(visibleText, attachments)
         ];
 
+        const answerProfile = getMentorAnswerProfile(visibleText, attachments);
         const data = await callGroq(messages, {
             model: attachments.length ? GROQ_VISION_MODEL : GROQ_MODEL,
-            max_tokens: 1200,
-            temperature: 0.75
+            max_tokens: answerProfile.maxTokens,
+            temperature: answerProfile.temperature
         });
         const aiReply = data.choices?.[0]?.message?.content || 'Kuch error aa gaya — dobara try karo!';
         const graph = createMentorGraphFromText(visibleText);
@@ -456,6 +475,17 @@ function buildMentorHistoryText(text, images = []) {
     if (!images.length) return text;
     const names = images.map(img => img.name).join(', ');
     return `${text}\n\n[Uploaded image${images.length > 1 ? 's' : ''}: ${names}]`;
+}
+
+function getMentorAnswerProfile(text, images = []) {
+    const raw = String(text || '').toLowerCase();
+    const wantsFullWork = /\b(solve|derive|derivation|prove|proof|equation|integral|differentiate|derivative|limit|matrix|eigen|laplace|fourier|probability|statistics|regression|physics|chemistry|economics|phd|research|thesis|paper|full answer|step by step)\b/.test(raw);
+    const isMathLike = /[$^=]|\\frac|\\int|\\sum|\\lim|sqrt|sin|cos|tan|log|ln|matrix|vector|tensor|theorem|lemma|calculus|algebra/.test(raw);
+    const isAcademic = wantsFullWork || /\b(history|political science|sociology|psychology|biology|medicine|law|commerce|accounts|literature|geography|essay|case study|research methodology)\b/.test(raw);
+    if (images.length) return { maxTokens: 2400, temperature: 0.35 };
+    if (isMathLike || wantsFullWork) return { maxTokens: 4200, temperature: 0.18 };
+    if (isAcademic) return { maxTokens: 3400, temperature: 0.35 };
+    return { maxTokens: 2200, temperature: 0.55 };
 }
 
 function buildMentorModelMessage(text, images = []) {
@@ -684,6 +714,7 @@ function appendMentorMessage(text, isUser, options = {}) {
     wrap.innerHTML = `${avatarHTML}<div><div class="mentor-bubble">${imageHTML}${formattedText}${graphHTML}${generatedImageHTML}</div><div class="mentor-time">${timeStr}</div></div>`;
     container.appendChild(wrap);
     container.scrollTop = container.scrollHeight;
+    typesetMentorMath(wrap);
 }
 
 function normalizeMentorErrorText(text) {
@@ -695,12 +726,26 @@ function normalizeMentorErrorText(text) {
 }
 
 function formatMentorText(text) {
+    const placeholders = [];
+    const hold = html => {
+        const key = `@@MENTOR_BLOCK_${placeholders.length}@@`;
+        placeholders.push([key, html]);
+        return key;
+    };
+
     let t = esc(text);
-    t = t.replace(/```([^`]*?)```/gs, '<pre><code>$1</code></pre>');
+    t = t.replace(/```([\s\S]*?)```/g, (_, code) => hold(`<pre><code>${code.trim()}</code></pre>`));
+    t = t.replace(/(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\])/g, match => hold(`<div class="mentor-math-block">${match}</div>`));
     t = t.replace(/`([^`]+)`/g, '<code>$1</code>');
     t = t.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
     t = t.replace(/\n/g, '<br>');
+    placeholders.forEach(([key, html]) => { t = t.replace(key, html); });
     return t;
+}
+
+function typesetMentorMath(root) {
+    if (!window.MathJax?.typesetPromise) return;
+    window.MathJax.typesetPromise([root]).catch(() => {});
 }
 
 function createMentorGraphFromText(text) {
@@ -1018,13 +1063,13 @@ async function clearMentorChat() {
         <div class="mentor-welcome">
             <div class="mentor-welcome-icon">🧠</div>
             <h3>BUGOUT AI Mentor</h3>
-            <p>Main tera personal AI mentor hoon! Coding doubts, DSA problems, career advice, life decisions — kuch bhi pucho. Main MindForgers community ke context mein help karunga! 💪</p>
+            <p>Ask anything from school basics to PhD-level research. I can solve equations, derive formulas, explain biology, write social science answers, review essays, debug code, and help you study deeply.</p>
             <div class="mentor-suggestions">
-                <button class="mentor-suggest-btn" onclick="sendMentorSuggestion('JavaScript mein async/await kaise kaam karta hai?')">🤔 async/await explain karo</button>
-                <button class="mentor-suggest-btn" onclick="sendMentorSuggestion('Resume mein projects kaise likhein?')">📄 Resume tips</button>
-                <button class="mentor-suggest-btn" onclick="sendMentorSuggestion('DSA ke liye roadmap batao beginner ke liye')">🗺️ DSA Roadmap</button>
-                <button class="mentor-suggest-btn" onclick="sendMentorSuggestion('1st year CSE student ko kya karna chahiye?')">🎓 1st year advice</button>
-                <button class="mentor-suggest-btn" onclick="sendMentorSuggestion('Generate an image of a futuristic coding study desk for a CSE student')">🖼️ Generate image</button>
+                <button class="mentor-suggest-btn" onclick="sendMentorSuggestion('Solve this step by step: integrate x^2 sin(x) dx')">Math derivation</button>
+                <button class="mentor-suggest-btn" onclick="sendMentorSuggestion('Explain photosynthesis at NEET level with equations and key terms')">Biology answer</button>
+                <button class="mentor-suggest-btn" onclick="sendMentorSuggestion('Write a UPSC-style answer on federalism in India with examples')">Social science</button>
+                <button class="mentor-suggest-btn" onclick="sendMentorSuggestion('Explain quantum entanglement at undergraduate level')">Physics concept</button>
+                <button class="mentor-suggest-btn" onclick="sendMentorSuggestion('Help me frame a research question and methodology for a thesis topic')">Research help</button>
             </div>
         </div>`;
     toast('Chat clear ho gaya! 🗑️', 'ok');

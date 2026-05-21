@@ -493,6 +493,9 @@
         .mentor-bubble-wrap.user .mentor-bubble { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: var(--bg); border-top-right-radius: 4px; font-weight: 500; }
         .mentor-bubble pre { background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px; margin-top: 8px; overflow-x: auto; font-size: 0.82rem; }
         .mentor-bubble code { background: rgba(0,255,136,0.15); border-radius: 4px; padding: 1px 6px; font-size: 0.85rem; color: var(--accent); }
+        .mentor-math-block { overflow-x: auto; overflow-y: hidden; margin: 0.75rem 0; padding: 0.35rem 0; }
+        .mentor-bubble mjx-container { max-width: 100%; overflow-x: auto; overflow-y: hidden; padding: 0.15rem 0; }
+        .mentor-bubble mjx-container[jax="SVG"][display="true"] { text-align: left !important; margin: 0.6rem 0 !important; }
         .mentor-time { font-size: 0.68rem; color: var(--text2); margin-top: 4px; padding: 0 4px; }
         .mentor-typing { display: flex; align-items: center; gap: 5px; padding: 10px 14px; background: var(--card); border: 1px solid rgba(0,255,136,0.2); border-radius: 12px; width: fit-content; }
         .typing-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: typingBounce 1.2s ease-in-out infinite; }
