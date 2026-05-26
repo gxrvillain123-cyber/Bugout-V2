@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { messages, model, max_tokens, temperature, response_format } = req.body || {};
+    const { messages, model, max_tokens, temperature, response_format, stream } = req.body || {};
     if (!Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({ error: 'messages array is required.' });
     }
@@ -28,17 +28,37 @@ export default async function handler(req, res) {
         messages,
         max_tokens: max_tokens || 1000,
         temperature: typeof temperature === 'number' ? temperature : 0.7,
+        stream: !!stream,
         ...(response_format ? { response_format } : {})
       })
     });
 
-    const data = await upstream.json().catch(() => ({}));
     if (!upstream.ok) {
+      const data = await upstream.json().catch(() => ({}));
       return res.status(upstream.status).json({
         error: data.error?.message || `Groq request failed (${upstream.status})`
       });
     }
 
+    if (stream) {
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream; charset=utf-8',
+        'Cache-Control': 'no-cache, no-transform',
+        Connection: 'keep-alive',
+        'X-Accel-Buffering': 'no'
+      });
+
+      try {
+        for await (const chunk of upstream.body) {
+          res.write(chunk);
+        }
+      } finally {
+        res.end();
+      }
+      return;
+    }
+
+    const data = await upstream.json().catch(() => ({}));
     return res.status(200).json(data);
   } catch (error) {
     return res.status(500).json({ error: error.message || 'AI request failed.' });

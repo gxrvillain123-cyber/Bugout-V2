@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BUGOUT by MindForgers - Post your problem. World solves it.</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
     <link rel="stylesheet" href="assets/css/styles.css">
     <link rel="stylesheet" href="assets/css/missions.css">
     <link rel="stylesheet" href="assets/css/collaboration.css">
@@ -21,6 +22,10 @@
         };
     </script>
     <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.1.7/dist/purify.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/marked@13.0.3/marked.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
 </head>
 <body>
 
@@ -166,28 +171,36 @@
 
     <!-- AI TEACHER PAGE -->
     <div class="page" id="teacherPage">
-        <div class="teacher-wrap">
-            <button class="back-btn" onclick="goHome()">← Back</button>
-            <div class="teacher-head">
-                <div>
+        <div class="teacher-wrap teacher-pro">
+            <button class="back-btn" onclick="goHome()">Back</button>
+            <div class="teacher-hero-panel">
+                <div class="teacher-hero-copy">
+                    <span class="teacher-kicker">BUGOUT Adaptive Learning OS</span>
                     <h2>AI Teacher Pro</h2>
-                    <p>Roadmap, lessons, practice checker, doubt solving, tests, aur saved progress ek jagah.</p>
+                    <p>Streaming lessons, visual explanations, voice coaching, document memory, whiteboard practice, exam prep, and adaptive progress in one focused study workspace.</p>
                 </div>
-                <div class="teacher-score-card">
-                    <div class="teacher-score-num" id="teacherCompletedCount">0</div>
-                    <div class="teacher-score-label">Lessons completed</div>
+                <div class="teacher-hero-actions">
+                    <button class="teacher-icon-btn" onclick="startTeacherVoiceInput()" title="Voice input" aria-label="Voice input">Mic</button>
+                    <button class="teacher-icon-btn" onclick="speakTeacherLesson()" title="Read lesson aloud" aria-label="Read lesson aloud">TTS</button>
+                    <button class="teacher-icon-btn" onclick="stopTeacherVoice()" title="Stop voice" aria-label="Stop voice">Stop</button>
                 </div>
             </div>
-            <div class="teacher-metrics">
+            <div class="teacher-metrics teacher-pro-metrics">
+                <div class="teacher-metric"><strong id="teacherCompletedCount">0</strong><span>Lessons</span></div>
                 <div class="teacher-metric"><strong id="teacherAvgScore">0%</strong><span>Avg score</span></div>
-                <div class="teacher-metric"><strong id="teacherBestLanguage">-</strong><span>Strongest language</span></div>
+                <div class="teacher-metric"><strong id="teacherBestLanguage">-</strong><span>Strongest</span></div>
                 <div class="teacher-metric"><strong id="teacherLastTopic">-</strong><span>Last topic</span></div>
+                <div class="teacher-metric"><strong id="teacherStudyStreak">0</strong><span>Study streak</span></div>
+                <div class="teacher-metric"><strong id="teacherWeakTopics">-</strong><span>Focus next</span></div>
             </div>
-            <div class="teacher-grid">
-                <section class="teacher-panel">
-                    <h3>Learning setup</h3>
+            <div class="teacher-shell">
+                <aside class="teacher-panel teacher-sidebar">
+                    <div class="teacher-sidebar-head">
+                        <h3>Learning setup</h3>
+                        <span id="teacherLiveStatus">Ready</span>
+                    </div>
                     <div class="field">
-                        <label>Language</label>
+                        <label>Subject</label>
                         <select id="teacherLanguage" onchange="updateTeacherTopicChips()">
                             <option value="JavaScript">JavaScript</option>
                             <option value="Python">Python</option>
@@ -196,26 +209,61 @@
                             <option value="Java">Java</option>
                             <option value="HTML/CSS">HTML/CSS</option>
                             <option value="SQL">SQL</option>
+                            <option value="Mathematics">Mathematics</option>
+                            <option value="Physics">Physics</option>
+                            <option value="Chemistry">Chemistry</option>
+                            <option value="Biology">Biology</option>
+                            <option value="Computer Networks">Computer Networks</option>
+                            <option value="DBMS">DBMS</option>
+                            <option value="Operating Systems">Operating Systems</option>
                         </select>
                     </div>
-                    <div class="field">
-                        <label>Lesson Mode</label>
-                        <select id="teacherMode">
-                            <option value="Ultimate masterclass">Ultimate masterclass</option>
-                            <option value="Teach me from zero">Teach me from zero</option>
-                            <option value="Interview prep">Interview prep</option>
-                            <option value="DSA focused">DSA focused</option>
-                            <option value="Project based">Project based</option>
-                            <option value="Exam revision">Exam revision</option>
-                        </select>
+                    <div class="teacher-mini-grid">
+                        <div class="field">
+                            <label>Teaching mode</label>
+                            <select id="teacherMode">
+                                <option value="Step-by-Step Mode">Step-by-Step</option>
+                                <option value="Beginner Mode">Beginner</option>
+                                <option value="Advanced Mode">Advanced</option>
+                                <option value="Hint Only Mode">Hint Only</option>
+                                <option value="Exam Mode">Exam</option>
+                                <option value="Interview Mode">Interview</option>
+                                <option value="Socratic Mode">Socratic</option>
+                                <option value="Fast Revision Mode">Fast Revision</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>Exam track</label>
+                            <select id="teacherExamMode">
+                                <option value="General mastery">General</option>
+                                <option value="JEE mode">JEE</option>
+                                <option value="NEET mode">NEET</option>
+                                <option value="CBSE mode">CBSE</option>
+                                <option value="Engineering semester mode">Engineering Sem</option>
+                                <option value="Placement prep mode">Placement</option>
+                                <option value="UPSC mode">UPSC</option>
+                                <option value="Interview prep mode">Interview</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="field">
-                        <label>Level</label>
-                        <select id="teacherLevel">
-                            <option value="Beginner">Beginner</option>
-                            <option value="Intermediate">Intermediate</option>
-                            <option value="Advanced">Advanced</option>
-                        </select>
+                    <div class="teacher-mini-grid">
+                        <div class="field">
+                            <label>Level</label>
+                            <select id="teacherLevel">
+                                <option value="Beginner">Beginner</option>
+                                <option value="Intermediate">Intermediate</option>
+                                <option value="Advanced">Advanced</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>Tutor voice</label>
+                            <select id="teacherPersonality">
+                                <option value="friendly mentor">Friendly mentor</option>
+                                <option value="strict teacher">Strict teacher</option>
+                                <option value="calm explainer">Calm explainer</option>
+                                <option value="energetic coach">Energetic coach</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="field">
                         <label>Goal</label>
@@ -225,11 +273,12 @@
                             <option value="Build real projects">Build real projects</option>
                             <option value="DSA and problem solving">DSA problem solving</option>
                             <option value="Exam and semester mastery">Semester mastery</option>
+                            <option value="Concept clarity with visual intuition">Visual concept clarity</option>
                         </select>
                     </div>
                     <div class="teacher-mini-grid">
                         <div class="field">
-                            <label>Daily Time</label>
+                            <label>Daily time</label>
                             <select id="teacherDailyTime">
                                 <option value="45 minutes/day">45 min/day</option>
                                 <option value="90 minutes/day">90 min/day</option>
@@ -243,28 +292,104 @@
                                 <option value="Normal pace">Normal</option>
                                 <option value="Strict college mode">Strict</option>
                                 <option value="Fast track">Fast track</option>
+                                <option value="Exam sprint">Exam sprint</option>
                             </select>
                         </div>
                     </div>
                     <div class="field">
                         <label>Topic</label>
-                        <input type="text" id="teacherTopic" placeholder="Blank chhodo to AI next best topic decide karega">
+                        <input type="text" id="teacherTopic" placeholder="Leave blank and AI picks the next best topic">
                     </div>
-                    <div class="teacher-chip-row" id="teacherTopicChips"></div>
+                    <div class="teacher-chip-row teacher-scroll-chips" id="teacherTopicChips"></div>
+                    <div class="teacher-action-row teacher-primary-actions">
+                        <button class="btn" id="teacherStartBtn" onclick="startTeacherLesson()">Start Streaming Lesson</button>
+                        <button class="btn btn-ghost" onclick="cancelTeacherGeneration()">Cancel</button>
+                    </div>
                     <div class="teacher-action-row">
-                        <button class="btn" id="teacherStartBtn" onclick="startTeacherLesson()">Start Lesson</button>
                         <button class="btn btn-ghost" onclick="buildTeacherRoadmap()">Roadmap</button>
-                        <button class="btn btn-ghost" onclick="startPlacementTest()">Placement Test</button>
+                        <button class="btn btn-ghost" onclick="startPlacementTest()">Diagnostic</button>
                         <button class="btn btn-ghost" onclick="generateCollegePlan()">Full Course</button>
                         <button class="btn btn-ghost" onclick="continueTeacherPath()">Next Lesson</button>
                     </div>
-                    <div class="teacher-history" id="teacherHistory"><div class="teacher-empty">Progress loading...</div></div>
-                </section>
-                <section class="teacher-panel teacher-main">
-                    <div id="teacherLessonOutput">
-                        <div class="teacher-empty">
-                            <h3>Lesson yahin aayega</h3>
-                            <p>Language aur topic choose karo. AI teacher Hinglish explanation, examples, practice tasks aur quiz generate karega.</p>
+                    <div class="teacher-upload-stack">
+                        <button class="teacher-upload-card" onclick="openTeacherMaterialPicker()">
+                            <strong>Study materials</strong>
+                            <span>PDF, DOCX, PPT, notes, code, images</span>
+                        </button>
+                        <input type="file" id="teacherMaterialInput" accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.md,.csv,.json,.js,.ts,.py,.java,.cpp,.c,image/*" multiple hidden onchange="handleTeacherMaterialFiles(this.files)">
+                        <button class="teacher-upload-card" onclick="openTeacherImagePicker()">
+                            <strong>Image understanding</strong>
+                            <span>Handwritten notes, circuits, screenshots</span>
+                        </button>
+                        <input type="file" id="teacherImageInput" accept="image/*" multiple hidden onchange="handleTeacherImageFiles(this.files)">
+                    </div>
+                    <div class="teacher-history-wrap">
+                        <div class="teacher-sidebar-head"><h3>Learning history</h3><button class="teacher-link-btn" onclick="loadTeacherProgress()">Refresh</button></div>
+                        <input class="teacher-history-search" id="teacherHistorySearch" placeholder="Search saved lessons" oninput="renderTeacherProgress()">
+                        <div class="teacher-history" id="teacherHistory"><div class="teacher-empty">Progress loading...</div></div>
+                    </div>
+                </aside>
+                <section class="teacher-workspace">
+                    <div class="teacher-tabs" role="tablist" aria-label="AI Teacher workspace">
+                        <button class="teacher-tab active" id="teacherTabBtnLesson" onclick="switchTeacherTab('lesson')" role="tab">Lesson</button>
+                        <button class="teacher-tab" id="teacherTabBtnCoach" onclick="switchTeacherTab('coach')" role="tab">Coach</button>
+                        <button class="teacher-tab" id="teacherTabBtnWhiteboard" onclick="switchTeacherTab('whiteboard')" role="tab">Whiteboard</button>
+                        <button class="teacher-tab" id="teacherTabBtnPractice" onclick="switchTeacherTab('practice')" role="tab">Practice</button>
+                        <button class="teacher-tab" id="teacherTabBtnInsights" onclick="switchTeacherTab('insights')" role="tab">Insights</button>
+                        <button class="teacher-tab" id="teacherTabBtnMaterials" onclick="switchTeacherTab('materials')" role="tab">Materials</button>
+                    </div>
+                    <div class="teacher-tab-panel active" id="teacherTabLesson">
+                        <div class="teacher-workspace-toolbar">
+                            <div><span class="teacher-pill" id="teacherActiveModePill">Adaptive</span><span class="teacher-pill" id="teacherActiveAgentPill">Multi-agent</span></div>
+                            <div class="teacher-action-row">
+                                <button class="btn btn-ghost btn-sm" onclick="regenerateTeacherResponse()">Regenerate</button>
+                                <button class="btn btn-ghost btn-sm" onclick="copyTeacherResponse()">Copy</button>
+                                <button class="btn btn-ghost btn-sm" onclick="exportTeacherNotes()">Export notes</button>
+                            </div>
+                        </div>
+                        <div id="teacherLessonOutput">
+                            <div class="teacher-empty teacher-launch-empty">
+                                <h3>Your adaptive lesson appears here</h3>
+                                <p>Pick a topic, upload notes if needed, then start a streaming lesson with visuals, questions, practice, and exam focus.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teacher-tab-panel" id="teacherTabCoach">
+                        <div class="teacher-chat-feed" id="teacherCoachMessages"></div>
+                        <div class="teacher-coach-compose">
+                            <textarea id="teacherCoachInput" rows="1" placeholder="Ask a doubt, request a hint, or say what confused you..." onkeydown="handleTeacherCoachKey(event)" oninput="autoResizeTeacherCoach(this)"></textarea>
+                            <button class="btn" onclick="sendTeacherCoachMessage()">Send</button>
+                        </div>
+                    </div>
+                    <div class="teacher-tab-panel" id="teacherTabWhiteboard">
+                        <div class="teacher-whiteboard-toolbar">
+                            <button class="teacher-tool active" onclick="selectTeacherWhiteboardTool('pen', this)">Pen</button>
+                            <button class="teacher-tool" onclick="selectTeacherWhiteboardTool('eraser', this)">Eraser</button>
+                            <button class="teacher-tool" onclick="selectTeacherWhiteboardTool('line', this)">Line</button>
+                            <input type="color" id="teacherBoardColor" value="#00ff88" onchange="setTeacherWhiteboardColor(this.value)" aria-label="Whiteboard color">
+                            <button class="teacher-tool" onclick="clearTeacherWhiteboard()">Clear</button>
+                            <button class="teacher-tool" onclick="downloadTeacherWhiteboard()">Download</button>
+                            <button class="teacher-tool" onclick="generateTeacherVisual()">AI Diagram</button>
+                        </div>
+                        <div class="teacher-whiteboard-grid">
+                            <canvas id="teacherWhiteboard" class="teacher-whiteboard" width="1100" height="620"></canvas>
+                            <div class="teacher-visual-panel" id="teacherVisualPanel">
+                                <h3>Visual engine</h3>
+                                <p>Ask for graphs, flowcharts, circuit explanations, DSA traces, concept maps, or database schemas. Mermaid and MathJax render inside lessons too.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teacher-tab-panel" id="teacherTabPractice">
+                        <div id="teacherPracticeOutput">
+                            <div class="teacher-empty"><h3>Practice adapts after each lesson</h3><p>Quizzes, flashcards, viva prompts, coding drills, and auto-evaluation will appear here.</p></div>
+                        </div>
+                    </div>
+                    <div class="teacher-tab-panel" id="teacherTabInsights">
+                        <div id="teacherInsightsOutput"></div>
+                    </div>
+                    <div class="teacher-tab-panel" id="teacherTabMaterials">
+                        <div id="teacherMaterialsOutput">
+                            <div class="teacher-empty"><h3>No materials loaded</h3><p>Upload notes, code, images, or documents to ground AI answers in your study material.</p></div>
                         </div>
                     </div>
                 </section>
