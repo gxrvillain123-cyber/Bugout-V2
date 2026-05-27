@@ -49,8 +49,17 @@ export default async function handler(req, res) {
       });
 
       try {
-        for await (const chunk of upstream.body) {
-          res.write(chunk);
+        if (upstream.body?.getReader) {
+          const reader = upstream.body.getReader();
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            res.write(Buffer.from(value));
+          }
+        } else {
+          for await (const chunk of upstream.body) {
+            res.write(chunk);
+          }
         }
       } finally {
         res.end();

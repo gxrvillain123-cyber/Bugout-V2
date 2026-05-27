@@ -40,3 +40,5 @@ Run `supabase-missions-schema.sql` once in Supabase SQL Editor so BUGOUT Mission
 ## Supabase AI Teacher SQL
 
 Run `supabase-teacher-schema.sql` once in Supabase SQL Editor so AI Teacher can save lesson scores and progress.
+
+AI Teacher now also works in guest mode with browser-local progress. Signed-in users get Supabase memory, progress, sessions, RAG document metadata, achievements, and classroom tables. Full live AI streaming requires deploying through Vercel or another serverless runtime where `/api/groq` is available and `GROQ_API_KEY` is configured.
