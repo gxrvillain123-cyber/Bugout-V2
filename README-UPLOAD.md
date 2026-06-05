@@ -12,6 +12,7 @@ Required files/folders:
 - `supabase-admin-schema.sql` is not deployed by Vercel, but run it once to enable admin roles.
 - `supabase-missions-schema.sql` is not deployed by Vercel, but run it once to enable BUGOUT Missions.
 - `supabase-teacher-schema.sql` is not deployed by Vercel, but run it once for AI Teacher progress.
+- `supabase-bugout-os-schema.sql` is not deployed by Vercel, but run it once to enable the unified BUGOUT OS profile, memory, XP, project, and career data model.
 
 ## Vercel Environment Variable
 
@@ -42,3 +43,7 @@ Run `supabase-missions-schema.sql` once in Supabase SQL Editor so BUGOUT Mission
 Run `supabase-teacher-schema.sql` once in Supabase SQL Editor so AI Teacher can save lesson scores and progress.
 
 AI Teacher now also works in guest mode with browser-local progress. Signed-in users get Supabase memory, progress, sessions, RAG document metadata, achievements, and classroom tables. Full live AI streaming requires deploying through Vercel or another serverless runtime where `/api/groq` is available and `GROQ_API_KEY` is configured.
+
+## Supabase BUGOUT OS SQL
+
+Run `supabase-bugout-os-schema.sql` once after the existing schemas. It adds the V3 unified student profile, AI memory, XP ledger, learning records, practice records, project records, career assets, interview sessions, achievements, and event tables used by the Learn / Practice / Build / Career operating-system model.

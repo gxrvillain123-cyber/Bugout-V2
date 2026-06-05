@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BUGOUT by MindForgers - Post your problem. World solves it.</title>
+    <title>BUGOUT OS by MindForgers - The operating system for ambitious students</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
     <link rel="stylesheet" href="assets/css/styles.css">
     <link rel="stylesheet" href="assets/css/missions.css">
@@ -41,16 +41,17 @@
                 <div class="logo-subtitle">by MindForgers</div>
             </div>
         </div>
-        <div class="nav-center">
-            <button class="nav-btn" id="homeNavBtn" onclick="goHome()">🏠 Home</button>
-            <button class="nav-btn" id="dashboardNavBtn" onclick="goDashboard()" style="display:none;">📊 Dashboard</button>
-            <button class="nav-btn" id="arenaNavBtn" onclick="goArena()" style="display:none;">⚔️ Arena</button>
-            <button class="nav-btn" id="missionsNavBtn" onclick="goMissions()" style="display:none;">🚀 Missions</button>
-            <button class="nav-btn" id="mentorNavBtn" onclick="goMentor()" style="display:none;">🧠 Mentor</button>
-            <button class="nav-btn" id="teacherNavBtn" onclick="goTeacher()" style="display:none;">🎓 Teacher</button>
-            <button class="nav-btn" id="analyzerNavBtn" onclick="goAnalyzer()" style="display:none;">🔍 Analyzer</button>
-            <button class="nav-btn" id="collabNavBtn" onclick="goCollaboration()" style="display:none;">🤝 Collab</button>
-            <button class="nav-btn" id="bookmarkNavBtn" onclick="goBookmarks()" style="display:none;">🔖 Bookmarks</button>
+        <div class="nav-center" aria-label="BUGOUT OS navigation">
+            <button class="nav-btn os-nav-btn active" id="homeNavBtn" data-pillar="command" onclick="goHome()">Command</button>
+            <button class="nav-btn os-nav-btn" id="teacherNavBtn" data-pillar="learn" onclick="goTeacher()">Learn</button>
+            <button class="nav-btn os-nav-btn" id="arenaNavBtn" data-pillar="practice" onclick="goArena()">Practice</button>
+            <button class="nav-btn os-nav-btn" id="missionsNavBtn" data-pillar="build" onclick="goMissions()">Build</button>
+            <button class="nav-btn os-nav-btn" id="careerNavBtn" data-pillar="career" onclick="goCareer()">Career</button>
+            <button class="nav-btn secondary-nav" id="dashboardNavBtn" onclick="goDashboard()" style="display:none;">Dashboard</button>
+            <button class="nav-btn secondary-nav" id="mentorNavBtn" onclick="goMentor()" style="display:none;">Mentor</button>
+            <button class="nav-btn secondary-nav" id="analyzerNavBtn" onclick="goAnalyzer()" style="display:none;">Analyzer</button>
+            <button class="nav-btn secondary-nav" id="collabNavBtn" onclick="goCollaboration()" style="display:none;">Collab</button>
+            <button class="nav-btn secondary-nav" id="bookmarkNavBtn" onclick="goBookmarks()" style="display:none;">Bookmarks</button>
         </div>
         <div class="nav-right">
             <div class="user-pill" id="userPill" style="display:none;" onclick="goMyProfile()">
@@ -72,9 +73,9 @@
             <button class="msg-bell" id="msgBell" onclick="goInbox()" title="Messages" style="display:none;">💬
                 <span class="msg-badge" id="msgBadge">0</span>
             </button>
-            <button class="btn btn-sm btn-ghost" onclick="goLeaderboard()">🏆</button>
+            <button class="btn btn-sm btn-ghost" onclick="goLeaderboard()">Leaderboard</button>
             <button class="btn btn-sm" id="authBtn" onclick="handleAuth()">Sign In</button>
-            <button class="btn btn-sm" id="postBtn" onclick="goPost()" style="display:none;">Post Bug 🐛</button>
+            <button class="btn btn-sm" id="postBtn" onclick="goPost()" style="display:none;">Ask Community</button>
         </div>
     </nav>
 </header>
@@ -82,43 +83,172 @@
 <main class="container">
     <!-- HOME -->
     <div class="page active" id="homePage">
-        <div class="hero">
-            <h1>Post your problem.<br><span>World solves it.</span></h1>
-            <p>A community where every problem finds its solution.</p>
+        <div class="bugout-os">
+            <section class="mc-hero" aria-labelledby="mcTitle">
+                <div class="mc-hero-copy">
+                    <span class="os-kicker">BUGOUT OS</span>
+                    <h1 id="mcTitle">The operating system for ambitious students.</h1>
+                    <p>Learn with an adaptive AI mentor, practice in Arena, build real projects, and convert your proof of work into career readiness.</p>
+                    <div class="mc-primary-actions">
+                        <button class="btn" onclick="goTeacher()">Start learning</button>
+                        <button class="btn btn-ghost" onclick="goMissions()">Ship a project</button>
+                        <button class="btn btn-ghost" onclick="goCareer()">Career launchpad</button>
+                    </div>
+                </div>
+                <div class="mc-status-tower" aria-label="Mission status">
+                    <div class="mc-rank-block">
+                        <span>Current operator</span>
+                        <strong id="mcUserName">Guest student</strong>
+                        <small id="mcGlobalLevel">Sign in to sync your growth system.</small>
+                    </div>
+                    <div class="mc-next-block">
+                        <span>Next best action</span>
+                        <strong id="mcNextAction">Run a diagnostic lesson</strong>
+                        <button type="button" onclick="runMissionControlNext()">Launch</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="os-pillars" aria-label="BUGOUT OS pillars">
+                <button class="os-pillar learn" onclick="goTeacher()">
+                    <span>Learn</span>
+                    <strong>AI-guided education</strong>
+                    <small>Teacher, mentor, interviews, research, memory, revision.</small>
+                </button>
+                <button class="os-pillar practice" onclick="goArena()">
+                    <span>Practice</span>
+                    <strong>Skill development</strong>
+                    <small>Arena challenges with code review and targeted feedback.</small>
+                </button>
+                <button class="os-pillar build" onclick="goMissions()">
+                    <span>Build</span>
+                    <strong>Project-based growth</strong>
+                    <small>Missions, collaboration, deliverables, proof of work.</small>
+                </button>
+                <button class="os-pillar career" onclick="goCareer()">
+                    <span>Career</span>
+                    <strong>Job readiness</strong>
+                    <small>Resume, portfolio, interview prep, certificates.</small>
+                </button>
+            </section>
+
+            <section class="mc-grid" aria-label="Mission Control">
+                <article class="mc-panel mc-panel-wide">
+                    <div class="mc-panel-head">
+                        <span>Continue journey</span>
+                        <button type="button" onclick="runMissionControlNext()">Resume</button>
+                    </div>
+                    <h2 id="mcJourneyTitle">Your growth system is ready.</h2>
+                    <p id="mcJourneyCopy">Start with one diagnostic lesson. BUGOUT will use that signal to shape your learning path, practice work, and career proof.</p>
+                    <div class="mc-route-line">
+                        <b class="learn">Learn</b>
+                        <i></i>
+                        <b class="practice">Practice</b>
+                        <i></i>
+                        <b class="build">Build</b>
+                        <i></i>
+                        <b class="career">Career</b>
+                    </div>
+                </article>
+
+                <article class="mc-panel">
+                    <div class="mc-panel-head"><span>Today's objectives</span><small id="mcObjectiveCount">3 active</small></div>
+                    <ul class="mc-objectives" id="mcTodayObjectives">
+                        <li>Complete one adaptive lesson.</li>
+                        <li>Solve one Arena challenge.</li>
+                        <li>Post or improve one community problem.</li>
+                    </ul>
+                </article>
+
+                <article class="mc-panel">
+                    <div class="mc-panel-head"><span>Current quest</span><small>Build XP</small></div>
+                    <h3 id="mcCurrentQuest">Ship a portfolio-grade project</h3>
+                    <p>Your first mission can become your first internship story.</p>
+                    <button type="button" onclick="goMissions()">Open Build</button>
+                </article>
+
+                <article class="mc-panel">
+                    <div class="mc-panel-head"><span>Arena status</span><small>Practice XP</small></div>
+                    <h3 id="mcArenaStatus">Fresh challenge batch waiting</h3>
+                    <p>Every solve feeds the AI Teacher with weaknesses to repair.</p>
+                    <button type="button" onclick="goArena()">Open Practice</button>
+                </article>
+
+                <article class="mc-panel">
+                    <div class="mc-panel-head"><span>Skill radar</span><small>Adaptive</small></div>
+                    <div class="skill-radar" id="mcSkillRadar">
+                        <span style="--v:72%">Learning</span>
+                        <span style="--v:58%">Practice</span>
+                        <span style="--v:42%">Build</span>
+                        <span style="--v:35%">Career</span>
+                    </div>
+                </article>
+
+                <article class="mc-panel">
+                    <div class="mc-panel-head"><span>Career launchpad</span><small id="mcCareerReadiness">35%</small></div>
+                    <h3>Turn activity into proof.</h3>
+                    <p>BUGOUT can assemble your resume, portfolio story, certificates, and interview plan from your work.</p>
+                    <button type="button" onclick="goCareer()">Open Career</button>
+                </article>
+
+                <article class="mc-panel">
+                    <div class="mc-panel-head"><span>Weekly momentum</span><small>Retention</small></div>
+                    <p id="mcWeeklyMomentum">One focused session today is enough to restart your streak.</p>
+                    <div class="momentum-track" aria-hidden="true"><b></b><b></b><b></b><b></b><b></b><b></b><b></b></div>
+                </article>
+            </section>
+
+            <section class="xp-dimensions" aria-label="XP dimensions">
+                <div><span>Learning XP</span><strong id="mcLearningXP">0</strong></div>
+                <div><span>Practice XP</span><strong id="mcPracticeXP">0</strong></div>
+                <div><span>Build XP</span><strong id="mcBuildXP">0</strong></div>
+                <div><span>Career XP</span><strong id="mcCareerXP">0</strong></div>
+            </section>
+
+            <section class="community-exchange" id="communityExchange">
+                <div class="community-head">
+                    <div>
+                        <span class="os-kicker">Community exchange</span>
+                        <h2>Ask, solve, and learn in public.</h2>
+                        <p>The original BUGOUT board is still here: post stuck points, help others, and convert community activity into growth.</p>
+                    </div>
+                    <button class="btn btn-ghost" onclick="goPost()">Ask Community</button>
+                </div>
+                <div class="stats-bar">
+                    <div class="stat-item"><div class="stat-number" id="statBugs">-</div><div class="stat-label">Problems posted</div></div>
+                    <div class="stat-item"><div class="stat-number" id="statSolutions">-</div><div class="stat-label">Solutions shared</div></div>
+                    <div class="stat-item" onclick="goLeaderboard()" style="cursor:pointer;"><div class="stat-number" id="statWarriors">-</div><div class="stat-label">Active students</div></div>
+                </div>
+                <div class="search-wrap">
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search community problems by title, description, or tag..." oninput="handleSearch(this.value)">
+                    <button class="search-clear" id="searchClear" onclick="clearSearch()">x</button>
+                </div>
+                <div class="filters" id="filtersRow">
+                    <button class="filter-btn active" onclick="filter('all',this)">All</button>
+                    <button class="filter-btn" onclick="filter('Coding',this)">Coding</button>
+                    <button class="filter-btn" onclick="filter('Life',this)">Life</button>
+                    <button class="filter-btn" onclick="filter('Studies',this)">Studies</button>
+                    <button class="filter-btn" onclick="filter('Career',this)">Career</button>
+                    <button class="filter-btn" onclick="filter('Relationships',this)">Relationships</button>
+                    <button class="filter-btn" onclick="filter('Random',this)">Random</button>
+                    <button class="filter-btn" onclick="filterByStatus('open',this)">Open</button>
+                    <button class="filter-btn" onclick="filterByStatus('in_progress',this)">In Progress</button>
+                    <button class="filter-btn" onclick="filterByStatus('solved',this)">Solved</button>
+                </div>
+                <div class="sort-wrap">
+                    <span>Sort</span>
+                    <select class="sort-select" id="sortSelect" onchange="changeSort(this.value)">
+                        <option value="newest">Newest first</option>
+                        <option value="oldest">Oldest first</option>
+                        <option value="most_solutions">Most solutions</option>
+                        <option value="open_first">Open first</option>
+                        <option value="solved_first">Solved first</option>
+                    </select>
+                </div>
+                <div id="searchResultsLabel" style="text-align:center;color:var(--text2);font-size:0.88rem;margin-bottom:1rem;display:none;"></div>
+                <div class="bugs-grid" id="bugsGrid"><div class="loading"><div class="spinner"></div><p>Loading...</p></div></div>
+            </section>
         </div>
-        <div class="stats-bar">
-            <div class="stat-item"><div class="stat-number" id="statBugs">—</div><div class="stat-label">🐛 Bugs Posted</div></div>
-            <div class="stat-item"><div class="stat-number" id="statSolutions">—</div><div class="stat-label">💡 Solutions</div></div>
-            <div class="stat-item" onclick="goLeaderboard()" style="cursor:pointer;"><div class="stat-number" id="statWarriors">—</div><div class="stat-label">⚔️ Warriors</div></div>
-        </div>
-        <div class="search-wrap">
-            <input type="text" class="search-input" id="searchInput" placeholder="🔍  Search bugs by title, description or tag..." oninput="handleSearch(this.value)">
-            <button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
-        </div>
-        <div class="filters" id="filtersRow">
-            <button class="filter-btn active" onclick="filter('all',this)">All</button>
-            <button class="filter-btn" onclick="filter('Coding',this)">💻 Coding</button>
-            <button class="filter-btn" onclick="filter('Life',this)">🌱 Life</button>
-            <button class="filter-btn" onclick="filter('Studies',this)">📚 Studies</button>
-            <button class="filter-btn" onclick="filter('Career',this)">💼 Career</button>
-            <button class="filter-btn" onclick="filter('Relationships',this)">❤️ Relationships</button>
-            <button class="filter-btn" onclick="filter('Random',this)">🎲 Random</button>
-            <button class="filter-btn" onclick="filterByStatus('open',this)">🔴 Open</button>
-            <button class="filter-btn" onclick="filterByStatus('in_progress',this)">🟡 In Progress</button>
-            <button class="filter-btn" onclick="filterByStatus('solved',this)">🟢 Solved</button>
-        </div>
-        <div class="sort-wrap">
-            <span>Sort</span>
-            <select class="sort-select" id="sortSelect" onchange="changeSort(this.value)">
-                <option value="newest">Newest first</option>
-                <option value="oldest">Oldest first</option>
-                <option value="most_solutions">Most solutions</option>
-                <option value="open_first">Open first</option>
-                <option value="solved_first">Solved first</option>
-            </select>
-        </div>
-        <div id="searchResultsLabel" style="text-align:center;color:var(--text2);font-size:0.88rem;margin-bottom:1rem;display:none;"></div>
-        <div class="bugs-grid" id="bugsGrid"><div class="loading"><div class="spinner"></div><p>Loading...</p></div></div>
     </div>
 
     <!-- DASHBOARD -->
@@ -346,13 +476,19 @@
             <button class="back-btn" onclick="goHome()">← Back</button>
             <div class="arena-head">
                 <div>
-                    <h2>⚔️ Coding Arena</h2>
-                    <p>Har hour 5 fresh AI coding problems. Easy 15 XP, Medium 25 XP, Hard 40 XP. Batch perfect karo aur extra badge jeeto.</p>
+                    <span class="os-kicker">Practice OS</span>
+                    <h2>Coding Arena</h2>
+                    <p>Fresh challenges, ranked practice, analyzer feedback, and targeted lessons when your code exposes a weak concept.</p>
                 </div>
                 <div class="arena-status">
                     <div class="arena-status-label">Next Batch</div>
                     <div class="arena-status-value" id="arenaCountdown">Checking...</div>
                 </div>
+            </div>
+            <div class="pillar-capability-strip">
+                <button type="button" onclick="goAnalyzer()">Open code analyzer</button>
+                <button type="button" onclick="goTeacher()">Repair weak concept</button>
+                <button type="button" onclick="goCareer()">Add practice to career profile</button>
             </div>
             <div class="arena-stats">
                 <div class="arena-stat"><div class="arena-stat-num" id="arenaProblemCount">0</div><div class="arena-stat-text">Problems</div></div>
@@ -383,9 +519,13 @@
             <div class="missions-hero">
                 <div>
                     <button class="back-btn" onclick="goHome()">← Back</button>
-                    <p class="missions-kicker">BUGOUT Missions</p>
+                    <p class="missions-kicker">Build OS</p>
                     <h2>Build, compete, ship, and earn proof.</h2>
-                    <p>Join structured missions with tasks, teams, submissions, AI judging, leaderboards, XP rewards, showcases, and downloadable certificates.</p>
+                    <p>Join structured missions with tasks, teams, collaboration rooms, submissions, AI judging, leaderboards, XP rewards, showcases, and downloadable certificates.</p>
+                    <div class="pillar-capability-strip in-hero">
+                        <button type="button" onclick="goCollaboration()">Open collaboration rooms</button>
+                        <button type="button" onclick="goCareer()">Move proof to Career</button>
+                    </div>
                 </div>
                 <div class="missions-hero-panel">
                     <div><strong id="missionsActiveCount">0</strong><span>Live missions</span></div>
@@ -411,6 +551,69 @@
 
     <div class="page" id="missionDetailPage">
         <div class="mission-detail-wrap" id="missionDetailWrap"><div class="loading"><div class="spinner"></div><p>Loading mission...</p></div></div>
+    </div>
+
+    <!-- CAREER -->
+    <div class="page" id="careerPage">
+        <div class="career-os">
+            <button class="back-btn" onclick="goHome()">Back</button>
+            <section class="career-hero">
+                <div>
+                    <span class="os-kicker">Career Launchpad</span>
+                    <h2>Turn your BUGOUT activity into opportunity.</h2>
+                    <p>Your learning, Arena solves, missions, certificates, and community proof become a resume, portfolio story, and interview roadmap.</p>
+                    <div class="mc-primary-actions">
+                        <button class="btn" onclick="generateCareerResume()">Generate resume snapshot</button>
+                        <button class="btn btn-ghost" onclick="generatePortfolioSummary()">Build portfolio story</button>
+                        <button class="btn btn-ghost" onclick="startCareerInterviewPrep()">Start interview prep</button>
+                    </div>
+                </div>
+                <div class="career-readiness-ring">
+                    <span id="careerReadinessScore">35%</span>
+                    <small>Career readiness</small>
+                </div>
+            </section>
+
+            <section class="career-grid">
+                <article class="career-panel">
+                    <div class="mc-panel-head"><span>Resume builder</span><small>Career XP</small></div>
+                    <h3>Auto-generated from proof, not guesses.</h3>
+                    <p>Summarize projects, Arena performance, community problem solving, and certificates into clean student resume bullets.</p>
+                    <button type="button" onclick="generateCareerResume()">Create snapshot</button>
+                </article>
+                <article class="career-panel">
+                    <div class="mc-panel-head"><span>Portfolio builder</span><small>Public proof</small></div>
+                    <h3>Show what you built and why it matters.</h3>
+                    <p>BUGOUT turns missions and solved problems into a portfolio narrative recruiters can scan quickly.</p>
+                    <button type="button" onclick="generatePortfolioSummary()">Draft story</button>
+                </article>
+                <article class="career-panel">
+                    <div class="mc-panel-head"><span>Interview preparation</span><small>AI Teacher</small></div>
+                    <h3>Practice the topics your activity exposes.</h3>
+                    <p>Weak learning signals and Arena mistakes route back into the unified AI Teacher for targeted interview drills.</p>
+                    <button type="button" onclick="startCareerInterviewPrep()">Open prep</button>
+                </article>
+                <article class="career-panel">
+                    <div class="mc-panel-head"><span>Certificates</span><small>Build XP</small></div>
+                    <h3>Mission certificates live here.</h3>
+                    <p>Completed missions become durable proof for resumes, applications, and portfolio pages.</p>
+                    <button type="button" onclick="goMissions()">View missions</button>
+                </article>
+            </section>
+
+            <section class="career-dashboard">
+                <div class="career-score-list">
+                    <div><span>Skills</span><b id="careerSkillsScore">40%</b></div>
+                    <div><span>Projects</span><b id="careerProjectsScore">25%</b></div>
+                    <div><span>Interview</span><b id="careerInterviewScore">35%</b></div>
+                    <div><span>Portfolio</span><b id="careerPortfolioScore">20%</b></div>
+                </div>
+                <div class="career-output" id="careerOutput">
+                    <h3>Your next career move</h3>
+                    <p>Complete one lesson, solve one Arena problem, and join one mission. BUGOUT will convert that work into resume-ready evidence.</p>
+                </div>
+            </section>
+        </div>
     </div>
 
     <!-- LEADERBOARD -->

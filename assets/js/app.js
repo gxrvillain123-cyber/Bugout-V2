@@ -3979,17 +3979,21 @@ function renderUserUI() {
     document.getElementById('userPill').classList.toggle('admin', on && isAdminUser());
     document.getElementById('postBtn').style.display = on ? 'inline-flex' : 'none';
     document.getElementById('msgBell').style.display = on ? 'flex' : 'none';
+    document.getElementById('homeNavBtn').style.display = 'inline-flex';
+    document.getElementById('teacherNavBtn').style.display = 'inline-flex';
+    document.getElementById('arenaNavBtn').style.display = 'inline-flex';
+    document.getElementById('missionsNavBtn').style.display = 'inline-flex';
+    const careerNavBtn = document.getElementById('careerNavBtn');
+    if (careerNavBtn) careerNavBtn.style.display = 'inline-flex';
     document.getElementById('bookmarkNavBtn').style.display = on ? 'inline-flex' : 'none';
     document.getElementById('dashboardNavBtn').style.display = on ? 'inline-flex' : 'none';
-    document.getElementById('arenaNavBtn').style.display = on ? 'inline-flex' : 'none';
-    document.getElementById('missionsNavBtn').style.display = on ? 'inline-flex' : 'none';
-    document.getElementById('mentorNavBtn').style.display = on ? 'inline-flex' : 'none';
-    document.getElementById('teacherNavBtn').style.display = 'inline-flex';
-    document.getElementById('analyzerNavBtn').style.display = on ? 'inline-flex' : 'none';
+    document.getElementById('mentorNavBtn').style.display = 'none';
+    document.getElementById('analyzerNavBtn').style.display = 'none';
     document.getElementById('collabNavBtn').style.display = on ? 'inline-flex' : 'none';
     document.getElementById('notifBellWrap').classList.toggle('show', on);
     if (on && typeof initCollaboration === 'function') initCollaboration();
     if (on) { const lvl = getLevel(myXP); document.getElementById('userName').textContent = lvl.emoji + ' ' + myName; document.getElementById('userXP').textContent = (isAdminUser() ? 'ADMIN - ' : '') + myXP + ' XP'; }
+    renderMissionControl();
 }
 
 async function addXP(amount) {
@@ -4041,11 +4045,214 @@ async function doSignOut() { await db.auth.signOut(); clearUser(); toast('Sign o
 function showPage(id) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(id).classList.add('active');
+    updatePrimaryNav(id);
+    if (id === 'homePage') renderMissionControl();
+    if (id === 'careerPage') renderCareerPage();
     window.scrollTo(0, 0);
     if (id !== 'chatPage' && msgSubscription) { msgSubscription.unsubscribe(); msgSubscription = null; }
     closeNotifPanel();
 }
 function goHome() { clearRoute(); showPage('homePage'); clearSearch(); activeStatusFilter = null; loadBugs(); loadStats(); }
+
+function updatePrimaryNav(pageId) {
+    const activeMap = {
+        homePage: 'homeNavBtn',
+        dashboardPage: 'homeNavBtn',
+        detailPage: 'homeNavBtn',
+        postPage: 'homeNavBtn',
+        bookmarksPage: 'homeNavBtn',
+        teacherPage: 'teacherNavBtn',
+        mentorPage: 'teacherNavBtn',
+        arenaPage: 'arenaNavBtn',
+        analyzerPage: 'arenaNavBtn',
+        missionsPage: 'missionsNavBtn',
+        missionDetailPage: 'missionsNavBtn',
+        collabPage: 'missionsNavBtn',
+        collabRoomPage: 'missionsNavBtn',
+        careerPage: 'careerNavBtn',
+        leaderboardPage: 'careerNavBtn',
+        profilePage: 'careerNavBtn'
+    };
+    document.querySelectorAll('.os-nav-btn').forEach(btn => btn.classList.remove('active'));
+    const active = document.getElementById(activeMap[pageId] || 'homeNavBtn');
+    if (active) active.classList.add('active');
+}
+
+function getStoredTeacherProgress() {
+    if (Array.isArray(teacherProgress) && teacherProgress.length) return teacherProgress;
+    try {
+        const saved = JSON.parse(localStorage.getItem(TEACHER_PROGRESS_KEY) || '[]');
+        return Array.isArray(saved) ? saved : [];
+    } catch(e) {
+        return [];
+    }
+}
+
+function getGrowthMetrics() {
+    const progress = getStoredTeacherProgress();
+    const lessons = progress.length;
+    const avg = lessons ? Math.round(progress.reduce((sum, row) => sum + Number(row.score || row.mastery || 0), 0) / lessons) : 0;
+    const baseXP = Number(myXP || 0);
+    const learningXP = Math.max(teacherMemory?.xp || 0, lessons * 25);
+    const practiceXP = Math.round(baseXP * 0.38);
+    const buildXP = Math.round(baseXP * 0.28);
+    const careerXP = Math.round(baseXP * 0.16);
+    const readiness = Math.max(18, Math.min(96, Math.round(22 + (baseXP / 18) + lessons * 5 + (avg / 5) + (me ? 8 : 0))));
+    return { progress, lessons, avg, baseXP, learningXP, practiceXP, buildXP, careerXP, readiness };
+}
+
+function renderMissionControl() {
+    const root = document.getElementById('homePage');
+    if (!root) return;
+    const metrics = getGrowthMetrics();
+    const lvl = getLevel(Number(myXP || 0));
+    const weak = (teacherMemory?.weakTopics || [])[0];
+    const userName = document.getElementById('mcUserName');
+    const globalLevel = document.getElementById('mcGlobalLevel');
+    const nextAction = document.getElementById('mcNextAction');
+    const journeyTitle = document.getElementById('mcJourneyTitle');
+    const journeyCopy = document.getElementById('mcJourneyCopy');
+    const objectives = document.getElementById('mcTodayObjectives');
+    const career = document.getElementById('mcCareerReadiness');
+    const weekly = document.getElementById('mcWeeklyMomentum');
+    const radar = document.getElementById('mcSkillRadar');
+    if (userName) userName.textContent = me ? (myName || 'BUGOUT student') : 'Guest student';
+    if (globalLevel) globalLevel.textContent = me ? `${lvl.name} - ${metrics.baseXP} XP synced` : 'Sign in to sync your growth system.';
+    if (nextAction) nextAction.textContent = weak ? `Repair ${weak}` : (metrics.lessons ? 'Solve one Arena challenge' : 'Run a diagnostic lesson');
+    if (journeyTitle) journeyTitle.textContent = metrics.lessons ? `Continue from ${metrics.progress[0]?.topic || 'your last lesson'}` : 'Your growth system is ready.';
+    if (journeyCopy) journeyCopy.textContent = metrics.lessons
+        ? `Average mastery is ${metrics.avg}%. BUGOUT recommends one targeted practice session before the next build sprint.`
+        : 'Start with one diagnostic lesson. BUGOUT will use that signal to shape your learning path, practice work, and career proof.';
+    if (objectives) {
+        objectives.innerHTML = [
+            weak ? `Repair weak area: ${esc(weak)}.` : 'Complete one adaptive lesson.',
+            metrics.baseXP > 0 ? 'Add one proof point through Arena or Missions.' : 'Create an account to sync XP and progress.',
+            'Write one community answer or improve one stuck point.'
+        ].map(item => `<li>${esc(item)}</li>`).join('');
+    }
+    if (career) career.textContent = `${metrics.readiness}%`;
+    const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = String(value); };
+    setText('mcLearningXP', metrics.learningXP);
+    setText('mcPracticeXP', metrics.practiceXP);
+    setText('mcBuildXP', metrics.buildXP);
+    setText('mcCareerXP', metrics.careerXP);
+    if (weekly) weekly.textContent = me ? 'Protect the streak: learn, practice, build, and log one proof point this week.' : 'One focused session today is enough to restart your streak.';
+    if (radar) {
+        const learn = Math.min(96, 34 + metrics.lessons * 10 + metrics.avg / 3);
+        const practice = Math.min(96, 28 + metrics.practiceXP / 12);
+        const build = Math.min(96, 24 + metrics.buildXP / 14);
+        const careerScore = metrics.readiness;
+        radar.innerHTML = [
+            ['Learning', learn],
+            ['Practice', practice],
+            ['Build', build],
+            ['Career', careerScore]
+        ].map(([label, value]) => `<span style="--v:${Math.round(value)}%">${label}</span>`).join('');
+    }
+}
+
+function runMissionControlNext() {
+    const metrics = getGrowthMetrics();
+    if (!metrics.lessons || (teacherMemory?.weakTopics || []).length) {
+        goTeacher();
+        return;
+    }
+    if (metrics.practiceXP < 80) {
+        goArena();
+        return;
+    }
+    if (metrics.buildXP < 120) {
+        goMissions();
+        return;
+    }
+    goCareer();
+}
+
+function goCareer() {
+    showPage('careerPage');
+    renderCareerPage();
+}
+
+function getCareerScores() {
+    const metrics = getGrowthMetrics();
+    const skills = Math.min(96, Math.round(30 + metrics.lessons * 8 + metrics.avg / 3));
+    const projects = Math.min(96, Math.round(22 + metrics.buildXP / 8));
+    const interview = Math.min(96, Math.round(28 + metrics.practiceXP / 9 + metrics.lessons * 3));
+    const portfolio = Math.min(96, Math.round(20 + metrics.careerXP / 8 + metrics.buildXP / 16));
+    const readiness = Math.round((skills * 0.3) + (projects * 0.25) + (interview * 0.25) + (portfolio * 0.2));
+    return { ...metrics, skills, projects, interview, portfolio, readiness };
+}
+
+function renderCareerPage() {
+    const page = document.getElementById('careerPage');
+    if (!page) return;
+    const scores = getCareerScores();
+    const set = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
+    set('careerReadinessScore', `${scores.readiness}%`);
+    set('careerSkillsScore', `${scores.skills}%`);
+    set('careerProjectsScore', `${scores.projects}%`);
+    set('careerInterviewScore', `${scores.interview}%`);
+    set('careerPortfolioScore', `${scores.portfolio}%`);
+    const output = document.getElementById('careerOutput');
+    if (!output) return;
+    if (!me) {
+        output.innerHTML = `
+            <h3>Start your career profile</h3>
+            <p>Sign in, finish one lesson, solve one Arena problem, and join one mission. BUGOUT will turn those actions into a resume and portfolio story.</p>
+            <button class="btn btn-sm" onclick="openModal()">Create account</button>
+        `;
+    }
+}
+
+function generateCareerResume() {
+    const scores = getCareerScores();
+    const progress = scores.progress.slice(0, 4);
+    const output = document.getElementById('careerOutput');
+    if (!output) return;
+    const name = myName || 'Student';
+    const level = getLevel(Number(myXP || 0)).name;
+    const weak = (teacherMemory?.weakTopics || []).slice(0, 3);
+    output.innerHTML = `
+        <h3>Resume Snapshot</h3>
+        <p><strong>${esc(name)}</strong> - ${esc(level)} BUGOUT operator with ${scores.baseXP} global XP and ${scores.readiness}% career readiness.</p>
+        <ul>
+            <li>Learning: ${scores.lessons || 0} adaptive lesson signal(s), average mastery ${scores.avg || 0}%.</li>
+            <li>Practice: ${scores.practiceXP} Practice XP from problem solving and code improvement activity.</li>
+            <li>Build: ${scores.buildXP} Build XP toward project-based proof and mission deliverables.</li>
+            <li>Career: ${scores.careerXP} Career XP toward interview preparation, resume quality, and portfolio strength.</li>
+            ${progress.length ? progress.map(row => `<li>Recent learning proof: ${esc(row.topic || row.subject || 'Adaptive lesson')} - ${Number(row.score || row.mastery || 0)}% mastery.</li>`).join('') : '<li>Recommended next proof: complete one AI Teacher diagnostic and one Arena challenge.</li>'}
+            ${weak.length ? `<li>Current improvement targets: ${esc(weak.join(', '))}.</li>` : '<li>Current improvement target: discover weak topics through a diagnostic lesson.</li>'}
+        </ul>
+    `;
+}
+
+function generatePortfolioSummary() {
+    const scores = getCareerScores();
+    const output = document.getElementById('careerOutput');
+    if (!output) return;
+    output.innerHTML = `
+        <h3>Portfolio Story Draft</h3>
+        <p><strong>Positioning:</strong> A student building visible proof across learning, practice, and projects inside BUGOUT OS.</p>
+        <ul>
+            <li><strong>Learn:</strong> Uses adaptive AI lessons to diagnose weak areas and build mastery loops.</li>
+            <li><strong>Practice:</strong> Solves Arena challenges and receives code-quality feedback for improvement.</li>
+            <li><strong>Build:</strong> Converts missions into project deliverables, collaboration records, and certificates.</li>
+            <li><strong>Career:</strong> Packages ${scores.baseXP} XP, ${scores.lessons} lesson signal(s), and project work into resume-ready evidence.</li>
+        </ul>
+        <p><strong>Next portfolio move:</strong> Join one mission, deploy the result, then add the live URL and a short engineering write-up.</p>
+    `;
+}
+
+async function startCareerInterviewPrep() {
+    await goTeacher();
+    setTimeout(() => {
+        const input = document.getElementById('teacherStruggleInput');
+        if (input) {
+            input.value = 'Placement interview preparation based on my projects, coding practice, weak topics, and resume gaps';
+            input.focus();
+        }
+    }, 120);
+}
 function goPost() {
     if (!me) { toast('Pehle Sign In karo!', 'err'); openModal(); return; }
     resetTagInput();
@@ -4830,6 +5037,17 @@ function updateAuthUI() {
     const postBtn = document.getElementById('postBtn');
     const msgBell = document.getElementById('msgBell');
     const notifBellWrap = document.getElementById('notifBellWrap');
+    const homeNavBtn = document.getElementById('homeNavBtn');
+    const teacherNavBtn = document.getElementById('teacherNavBtn');
+    const arenaNavBtn = document.getElementById('arenaNavBtn');
+    const missionsNavBtn = document.getElementById('missionsNavBtn');
+    const careerNavBtn = document.getElementById('careerNavBtn');
+    const dashboardNavBtn = document.getElementById('dashboardNavBtn');
+    const mentorNavBtn = document.getElementById('mentorNavBtn');
+    const analyzerNavBtn = document.getElementById('analyzerNavBtn');
+    const collabNavBtn = document.getElementById('collabNavBtn');
+    const bookmarkNavBtn = document.getElementById('bookmarkNavBtn');
+    const notifBell = document.getElementById('notifBell');
 
     if (me) {
         authBtn.textContent = 'Sign Out';
@@ -4838,21 +5056,32 @@ function updateAuthUI() {
         userPill.classList.toggle('admin', isAdminUser());
         document.getElementById('userName').textContent = myName || 'User';
         document.getElementById('userXP').textContent = (isAdminUser() ? 'ADMIN - ' : '') + myXP + ' XP';
+        if (homeNavBtn) homeNavBtn.style.display = 'inline-flex';
+        if (teacherNavBtn) teacherNavBtn.style.display = 'inline-flex';
+        if (arenaNavBtn) arenaNavBtn.style.display = 'inline-flex';
+        if (missionsNavBtn) missionsNavBtn.style.display = 'inline-flex';
+        if (careerNavBtn) careerNavBtn.style.display = 'inline-flex';
         postBtn.style.display = 'inline-flex';
         msgBell.style.display = 'inline-flex';
         notifBellWrap.style.display = 'block';
+        if (dashboardNavBtn) dashboardNavBtn.style.display = 'inline-flex';
         if (missionsNavBtn) missionsNavBtn.style.display = 'inline-flex';
+        if (mentorNavBtn) mentorNavBtn.style.display = 'none';
+        if (analyzerNavBtn) analyzerNavBtn.style.display = 'none';
+        if (bookmarkNavBtn) bookmarkNavBtn.style.display = 'inline-flex';
 
-        initCollaboration();
+        if (typeof initCollaboration === 'function') initCollaboration();
     } else {
         authBtn.textContent = 'Sign In';
         authBtn.onclick = handleAuth;
         postBtn.style.display = 'none';
-        if (dashboardNavBtn) dashboardNavBtn.style.display = 'none';
-        if (arenaNavBtn) arenaNavBtn.style.display = 'none';
-        if (missionsNavBtn) missionsNavBtn.style.display = 'none';
-        if (mentorNavBtn) mentorNavBtn.style.display = 'none';
+        if (homeNavBtn) homeNavBtn.style.display = 'inline-flex';
         if (teacherNavBtn) teacherNavBtn.style.display = 'inline-flex';
+        if (arenaNavBtn) arenaNavBtn.style.display = 'inline-flex';
+        if (missionsNavBtn) missionsNavBtn.style.display = 'inline-flex';
+        if (careerNavBtn) careerNavBtn.style.display = 'inline-flex';
+        if (dashboardNavBtn) dashboardNavBtn.style.display = 'none';
+        if (mentorNavBtn) mentorNavBtn.style.display = 'none';
         if (analyzerNavBtn) analyzerNavBtn.style.display = 'none';
         if (collabNavBtn) collabNavBtn.style.display = 'none';
         if (bookmarkNavBtn) bookmarkNavBtn.style.display = 'none';
@@ -4860,6 +5089,7 @@ function updateAuthUI() {
         if (notifBell) notifBell.style.display = 'none';
         if (msgBell) msgBell.style.display = 'none';
     }
+    renderMissionControl();
 }
 
 // Enhanced handleSignOut to include collaboration cleanup
